@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "StreetdocMD",
+    "slug": "streetdocmd-patient",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D2B5E"
+    },
+    "android": {
+      "package": "com.streetdocmd.patient",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D2B5E"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ],
+      "googleServicesFile": "./google-services.json"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-location",
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        { "photosPermission": "Allow StreetdocMD to access your photos." }
+      ]
+    ],
+    "scheme": "streetdocmd"
+  }
+}
