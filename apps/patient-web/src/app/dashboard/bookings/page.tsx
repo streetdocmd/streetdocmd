@@ -48,7 +48,7 @@ export default async function BookingsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-gray-900">{SERVICE_LABELS[b.service_type]}</h3>
+                      <h3 className="font-semibold text-gray-900">{(SERVICE_LABELS as Record<string, string>)[b.service_type]}</h3>
                       <span className={`badge ${STATUS_COLORS[b.status]}`}>
                         {(BOOKING_STATUS_LABELS as Record<string, string>)[b.status]}
                       </span>

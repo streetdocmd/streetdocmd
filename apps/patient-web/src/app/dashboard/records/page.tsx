@@ -28,7 +28,7 @@ export default async function RecordsPage() {
       ) : (
         <div className="space-y-3">
           {list.map((b: any) => (
-            <RecordCard key={b.id} booking={b} serviceLabel={SERVICE_LABELS[b.service_type]} />
+            <RecordCard key={b.id} booking={b} serviceLabel={(SERVICE_LABELS as Record<string, string>)[b.service_type]} />
           ))}
         </div>
       )}
