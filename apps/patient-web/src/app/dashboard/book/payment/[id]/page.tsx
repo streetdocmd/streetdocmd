@@ -27,7 +27,7 @@ export default async function PaymentPage({ params }: { params: { id: string } }
       <div className="card p-6 mb-4">
         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Booking Summary</h2>
         <dl className="space-y-3">
-          <Row label="Service" value={SERVICE_LABELS[booking.service_type]} />
+          <Row label="Service" value={(SERVICE_LABELS as Record<string, string>)[booking.service_type]} />
           {booking.providers && <Row label="Provider" value={`${booking.providers.name} · ${booking.providers.specialty}`} />}
           <Row label="Platform fee (20%)" value={formatNaira(booking.commission)} />
           <div className="border-t border-gray-100 pt-3">
