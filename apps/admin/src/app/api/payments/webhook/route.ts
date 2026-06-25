@@ -21,22 +21,22 @@ export async function POST(req: NextRequest) {
 
   const { data: payment } = await supabase
     .from("payments")
-    .select("booking_id, amount")
+    .select("booking_id, amount, status")
     .eq("paystack_reference", reference)
     .single();
 
-  if (!payment) return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+  if (!payment) return NextResponse.json({ received: true }); // verify route handles it first
 
-  // Mark payment confirmed
+  // Only process if not already marked successful (avoid double wallet credit)
+  if (payment.status === "successful") return NextResponse.json({ received: true });
+
   await supabase.from("payments").update({ status: "successful" }).eq("paystack_reference", reference);
 
-  // Update booking payment status
   await supabase
     .from("bookings")
-    .update({ payment_status: "paid" })
+    .update({ payment_status: "successful" })
     .eq("id", payment.booking_id);
 
-  // Credit provider wallet
   const { data: booking } = await supabase
     .from("bookings")
     .select("provider_id, net_payout")

@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,27 +18,21 @@ export default function RegisterPage() {
     if (!ndpr) { setError("You must accept the data privacy consent to continue."); return; }
     setError("");
     setLoading(true);
-    const supabase = createClient();
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { data: { name: form.name } },
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
     });
-    if (signUpError) { setError(signUpError.message); setLoading(false); return; }
 
-    if (data.user) {
-      await supabase.from("users").insert({
-        id: data.user.id,
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        role: "patient",
-      });
+    const json = await res.json();
+    if (!res.ok) {
+      setError(json.error ?? "Registration failed");
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
-    router.push("/dashboard");
+    router.push("/onboarding/medical");
     router.refresh();
   }
 

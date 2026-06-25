@@ -1,30 +1,105 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase";
+import { getDistanceKm, getEtaMinutes } from "@streetdocmd/shared";
 
-export default function TrackingClient({ bookingId, initialStatus }: { bookingId: string; initialStatus: string }) {
+const LiveMap = dynamic(() => import("@/components/LiveMap"), { ssr: false });
+
+interface Props {
+  bookingId: string;
+  providerId: string;
+  providerName: string;
+  patientLat: number;
+  patientLng: number;
+  initialProviderLat: number | null;
+  initialProviderLng: number | null;
+}
+
+export default function TrackingClient({
+  bookingId,
+  providerId,
+  providerName,
+  patientLat,
+  patientLng,
+  initialProviderLat,
+  initialProviderLng,
+}: Props) {
   const router = useRouter();
+  const [providerLat, setProviderLat] = useState(initialProviderLat);
+  const [providerLng, setProviderLng] = useState(initialProviderLng);
+
+  const distanceKm =
+    providerLat != null && providerLng != null
+      ? getDistanceKm(patientLat, patientLng, providerLat, providerLng)
+      : null;
+  const eta = distanceKm != null ? getEtaMinutes(distanceKm) : null;
 
   useEffect(() => {
     const supabase = createClient();
-    const channel = supabase
-      .channel(`booking-web-${bookingId}`)
+
+    // Watch booking status changes
+    const bookingChannel = supabase
+      .channel(`tracking-booking-${bookingId}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "bookings", filter: `id=eq.${bookingId}` },
-        () => { router.refresh(); }
+        () => router.refresh()
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, [bookingId, router]);
+    // Watch provider location changes (lat/lng update every 10s)
+    const providerChannel = supabase
+      .channel(`tracking-provider-${providerId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "providers", filter: `id=eq.${providerId}` },
+        ({ new: row }) => {
+          if (row.lat != null) setProviderLat(row.lat);
+          if (row.lng != null) setProviderLng(row.lng);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(bookingChannel);
+      supabase.removeChannel(providerChannel);
+    };
+  }, [bookingId, providerId, router]);
 
   return (
-    <div className="mt-4 text-center">
-      <div className="inline-flex items-center gap-2 text-sm text-gray-400">
+    <div className="space-y-4">
+      {/* Live map */}
+      <div className="rounded-xl overflow-hidden shadow-sm border border-gray-100">
+        <LiveMap
+          providerLat={providerLat}
+          providerLng={providerLng}
+          patientLat={patientLat}
+          patientLng={patientLng}
+          providerName={providerName}
+        />
+      </div>
+
+      {/* Distance + ETA */}
+      {distanceKm != null && (
+        <div className="card p-4 flex items-center justify-around text-center">
+          <div>
+            <p className="text-2xl font-bold text-blue-brand">{distanceKm.toFixed(1)} km</p>
+            <p className="text-xs text-gray-400 mt-0.5">Distance away</p>
+          </div>
+          <div className="w-px h-10 bg-gray-100" />
+          <div>
+            <p className="text-2xl font-bold text-teal-brand">{eta} min</p>
+            <p className="text-xs text-gray-400 mt-0.5">Estimated arrival</p>
+          </div>
+        </div>
+      )}
+
+      {/* Live indicator */}
+      <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
         <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
-        Live updates active
+        Live tracking active · updates every 10 seconds
       </div>
     </div>
   );

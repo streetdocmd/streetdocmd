@@ -5,8 +5,7 @@ import type { ServiceType } from "@streetdocmd/shared";
 
 const SERVICES: ServiceType[] = [
   "general_consultation",
-  "blood_pressure_check",
-  "malaria_typhoid_test",
+  "wellness_check",
   "wound_care",
   "elderly_review",
   "nursing_care",
@@ -15,8 +14,7 @@ const SERVICES: ServiceType[] = [
 
 const SERVICE_ICONS: Record<ServiceType, string> = {
   general_consultation: "🩺",
-  blood_pressure_check: "💓",
-  malaria_typhoid_test: "🧪",
+  wellness_check: "🌿",
   wound_care: "🩹",
   elderly_review: "👴",
   nursing_care: "💉",

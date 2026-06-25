@@ -9,8 +9,7 @@ import { SERVICE_LABELS, SERVICE_PRICES, ServiceType, formatNaira } from "@stree
 
 const SERVICES: ServiceType[] = [
   "general_consultation",
-  "blood_pressure_check",
-  "malaria_typhoid_test",
+  "wellness_check",
   "wound_care",
   "elderly_review",
   "nursing_care",

@@ -75,12 +75,12 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-blue-brand font-medium hover:underline">
-              Create one
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-500 mb-3">New to StreetdocMD?</p>
+            <Link href="/register" className="block w-full border border-blue-brand text-blue-brand font-medium py-2.5 rounded-xl text-sm hover:bg-blue-50 transition-colors">
+              Create a free account
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </div>

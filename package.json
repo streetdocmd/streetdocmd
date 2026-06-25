@@ -11,6 +11,7 @@
     "dev:patient": "turbo run dev --filter=patient",
     "dev:patient-web": "turbo run dev --filter=patient-web",
     "dev:provider": "turbo run dev --filter=provider",
+    "dev:provider-web": "turbo run dev --filter=provider-web",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check"

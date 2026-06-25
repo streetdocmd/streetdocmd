@@ -2,8 +2,7 @@ import type { ServiceType } from "../types/database";
 
 export const SERVICE_LABELS: Record<ServiceType, string> = {
   general_consultation: "General Consultation",
-  blood_pressure_check: "Blood Pressure Check",
-  malaria_typhoid_test: "Malaria / Typhoid Test",
+  wellness_check: "Wellness Check",
   wound_care: "Wound Care",
   elderly_review: "Elderly Review",
   nursing_care: "Nursing Care",
@@ -12,8 +11,7 @@ export const SERVICE_LABELS: Record<ServiceType, string> = {
 
 export const SERVICE_PRICES: Record<ServiceType, number> = {
   general_consultation: 8000,
-  blood_pressure_check: 4000,
-  malaria_typhoid_test: 5000,
+  wellness_check: 5000,
   wound_care: 6000,
   elderly_review: 10000,
   nursing_care: 12000,
@@ -22,8 +20,7 @@ export const SERVICE_PRICES: Record<ServiceType, number> = {
 
 export const SERVICE_DESCRIPTIONS: Record<ServiceType, string> = {
   general_consultation: "A doctor visits to assess your symptoms and provide treatment",
-  blood_pressure_check: "Monitoring and assessment of your blood pressure at home",
-  malaria_typhoid_test: "Rapid diagnostic test with same-day results",
+  wellness_check: "Annual check-up investigations — blood tests, urinalysis, and routine screening panels",
   wound_care: "Professional cleaning, dressing, and management of wounds",
   elderly_review: "Comprehensive health assessment for elderly patients",
   nursing_care: "Professional nursing care and procedures at home",

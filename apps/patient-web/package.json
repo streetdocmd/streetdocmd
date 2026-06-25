@@ -13,9 +13,12 @@
     "@streetdocmd/shared": "*",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
+    "@types/leaflet": "^1.9.21",
+    "leaflet": "^1.9.4",
     "next": "^14.2.0",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react-dom": "^18.3.0",
+    "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

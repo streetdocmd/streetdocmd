@@ -17,8 +17,7 @@ export type PaymentStatus = "pending" | "successful" | "failed" | "refunded";
 
 export type ServiceType =
   | "general_consultation"
-  | "blood_pressure_check"
-  | "malaria_typhoid_test"
+  | "wellness_check"
   | "wound_care"
   | "elderly_review"
   | "nursing_care"

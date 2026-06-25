@@ -5,5 +5,5 @@ export default async function RootPage() {
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (user) redirect("/dashboard");
-  redirect("/login");
+  redirect("/register");
 }
