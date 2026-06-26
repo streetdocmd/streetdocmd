@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createServerSupabase } from "@/lib/supabase-server";
+import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, BOOKING_STATUS_LABELS, formatNaira } from "@streetdocmd/shared";
 import DispatchCard from "./DispatchCard";
 import AvailabilityToggle from "./AvailabilityToggle";
@@ -29,7 +29,10 @@ export default async function DashboardPage() {
     .limit(1)
     .single();
 
-  const { data: dispatchQueue } = await supabase
+  // Use admin client for dispatch queue so booking details are always readable
+  // regardless of the bookings RLS policy on pending (provider_id = NULL) bookings
+  const admin = createAdminSupabase();
+  const { data: dispatchQueue } = await admin
     .from("dispatch_queue")
     .select("id, booking_id, expires_at, bookings(service_type, patient_address, fee, net_payout, notes)")
     .eq("provider_id", provider.id)
