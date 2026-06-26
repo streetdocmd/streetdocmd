@@ -16,7 +16,7 @@ interface DispatchRequest {
     fee: number;
     net_payout: number;
     notes: string | null;
-  };
+  } | null;
 }
 
 function Countdown({ expiresAt }: { expiresAt: string }) {
@@ -64,6 +64,7 @@ export default function DispatchCard({ request }: { request: DispatchRequest }) 
   }
 
   const booking = request.bookings;
+  if (!booking) return null;
   const serviceLabel = (SERVICE_LABELS as Record<string, string>)[booking.service_type] ?? booking.service_type;
 
   return (
