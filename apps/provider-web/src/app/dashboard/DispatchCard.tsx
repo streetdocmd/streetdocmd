@@ -52,7 +52,7 @@ export default function DispatchCard({ request }: { request: DispatchRequest }) 
     if (response === "accepted") {
       // Atomic RPC: sets dispatch.response, booking.status, booking.provider_id in one call
       const { error } = await supabase.rpc("accept_dispatch", { p_dispatch_id: request.id });
-      if (error) { alert("Could not accept — the offer may have expired."); setLoading(null); return; }
+      if (error) { alert("Could not accept — the offer may have already been taken."); setLoading(null); return; }
       router.push(`/dashboard/active/${request.booking_id}`);
     } else {
       await supabase

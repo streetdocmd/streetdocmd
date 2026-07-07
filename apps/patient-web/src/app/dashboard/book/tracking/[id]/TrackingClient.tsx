@@ -45,7 +45,13 @@ export default function TrackingClient({
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "bookings", filter: `id=eq.${bookingId}` },
-        () => router.refresh()
+        ({ new: row }) => {
+          if (row.status === "completed") {
+            router.push(`/dashboard/book/rate/${bookingId}?providerId=${providerId}`);
+          } else {
+            router.refresh();
+          }
+        }
       )
       .subscribe();
 
@@ -70,16 +76,13 @@ export default function TrackingClient({
 
   return (
     <div className="space-y-4">
-      {/* Live map */}
-      <div className="rounded-xl overflow-hidden shadow-sm border border-gray-100">
-        <LiveMap
-          providerLat={providerLat}
-          providerLng={providerLng}
-          patientLat={patientLat}
-          patientLng={patientLng}
-          providerName={providerName}
-        />
-      </div>
+      <LiveMap
+        providerLat={providerLat}
+        providerLng={providerLng}
+        patientLat={patientLat}
+        patientLng={patientLng}
+        providerName={providerName}
+      />
 
       {/* Distance + ETA */}
       {distanceKm != null && (

@@ -22,7 +22,7 @@ export default function ClinicalNotesScreen() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  async function saveAndComplete() {
+  async function saveNotes() {
     if (!form.diagnosis || !form.treatment) {
       Alert.alert("Required fields", "Please enter at least a diagnosis and treatment plan.");
       return;
@@ -30,29 +30,31 @@ export default function ClinicalNotesScreen() {
 
     setSaving(true);
 
+    // Get patient_id from booking
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("patient_id")
+      .eq("id", bookingId)
+      .single();
+
     // Create visit record
     const { data: visit, error } = await supabase
       .from("visits")
       .insert({ booking_id: bookingId, ...form })
-      .select()
+      .select("id")
       .single();
+
+    setSaving(false);
 
     if (error) {
       Alert.alert("Error", "Could not save notes. Please try again.");
-      setSaving(false);
       return;
     }
 
-    // Mark booking complete
-    await supabase
-      .from("bookings")
-      .update({ status: "completed", completed_at: new Date().toISOString() })
-      .eq("id", bookingId);
-
-    setSaving(false);
-    Alert.alert("Visit Complete", "Notes saved. Payment has been released to your wallet.", [
-      { text: "OK", onPress: () => router.replace("/(tabs)/dispatch") }
-    ]);
+    router.replace({
+      pathname: "/visit/post-consultation",
+      params: { bookingId, visitId: visit.id, patientId: booking?.patient_id ?? "" },
+    });
   }
 
   return (
@@ -106,12 +108,12 @@ export default function ClinicalNotesScreen() {
 
       <TouchableOpacity
         style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-        onPress={saveAndComplete}
+        onPress={saveNotes}
         disabled={saving}
       >
         {saving
           ? <ActivityIndicator color="#fff" />
-          : <Text style={styles.saveBtnText}>Save Notes & Complete Visit</Text>
+          : <Text style={styles.saveBtnText}>Save & Continue →</Text>
         }
       </TouchableOpacity>
     </ScrollView>

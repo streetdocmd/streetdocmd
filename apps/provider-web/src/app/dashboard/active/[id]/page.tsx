@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
-import { createServerSupabase } from "@/lib/supabase-server";
+import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, formatNaira } from "@streetdocmd/shared";
+import dynamic from "next/dynamic";
 import ActiveBookingClient from "./ActiveBookingClient";
+import LocationBroadcaster from "@/components/LocationBroadcaster";
+
+const ProviderMap = dynamic(() => import("@/components/ProviderMap"), { ssr: false });
 
 export default async function ActiveBookingPage({ params }: { params: { id: string } }) {
   const supabase = await createServerSupabase();
@@ -15,9 +19,10 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
     .single();
   if (!provider) redirect("/dashboard");
 
-  const { data: booking } = await supabase
+  const admin = createAdminSupabase();
+  const { data: booking } = await admin
     .from("bookings")
-    .select("id, service_type, status, patient_address, fee, net_payout, notes, patient:users!patient_id(phone, name)")
+    .select("id, service_type, status, patient_address, patient_lat, patient_lng, fee, net_payout, notes, patient_id, patient:users!patient_id(phone, name)")
     .eq("id", params.id)
     .eq("provider_id", provider.id)
     .single();
@@ -50,10 +55,21 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
         </div>
       </div>
 
+      {booking.patient_lat && booking.patient_lng && (
+        <ProviderMap
+          patientLat={booking.patient_lat}
+          patientLng={booking.patient_lng}
+          patientName={patient?.name ?? "Patient"}
+        />
+      )}
+
+      <LocationBroadcaster providerId={provider.id} />
       <ActiveBookingClient
         bookingId={booking.id}
         currentStatus={booking.status as any}
         patientPhone={patient?.phone ?? ""}
+        patientId={(booking as any).patient_id}
+        providerId={provider.id}
       />
     </div>
   );

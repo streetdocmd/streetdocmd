@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 declare global {
   interface Window {
@@ -12,8 +11,8 @@ declare global {
         currency: string;
         ref: string;
         metadata: Record<string, unknown>;
-        onSuccess: (transaction: { reference: string }) => void;
-        onCancel: () => void;
+        callback: (response: { reference: string }) => void;
+        onClose: () => void;
       }) => { openIframe: () => void };
     };
   }
@@ -30,41 +29,68 @@ export default function PaystackButton({
   email: string;
   name: string;
 }) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function pay() {
     setLoading(true);
+    setError("");
+
+    // Remove any cached Paystack script to avoid version conflicts
+    document.querySelectorAll('script[src*="paystack"]').forEach(s => s.remove());
+    delete (window as any).PaystackPop;
 
     const script = document.createElement("script");
     script.src = "https://js.paystack.co/v1/inline.js";
     script.onload = () => {
-      const reference = `SDM-${bookingId}-${Date.now()}`;
+      const key = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "";
+      if (!key) {
+        setError("Payment is not configured. Please contact support.");
+        setLoading(false);
+        return;
+      }
+
       const handler = window.PaystackPop.setup({
-        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "",
+        key,
         email,
         amount: amount * 100,
         currency: "NGN",
-        ref: reference,
+        ref: `SDM-${bookingId}-${Date.now()}`,
         metadata: { booking_id: bookingId, patient_name: name },
-        onSuccess: async (transaction) => {
-          await fetch("/api/payments/verify", {
+        callback: (response) => {
+          // Fire-and-forget verify — admin webhook handles reliable confirmation
+          fetch("/api/payments/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ reference: transaction.reference, bookingId }),
-          });
-          router.push(`/dashboard/book/tracking/${bookingId}`);
+            body: JSON.stringify({ reference: response.reference, bookingId }),
+          }).catch(() => {});
+          window.location.href = `/dashboard/book/finding/${bookingId}`;
         },
-        onCancel: () => { setLoading(false); },
+        onClose: () => { setLoading(false); },
       });
       handler.openIframe();
+    };
+    script.onerror = () => {
+      setError("Could not load payment processor. Check your connection and try again.");
+      setLoading(false);
     };
     document.head.appendChild(script);
   }
 
+  const formatted = new Intl.NumberFormat("en-NG", {
+    style: "currency", currency: "NGN", minimumFractionDigits: 0,
+  }).format(amount);
+
   return (
-    <button onClick={pay} disabled={loading} className="btn-primary w-full text-center text-base py-3">
-      {loading ? "Opening payment…" : `Pay ${new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(amount)}`}
-    </button>
+    <div className="space-y-3">
+      <button
+        onClick={pay}
+        disabled={loading}
+        className="btn-primary w-full text-center text-base py-3"
+      >
+        {loading ? "Processing…" : `Pay ${formatted}`}
+      </button>
+      {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+    </div>
   );
 }

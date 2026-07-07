@@ -93,16 +93,39 @@ export default function HomeScreen() {
         style={styles.panicButton}
         onPress={() =>
           Alert.alert(
-            "Emergency Call",
-            "Call StreetdocMD operations line?",
+            "🚨 Medical Emergency?",
+            "This will immediately alert our emergency response team and share your location.",
             [
               { text: "Cancel", style: "cancel" },
-              { text: "Call Now", onPress: () => Linking.openURL("tel:+2348000000000") },
+              {
+                text: "Send SOS Now",
+                style: "destructive",
+                onPress: async () => {
+                  try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+                    let lat: number | undefined, lng: number | undefined;
+                    try {
+                      const loc = await Location.getCurrentPositionAsync({});
+                      lat = loc.coords.latitude;
+                      lng = loc.coords.longitude;
+                    } catch {}
+                    await supabase.from("emergencies").insert({
+                      patient_id: user.id,
+                      lat: lat ?? null,
+                      lng: lng ?? null,
+                    });
+                    Alert.alert("SOS Sent", "Our emergency response team has been alerted and will call you shortly.");
+                  } catch {
+                    Alert.alert("Error", "Could not send SOS. Please call +2348000000000 directly.");
+                  }
+                },
+              },
             ]
           )
         }
       >
-        <Text style={styles.panicText}>🚨 Emergency — Call Operations</Text>
+        <Text style={styles.panicText}>🚨 Medical Emergency — SOS</Text>
       </TouchableOpacity>
     </ScrollView>
   );

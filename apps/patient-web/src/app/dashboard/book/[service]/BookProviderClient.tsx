@@ -75,7 +75,7 @@ export default function BookProviderClient({
       return;
     }
 
-    router.push(`/dashboard/book/finding/${json.booking_id}`);
+    router.push(`/dashboard/book/payment/${json.booking_id}`);
   }
 
   return (

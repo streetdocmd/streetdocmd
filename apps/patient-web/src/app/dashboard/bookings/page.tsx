@@ -70,6 +70,11 @@ export default async function BookingsPage() {
                         Track →
                       </Link>
                     )}
+                    {b.status === "completed" && (
+                      <Link href={`/dashboard/journey/${b.id}`} className="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-green-700 transition-colors whitespace-nowrap">
+                        Care Journey →
+                      </Link>
+                    )}
                     {b.status === "completed" && !isRated && (
                       <Link href={`/dashboard/book/rate/${b.id}?providerId=${b.provider_id}`} className="bg-navy-700 text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-navy-800 transition-colors">
                         Rate Visit ★

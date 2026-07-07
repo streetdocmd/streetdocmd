@@ -16,27 +16,36 @@ export default function FindingProviderPage({ params }: { params: { id: string }
 
   useEffect(() => {
     const supabase = createClient();
+    const ACTIVE = ["accepted", "en_route", "arrived", "in_progress", "completed"];
+    let cancelled = false;
 
-    // Check current status first
-    supabase
-      .from("bookings")
-      .select("status")
-      .eq("id", params.id)
-      .single()
-      .then(({ data }) => {
-        if (!data) return;
-        if (data.status === "accepted") router.replace(`/dashboard/book/tracking/${params.id}`);
-        if (data.status === "cancelled") setStatus("cancelled");
-      });
+    async function checkStatus() {
+      const { data } = await supabase
+        .from("bookings")
+        .select("status")
+        .eq("id", params.id)
+        .single();
+      if (cancelled) return;
+      if (!data) return;
+      if (ACTIVE.includes(data.status)) {
+        router.replace(`/dashboard/book/tracking/${params.id}`);
+      } else if (data.status === "cancelled") {
+        setStatus("cancelled");
+      }
+    }
 
-    // Subscribe to real-time changes
+    // Check immediately, then poll every 3 seconds as fallback
+    checkStatus();
+    const pollId = setInterval(checkStatus, 3000);
+
+    // Also subscribe to real-time for instant updates
     const channel = supabase
       .channel(`finding-${params.id}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "bookings", filter: `id=eq.${params.id}` },
         ({ new: row }) => {
-          if (row.status === "accepted") {
+          if (row.status && ACTIVE.includes(row.status)) {
             router.replace(`/dashboard/book/tracking/${params.id}`);
           } else if (row.status === "cancelled") {
             setStatus("cancelled");
@@ -45,7 +54,11 @@ export default function FindingProviderPage({ params }: { params: { id: string }
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      cancelled = true;
+      clearInterval(pollId);
+      supabase.removeChannel(channel);
+    };
   }, [params.id, router]);
 
   if (status === "cancelled") {

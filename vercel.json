@@ -1,6 +1,1 @@
-{
-  "buildCommand": "cd apps/admin && npm run build",
-  "outputDirectory": "apps/admin/.next",
-  "installCommand": "npm install",
-  "framework": "nextjs"
-}
+{"buildCommand":"cd apps/provider-web && npm run build","outputDirectory":"apps/provider-web/.next","installCommand":"npm install","framework":"nextjs"}

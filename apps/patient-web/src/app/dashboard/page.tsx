@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, SERVICE_DESCRIPTIONS } from "@streetdocmd/shared";
 import type { ServiceType } from "@streetdocmd/shared";
+import EmergencyButton from "@/components/EmergencyButton";
 
 const SERVICES: ServiceType[] = [
   "general_consultation",
@@ -51,19 +52,7 @@ export default async function DashboardHome() {
         ))}
       </div>
 
-      {/* Emergency strip */}
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
-        <div>
-          <p className="font-semibold text-red-700">🚨 Emergency?</p>
-          <p className="text-sm text-red-500">Call our operations line immediately</p>
-        </div>
-        <a
-          href="tel:+2348000000000"
-          className="bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors"
-        >
-          Call Now
-        </a>
-      </div>
+      <EmergencyButton />
     </div>
   );
 }

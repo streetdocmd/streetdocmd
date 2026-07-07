@@ -25,6 +25,14 @@ export default function TabsLayout() {
         options={{ title: "Records", tabBarIcon: ({ color }) => <TabIcon emoji="📁" color={color} /> }}
       />
       <Tabs.Screen
+        name="investigations"
+        options={{ title: "Lab Tests", tabBarIcon: ({ color }) => <TabIcon emoji="🧪" color={color} /> }}
+      />
+      <Tabs.Screen
+        name="medications"
+        options={{ title: "Medications", tabBarIcon: ({ color }) => <TabIcon emoji="💊" color={color} /> }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{ title: "Profile", tabBarIcon: ({ color }) => <TabIcon emoji="👤" color={color} /> }}
       />

@@ -6,16 +6,32 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { data: { user } } = await auth.auth.getUser();
   if (!user) return NextResponse.redirect(new URL("/login", req.url));
 
-  const supabase = createAdminSupabase();
-  await supabase
+  const admin = createAdminSupabase();
+
+  const { data: withdrawal } = await admin
+    .from("withdrawals")
+    .select("id, provider_id, amount, status")
+    .eq("id", params.id)
+    .single();
+
+  if (withdrawal?.status !== "pending") {
+    return NextResponse.redirect(new URL("/dashboard/finance", req.url));
+  }
+
+  // Deduct from provider wallet
+  await admin.rpc("increment_wallet", {
+    p_provider_id: withdrawal.provider_id,
+    p_amount: -withdrawal.amount,
+  });
+
+  await admin
     .from("withdrawals")
     .update({
-      status: "approved",
+      status: "processed",
       processed_by: user.id,
       processed_at: new Date().toISOString(),
     })
-    .eq("id", params.id)
-    .eq("status", "pending");
+    .eq("id", params.id);
 
   return NextResponse.redirect(new URL("/dashboard/finance", req.url));
 }
