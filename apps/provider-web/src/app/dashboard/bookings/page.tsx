@@ -1,15 +1,6 @@
-import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
-import { SERVICE_LABELS, BOOKING_STATUS_LABELS, formatNaira } from "@streetdocmd/shared";
-
-const STATUS_COLORS: Record<string, string> = {
-  accepted:    "bg-blue-100 text-blue-800",
-  en_route:    "bg-violet-100 text-violet-800",
-  arrived:     "bg-indigo-100 text-indigo-800",
-  in_progress: "bg-amber-100 text-amber-800",
-  completed:   "bg-green-100 text-green-800",
-  cancelled:   "bg-red-100 text-red-800",
-};
+import { SERVICE_LABELS, BOOKING_STATUS_LABELS } from "@streetdocmd/shared";
+import ProviderBookingCard from "./ProviderBookingCard";
 
 const ACTIVE = ["accepted", "en_route", "arrived", "in_progress"];
 
@@ -27,12 +18,43 @@ export default async function BookingsPage() {
     .order("created_at", { ascending: false });
 
   const list = bookings ?? [];
+  const bookingIds = list.map((b: any) => b.id);
+
+  let visitsMap: Record<string, any> = {};
+  let prescriptionsMap: Record<string, any> = {};
+
+  if (bookingIds.length > 0) {
+    const { data: visits } = await supabase
+      .from("visits")
+      .select("id, booking_id, diagnosis, treatment, follow_up_plan")
+      .in("booking_id", bookingIds);
+
+    for (const v of visits ?? []) visitsMap[v.booking_id] = v;
+
+    const visitIds = (visits ?? []).map((v: any) => v.id);
+    if (visitIds.length > 0) {
+      const { data: prescriptions } = await supabase
+        .from("prescriptions")
+        .select("id, visit_id, pdf_url, drugs")
+        .in("visit_id", visitIds);
+
+      for (const p of prescriptions ?? []) prescriptionsMap[p.visit_id] = p;
+    }
+  }
+
+  const enriched = list.map((b: any) => {
+    const visit = visitsMap[b.id];
+    if (visit) {
+      visit.prescription = prescriptionsMap[visit.id] ?? null;
+    }
+    return { ...b, visit };
+  });
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Bookings</h1>
 
-      {list.length === 0 ? (
+      {enriched.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-4xl mb-3">📋</p>
           <p className="font-semibold text-gray-700">No bookings yet</p>
@@ -40,35 +62,16 @@ export default async function BookingsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {list.map((b: any) => {
+          {enriched.map((b: any) => {
             const isActive = ACTIVE.includes(b.status);
             return (
-              <div key={b.id} className="card p-5 flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-gray-900">
-                      {(SERVICE_LABELS as Record<string, string>)[b.service_type]}
-                    </h3>
-                    <span className={`badge ${STATUS_COLORS[b.status] ?? "bg-gray-100 text-gray-600"}`}>
-                      {(BOOKING_STATUS_LABELS as Record<string, string>)[b.status]}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-0.5 truncate">
-                    {(b.patients as any)?.name ?? "Patient"} · {b.patient_address}
-                  </p>
-                  <div className="flex items-center gap-4 mt-1">
-                    <span className="text-teal-brand font-bold text-sm">{formatNaira(b.net_payout)}</span>
-                    <span className="text-gray-400 text-xs">
-                      {new Date(b.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
-                    </span>
-                  </div>
-                </div>
-                {isActive && (
-                  <Link href={`/dashboard/active/${b.id}`} className="btn-teal text-xs px-3 py-1.5 shrink-0">
-                    Continue →
-                  </Link>
-                )}
-              </div>
+              <ProviderBookingCard
+                key={b.id}
+                booking={b}
+                serviceLabel={(SERVICE_LABELS as Record<string, string>)[b.service_type]}
+                statusLabel={(BOOKING_STATUS_LABELS as Record<string, string>)[b.status]}
+                isActive={isActive}
+              />
             );
           })}
         </div>
