@@ -29,13 +29,6 @@ const STATUS_FIELD: Partial<Record<BookingStatus, string>> = {
   completed: "completed_at",
 };
 
-interface VisitNotes {
-  chief_complaint: string;
-  diagnosis: string;
-  treatment: string;
-  follow_up_plan: string;
-}
-
 interface Drug {
   name: string;
   dosage: string;
@@ -82,12 +75,6 @@ export default function ActiveBookingClient({
   // ── Visit progression state ──────────────────────────────────────────────
   const [status, setStatus]     = useState<BookingStatus>(currentStatus);
   const [loading, setLoading]   = useState(false);
-  const [notesError, setNotesError] = useState("");
-
-  // ── Clinical notes ───────────────────────────────────────────────────────
-  const [notes, setNotes] = useState<VisitNotes>({
-    chief_complaint: "", diagnosis: "", treatment: "", follow_up_plan: "",
-  });
 
   // ── Post-consultation steps ──────────────────────────────────────────────
   const [postStep, setPostStep] = useState<PostStep>(null);
@@ -128,24 +115,18 @@ export default function ActiveBookingClient({
   async function advance() {
     if (!nextStatus) return;
 
-    if (status === "in_progress") {
-      // Validate notes then enter post-consultation flow
-      if (!notes.diagnosis.trim() || !notes.treatment.trim()) {
-        setNotesError("Diagnosis and treatment are required before continuing.");
-        return;
-      }
-      setNotesError("");
-      setPostStep("investigations");
-      await loadCatalogue();
-      return;
-    }
-
-    setLoading(true);
+      setLoading(true);
     const now    = new Date().toISOString();
     const update: Record<string, string> = { status: nextStatus };
     const field  = STATUS_FIELD[nextStatus];
     if (field) update[field] = now;
     await supabase.from("bookings").update(update).eq("id", bookingId);
+
+    if (nextStatus === "arrived") {
+      router.push(`/dashboard/clinical-note/${bookingId}`);
+      return;
+    }
+
     setStatus(nextStatus);
     setLoading(false);
   }
@@ -201,7 +182,7 @@ export default function ActiveBookingClient({
     const res = await fetch("/api/complete-visit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bookingId, notes, drugs: validDrugs }),
+      body: JSON.stringify({ bookingId, drugs: validDrugs }),
     });
     if (res.ok) {
       const data = await res.json();
@@ -212,7 +193,6 @@ export default function ActiveBookingClient({
         router.push("/dashboard");
       }
     } else {
-      setNotesError("Failed to complete visit. Please try again.");
       setPostStep("prescription");
     }
   }
@@ -265,40 +245,19 @@ export default function ActiveBookingClient({
         </a>
       )}
 
-      {/* ── NOTES FORM (in_progress, before post-consultation) ── */}
-      {status === "in_progress" && !postStep && !pharmacyPrompt && (
-        <div className="card p-5 space-y-4">
-          <h3 className="font-semibold text-gray-900">Visit Notes</h3>
-          <div>
-            <label className="label">Chief complaint</label>
-            <textarea className="input resize-none" rows={2} placeholder="Patient's presenting complaint…"
-              value={notes.chief_complaint} onChange={e => setNotes(n => ({ ...n, chief_complaint: e.target.value }))} />
-          </div>
-          <div>
-            <label className="label">Diagnosis <span className="text-red-500">*</span></label>
-            <textarea className="input resize-none" rows={2} placeholder="Clinical diagnosis…"
-              value={notes.diagnosis} onChange={e => setNotes(n => ({ ...n, diagnosis: e.target.value }))} />
-          </div>
-          <div>
-            <label className="label">Treatment given <span className="text-red-500">*</span></label>
-            <textarea className="input resize-none" rows={2} placeholder="Medications, procedures, advice…"
-              value={notes.treatment} onChange={e => setNotes(n => ({ ...n, treatment: e.target.value }))} />
-          </div>
-          <div>
-            <label className="label">Follow-up plan</label>
-            <textarea className="input resize-none" rows={2} placeholder="Review in X days, referral, etc."
-              value={notes.follow_up_plan} onChange={e => setNotes(n => ({ ...n, follow_up_plan: e.target.value }))} />
-          </div>
-          {notesError && <p className="text-red-600 text-sm">{notesError}</p>}
-        </div>
+
+      {/* Continue Clinical Note (arrived or in_progress — provider navigated back) */}
+      {(status === "arrived" || status === "in_progress") && !postStep && !pharmacyPrompt && (
+        <a href={`/dashboard/clinical-note/${bookingId}`}
+          className="w-full py-3 rounded-xl font-semibold text-white bg-teal-brand hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
+          📋 Continue Clinical Note →
+        </a>
       )}
 
       {/* ── ADVANCE BUTTON (non-completion steps) ── */}
-      {status !== "completed" && nextStatus && !postStep && !pharmacyPrompt && (
+      {status !== "completed" && nextStatus && status !== "arrived" && status !== "in_progress" && !postStep && !pharmacyPrompt && (
         <button onClick={advance} disabled={loading}
-          className={`w-full py-3 rounded-xl font-semibold text-white transition-colors disabled:opacity-50 ${
-            status === "in_progress" ? "bg-blue-brand hover:bg-blue-700" : "bg-blue-brand hover:bg-blue-700"
-          }`}>
+          className="w-full py-3 rounded-xl font-semibold text-white transition-colors disabled:opacity-50 bg-blue-brand hover:bg-blue-700">
           {loading ? "Updating…" : currentStep.action}
         </button>
       )}
@@ -476,8 +435,6 @@ export default function ActiveBookingClient({
                 className="w-full py-2 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-teal-brand hover:text-teal-brand transition-colors">
                 + Add another drug
               </button>
-
-              {notesError && <p className="text-red-600 text-sm">{notesError}</p>}
 
               <button onClick={completeVisit}
                 className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-colors">
