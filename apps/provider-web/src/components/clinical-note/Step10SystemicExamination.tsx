@@ -42,7 +42,7 @@ function Textarea({ label, value, onChange }: { label: string; value: string; on
 
 function SystemForm({ sysKey, data, onChange }: { sysKey: SystemName; data: Record<string, any>; onChange: (d: Record<string, any>) => void }) {
   const set = (k: string, v: any) => onChange({ ...data, [k]: v });
-  const g = (k: string, def = "") => data[k] ?? def;
+  const g = (k: string, def: any = "") => data[k] ?? def;
 
   switch (sysKey) {
     case "cardiovascular": return (
