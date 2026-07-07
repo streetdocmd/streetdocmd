@@ -99,7 +99,7 @@ function Modal({ form, setForm, onSave, onClose, loading, categories, title }: a
   );
 }
 
-function Field({ label, value, onChange, placeholder }: any) {
+function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div>
       <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</label>
