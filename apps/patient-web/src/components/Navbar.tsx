@@ -61,14 +61,14 @@ export default function Navbar({ userName }: { userName: string }) {
       </div>
 
       {/* Mobile nav */}
-      <div className="md:hidden border-t border-white/10 flex">
+      <div className="md:hidden border-t border-white/10 flex overflow-x-auto scrollbar-hide">
         {NAV.map(({ href, label }) => {
           const active = pathname === href;
           return (
             <Link
               key={href}
               href={href}
-              className={`flex-1 text-center py-2.5 text-xs font-medium transition-colors ${
+              className={`shrink-0 px-4 py-2.5 text-xs font-medium transition-colors whitespace-nowrap ${
                 active ? "text-white bg-white/20" : "text-blue-200 hover:bg-white/10"
               }`}
             >
