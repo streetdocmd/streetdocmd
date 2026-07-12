@@ -1,5 +1,5 @@
-import { createServerSupabase } from "@/lib/supabase-server";
-import { formatNaira } from "@streetdocmd/shared";
+﻿import { createServerSupabase } from "@/lib/supabase-server";
+import { formatNaira } from "@/lib/shared";
 import Link from "next/link";
 
 async function getStats() {
@@ -66,18 +66,18 @@ export default async function DashboardPage() {
       {(stats.pendingBookings > 0 || pendingVerifications.length > 0) && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-amber-500 text-lg">⚠️</span>
+            <span className="text-amber-500 text-lg">âš ï¸</span>
             <div>
               <p className="text-sm font-semibold text-amber-800">Attention required</p>
               <p className="text-xs text-amber-600">
                 {pendingVerifications.length > 0 && `${pendingVerifications.length} provider verification${pendingVerifications.length > 1 ? "s" : ""} pending`}
-                {pendingVerifications.length > 0 && stats.pendingBookings > 0 && " · "}
+                {pendingVerifications.length > 0 && stats.pendingBookings > 0 && " Â· "}
                 {stats.pendingBookings > 0 && `${stats.pendingBookings} booking${stats.pendingBookings > 1 ? "s" : ""} awaiting dispatch`}
               </p>
             </div>
           </div>
           <Link href="/dashboard/providers" className="text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2">
-            Review →
+            Review â†’
           </Link>
         </div>
       )}
@@ -91,12 +91,12 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-semibold text-gray-900">Pending Verifications</h2>
               <p className="text-xs text-gray-400 mt-0.5">Providers awaiting MDCN/NMCN review</p>
             </div>
-            <Link href="/dashboard/providers" className="text-xs text-blue-brand font-medium hover:underline">View all →</Link>
+            <Link href="/dashboard/providers" className="text-xs text-blue-brand font-medium hover:underline">View all â†’</Link>
           </div>
           {pendingVerifications.length === 0 ? (
             <div className="px-5 py-10 text-center">
-              <p className="text-3xl mb-2">✅</p>
-              <p className="text-sm text-gray-500 font-medium">All clear — no pending verifications</p>
+              <p className="text-3xl mb-2">âœ…</p>
+              <p className="text-sm text-gray-500 font-medium">All clear â€” no pending verifications</p>
             </div>
           ) : (
             <ul className="divide-y divide-gray-50">
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{p.name}</p>
-                      <p className="text-xs text-gray-400">{p.specialty} · {p.credentials}</p>
+                      <p className="text-xs text-gray-400">{p.specialty} Â· {p.credentials}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -132,11 +132,11 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-semibold text-gray-900">Recent Bookings</h2>
               <p className="text-xs text-gray-400 mt-0.5">Latest consultation requests</p>
             </div>
-            <Link href="/dashboard/bookings" className="text-xs text-blue-brand font-medium hover:underline">View all →</Link>
+            <Link href="/dashboard/bookings" className="text-xs text-blue-brand font-medium hover:underline">View all â†’</Link>
           </div>
           {recentBookings.length === 0 ? (
             <div className="px-5 py-10 text-center">
-              <p className="text-3xl mb-2">📋</p>
+              <p className="text-3xl mb-2">ðŸ“‹</p>
               <p className="text-sm text-gray-500 font-medium">No bookings yet</p>
             </div>
           ) : (
@@ -163,7 +163,7 @@ export default async function DashboardPage() {
   );
 }
 
-/* ── Sub-components ── */
+/* â”€â”€ Sub-components â”€â”€ */
 
 function StatCard({ label, value, sub, icon, color }: {
   label: string; value: string; sub: string; icon: React.ReactNode;
@@ -209,3 +209,4 @@ function RevenueIcon()  { return <svg className="w-5 h-5" fill="none" stroke="cu
 function PatientIcon()  { return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>; }
 function ProviderIcon() { return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>; }
 function VisitIcon()    { return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>; }
+

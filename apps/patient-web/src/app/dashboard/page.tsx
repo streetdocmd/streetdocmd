@@ -1,7 +1,7 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
-import { SERVICE_LABELS, SERVICE_DESCRIPTIONS } from "@streetdocmd/shared";
-import type { ServiceType } from "@streetdocmd/shared";
+import { SERVICE_LABELS, SERVICE_DESCRIPTIONS } from "@/lib/shared";
+import type { ServiceType } from "@/lib/shared";
 import EmergencyButton from "@/components/EmergencyButton";
 
 const SERVICES: ServiceType[] = [
@@ -14,12 +14,12 @@ const SERVICES: ServiceType[] = [
 ];
 
 const SERVICE_ICONS: Record<ServiceType, string> = {
-  general_consultation: "🩺",
-  wellness_check: "🌿",
-  wound_care: "🩹",
-  elderly_review: "👴",
-  nursing_care: "💉",
-  custom_request: "✏️",
+  general_consultation: "ðŸ©º",
+  wellness_check: "ðŸŒ¿",
+  wound_care: "ðŸ©¹",
+  elderly_review: "ðŸ‘´",
+  nursing_care: "ðŸ’‰",
+  custom_request: "âœï¸",
 };
 
 export default async function DashboardHome() {
@@ -31,7 +31,7 @@ export default async function DashboardHome() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Hello, {firstName} 👋</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Hello, {firstName} ðŸ‘‹</h1>
         <p className="text-gray-500 mt-1">What care do you need today? A provider will come to you.</p>
       </div>
 

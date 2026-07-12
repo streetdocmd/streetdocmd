@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
-import { SERVICE_PRICES } from "@streetdocmd/shared";
-import type { ServiceType } from "@streetdocmd/shared";
+import { SERVICE_PRICES } from "@/lib/shared";
+import type { ServiceType } from "@/lib/shared";
 
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabase();
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       net_payout: fee - commission,
       status: "pending",
       payment_status: "pending",
-      // provider_id intentionally omitted — initial_booking_dispatch trigger assigns it
+      // provider_id intentionally omitted â€” initial_booking_dispatch trigger assigns it
     })
     .select("id")
     .single();

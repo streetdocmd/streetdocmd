@@ -1,5 +1,5 @@
-import { createServerSupabase } from "@/lib/supabase-server";
-import { formatNaira } from "@streetdocmd/shared";
+﻿import { createServerSupabase } from "@/lib/supabase-server";
+import { formatNaira } from "@/lib/shared";
 
 async function getFinancials() {
   const supabase = createServerSupabase();
@@ -76,7 +76,7 @@ export default async function FinancePage() {
                   <td className="py-3 font-medium">{w.providers?.name}</td>
                   <td className="py-3">{formatNaira(w.amount)}</td>
                   <td className="py-3 text-gray-600">{w.bank_name}</td>
-                  <td className="py-3 text-gray-600">{w.account_number} · {w.account_name}</td>
+                  <td className="py-3 text-gray-600">{w.account_number} Â· {w.account_name}</td>
                   <td className="py-3 text-gray-400 text-xs">
                     {new Date(w.requested_at).toLocaleDateString("en-NG")}
                   </td>
@@ -96,3 +96,4 @@ export default async function FinancePage() {
     </div>
   );
 }
+
