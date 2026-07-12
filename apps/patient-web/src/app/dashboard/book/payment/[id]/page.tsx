@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
-import { SERVICE_LABELS, formatNaira } from "@streetdocmd/shared";
+import { SERVICE_LABELS, formatNaira } from "@/lib/shared";
 import PaystackButton from "./PaystackButton";
 
 export default async function PaymentPage({ params }: { params: { id: string } }) {

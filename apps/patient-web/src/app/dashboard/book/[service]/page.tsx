@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { SERVICE_LABELS } from "@streetdocmd/shared";
-import type { ServiceType } from "@streetdocmd/shared";
+import { SERVICE_LABELS } from "@/lib/shared";
+import type { ServiceType } from "@/lib/shared";
 import BookProviderClient from "./BookProviderClient";
 
 export default async function SelectProviderPage({

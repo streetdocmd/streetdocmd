@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase";
-import { getDistanceKm, getEtaMinutes } from "@streetdocmd/shared";
+import { getDistanceKm, getEtaMinutes } from "@/lib/shared";
 
 const LiveMap = dynamic(() => import("@/components/LiveMap"), { ssr: false });
 

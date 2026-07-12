@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { SERVICE_LABELS, SERVICE_PRICES, formatNaira } from "@streetdocmd/shared";
-import type { ServiceType } from "@streetdocmd/shared";
+import { SERVICE_LABELS, SERVICE_PRICES, formatNaira } from "@/lib/shared";
+import type { ServiceType } from "@/lib/shared";
 
 type GeoState = "idle" | "locating" | "ready" | "denied";
 

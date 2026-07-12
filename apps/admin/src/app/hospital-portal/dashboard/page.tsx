@@ -112,7 +112,7 @@ export default function HospitalPortalDashboard() {
     if (partnerId) query = query.eq("hospital_partner_id", partnerId);
 
     const { data } = await query;
-    const rows = (data ?? []) as Referral[];
+    const rows = (data ?? []) as unknown as Referral[];
 
     // Fetch patient info — privacy rule: first name + age only until acknowledged
     const patientIds = [...new Set(rows.map(r => r.patient_id))];

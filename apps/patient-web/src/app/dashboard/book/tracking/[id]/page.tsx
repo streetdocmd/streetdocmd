@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
-import { BOOKING_STATUS_LABELS } from "@streetdocmd/shared";
+import { BOOKING_STATUS_LABELS } from "@/lib/shared";
 import TrackingClient from "./TrackingClient";
 
 const STATUS_COLORS: Record<string, string> = {

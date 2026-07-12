@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { redirect } from "next/navigation";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
-import { SERVICE_LABELS } from "@streetdocmd/shared";
+import { SERVICE_LABELS } from "@/lib/shared";
 import CareJourneyClient, { type JourneyStep } from "./CareJourneyClient";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
