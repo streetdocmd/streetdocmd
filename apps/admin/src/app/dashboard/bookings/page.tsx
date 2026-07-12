@@ -68,7 +68,7 @@ export default async function BookingsPage({
             {(bookings ?? []).map((b) => (
               <tr key={b.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono text-xs text-gray-500">
-                  {b.id.slice(0, 8)}â€¦
+                  {b.id.slice(0, 8)}…
                 </td>
                 <td className="px-4 py-3 capitalize text-gray-900">
                   {b.service_type.replace(/_/g, " ")}

@@ -93,7 +93,7 @@ function OrdersTable({ orders }: { orders: any[] }) {
       <div className="flex gap-3">
         <input
           className="input flex-1"
-          placeholder="Search by patient nameâ€¦"
+          placeholder="Search by patient name…"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -122,13 +122,13 @@ function OrdersTable({ orders }: { orders: any[] }) {
                 const total = (o.tests as any[])?.reduce((s: number, t: any) => s + (t.price ?? 0), 0) ?? 0;
                 return (
                   <tr key={o.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{o.users?.name ?? "â€”"}</td>
-                    <td className="px-4 py-3 text-gray-600">{o.providers?.name ?? "â€”"}</td>
-                    <td className="px-4 py-3 text-gray-600">{o.lab_partners?.name ?? "â€”"}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{o.users?.name ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{o.providers?.name ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{o.lab_partners?.name ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-500 max-w-xs truncate">
                       {(o.tests as any[])?.map((t: any) => t.test_name).join(", ")}
                     </td>
-                    <td className="px-4 py-3 font-medium text-gray-900">â‚¦{total.toLocaleString()}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">₦{total.toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[o.status] ?? "bg-gray-100 text-gray-600"}`}>
                         {STATUS_LABELS[o.status] ?? o.status}
@@ -212,7 +212,7 @@ function PartnersPanel({ partners, showForm, setShowForm }: {
             Home collection available
           </label>
           <button type="submit" disabled={saving} className="px-6 py-2.5 bg-teal-600 text-white rounded-lg font-semibold text-sm disabled:opacity-50">
-            {saving ? "Savingâ€¦" : "Add Partner"}
+            {saving ? "Saving…" : "Add Partner"}
           </button>
         </form>
       )}
@@ -225,7 +225,7 @@ function PartnersPanel({ partners, showForm, setShowForm }: {
             <div key={p.id} className="card p-4 flex items-center justify-between">
               <div>
                 <p className="font-semibold text-gray-900">{p.name}</p>
-                <p className="text-sm text-gray-500">{p.address} Â· {p.phone}</p>
+                <p className="text-sm text-gray-500">{p.address} · {p.phone}</p>
                 {p.home_collection_available && (
                   <span className="text-xs bg-teal-50 text-teal-600 border border-teal-200 rounded-full px-2 py-0.5 mt-1 inline-block">Home collection</span>
                 )}
@@ -239,7 +239,7 @@ function PartnersPanel({ partners, showForm, setShowForm }: {
                     : "bg-gray-100 text-gray-500 hover:bg-green-50 hover:text-green-700"
                 }`}
               >
-                {toggling === p.id ? "â€¦" : p.active ? "Active" : "Inactive"}
+                {toggling === p.id ? "…" : p.active ? "Active" : "Inactive"}
               </button>
             </div>
           ))}
@@ -304,7 +304,7 @@ function StaffPanel({ staff, partners }: { staff: any[]; partners: any[] }) {
           </div>
           <p className="text-xs text-gray-400">A login will be created and credentials sent to their phone via SMS.</p>
           <button type="submit" disabled={saving} className="px-6 py-2.5 bg-teal-600 text-white rounded-lg font-semibold text-sm disabled:opacity-50">
-            {saving ? "Creating accountâ€¦" : "Create Staff Account"}
+            {saving ? "Creating account…" : "Create Staff Account"}
           </button>
         </form>
       )}
@@ -326,10 +326,10 @@ function StaffPanel({ staff, partners }: { staff: any[]; partners: any[] }) {
                 const partner = partners.find((p: any) => p.id === s.lab_partner_id);
                 return (
                   <tr key={s.id}>
-                    <td className="px-4 py-3 font-medium text-gray-900">{u?.name ?? "â€”"}</td>
-                    <td className="px-4 py-3 text-gray-600">{u?.email ?? "â€”"}</td>
-                    <td className="px-4 py-3 text-gray-600">{u?.phone ?? "â€”"}</td>
-                    <td className="px-4 py-3 text-gray-600">{partner?.name ?? "â€”"}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{u?.name ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{u?.email ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{u?.phone ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{partner?.name ?? "—"}</td>
                   </tr>
                 );
               })}

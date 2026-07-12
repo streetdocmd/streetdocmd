@@ -33,7 +33,7 @@ export default async function BookingsPage() {
 
       {list.length === 0 ? (
         <div className="card p-12 text-center">
-          <p className="text-4xl mb-4">ðŸ“‹</p>
+          <p className="text-4xl mb-4">📋</p>
           <p className="font-semibold text-gray-700 text-lg">No bookings yet</p>
           <p className="text-gray-400 text-sm mt-1">Your booking history will appear here.</p>
           <Link href="/dashboard" className="btn-primary inline-flex mt-4">Book a Service</Link>
@@ -54,7 +54,7 @@ export default async function BookingsPage() {
                       </span>
                     </div>
                     {b.providers && (
-                      <p className="text-sm text-gray-500 mt-0.5">{b.providers.name} Â· {b.providers.specialty}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{b.providers.name} · {b.providers.specialty}</p>
                     )}
                     <div className="flex items-center gap-4 mt-2">
                       <span className="text-blue-brand font-bold text-sm">{formatNaira(b.fee)}</span>
@@ -67,21 +67,21 @@ export default async function BookingsPage() {
                   <div className="flex flex-col gap-2 items-end shrink-0">
                     {isActive && (
                       <Link href={`/dashboard/book/tracking/${b.id}`} className="btn-primary text-xs px-3 py-1.5">
-                        Track â†’
+                        Track →
                       </Link>
                     )}
                     {b.status === "completed" && (
                       <Link href={`/dashboard/journey/${b.id}`} className="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-green-700 transition-colors whitespace-nowrap">
-                        Care Journey â†’
+                        Care Journey →
                       </Link>
                     )}
                     {b.status === "completed" && !isRated && (
                       <Link href={`/dashboard/book/rate/${b.id}?providerId=${b.provider_id}`} className="bg-navy-700 text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-navy-800 transition-colors">
-                        Rate Visit â˜…
+                        Rate Visit ★
                       </Link>
                     )}
                     {b.status === "completed" && isRated && (
-                      <span className="text-xs text-green-600 font-medium">âœ“ Rated</span>
+                      <span className="text-xs text-green-600 font-medium">✓ Rated</span>
                     )}
                     {b.status === "pending" && <CancelButton bookingId={b.id} />}
                   </div>

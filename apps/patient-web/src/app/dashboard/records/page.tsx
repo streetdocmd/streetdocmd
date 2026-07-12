@@ -22,7 +22,7 @@ export default async function RecordsPage() {
   let summariesMap: Record<string, any> = {};
 
   if (bookingIds.length > 0) {
-    // Use admin client for sub-queries â€” ownership is already proven via bookingIds
+    // Use admin client for sub-queries — ownership is already proven via bookingIds
     // (scoped to patient_id = user.id above), so bypassing RLS here is safe.
     const admin = createAdminSupabase();
 
@@ -83,7 +83,7 @@ export default async function RecordsPage() {
 
       {enriched.length === 0 ? (
         <div className="card p-12 text-center">
-          <p className="text-4xl mb-4">ðŸ“</p>
+          <p className="text-4xl mb-4">�</p>
           <p className="font-semibold text-gray-700 text-lg">No records yet</p>
           <p className="text-gray-400 text-sm mt-1">
             Your visit records will appear here after completed visits.

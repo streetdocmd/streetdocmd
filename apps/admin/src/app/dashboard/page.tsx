@@ -66,18 +66,18 @@ export default async function DashboardPage() {
       {(stats.pendingBookings > 0 || pendingVerifications.length > 0) && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-amber-500 text-lg">âš ï¸</span>
+            <span className="text-amber-500 text-lg">⚠�</span>
             <div>
               <p className="text-sm font-semibold text-amber-800">Attention required</p>
               <p className="text-xs text-amber-600">
                 {pendingVerifications.length > 0 && `${pendingVerifications.length} provider verification${pendingVerifications.length > 1 ? "s" : ""} pending`}
-                {pendingVerifications.length > 0 && stats.pendingBookings > 0 && " Â· "}
+                {pendingVerifications.length > 0 && stats.pendingBookings > 0 && " · "}
                 {stats.pendingBookings > 0 && `${stats.pendingBookings} booking${stats.pendingBookings > 1 ? "s" : ""} awaiting dispatch`}
               </p>
             </div>
           </div>
           <Link href="/dashboard/providers" className="text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2">
-            Review â†’
+            Review →
           </Link>
         </div>
       )}
@@ -91,12 +91,12 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-semibold text-gray-900">Pending Verifications</h2>
               <p className="text-xs text-gray-400 mt-0.5">Providers awaiting MDCN/NMCN review</p>
             </div>
-            <Link href="/dashboard/providers" className="text-xs text-blue-brand font-medium hover:underline">View all â†’</Link>
+            <Link href="/dashboard/providers" className="text-xs text-blue-brand font-medium hover:underline">View all →</Link>
           </div>
           {pendingVerifications.length === 0 ? (
             <div className="px-5 py-10 text-center">
-              <p className="text-3xl mb-2">âœ…</p>
-              <p className="text-sm text-gray-500 font-medium">All clear â€” no pending verifications</p>
+              <p className="text-3xl mb-2">✅</p>
+              <p className="text-sm text-gray-500 font-medium">All clear — no pending verifications</p>
             </div>
           ) : (
             <ul className="divide-y divide-gray-50">
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{p.name}</p>
-                      <p className="text-xs text-gray-400">{p.specialty} Â· {p.credentials}</p>
+                      <p className="text-xs text-gray-400">{p.specialty} · {p.credentials}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -132,11 +132,11 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-semibold text-gray-900">Recent Bookings</h2>
               <p className="text-xs text-gray-400 mt-0.5">Latest consultation requests</p>
             </div>
-            <Link href="/dashboard/bookings" className="text-xs text-blue-brand font-medium hover:underline">View all â†’</Link>
+            <Link href="/dashboard/bookings" className="text-xs text-blue-brand font-medium hover:underline">View all →</Link>
           </div>
           {recentBookings.length === 0 ? (
             <div className="px-5 py-10 text-center">
-              <p className="text-3xl mb-2">ðŸ“‹</p>
+              <p className="text-3xl mb-2">📋</p>
               <p className="text-sm text-gray-500 font-medium">No bookings yet</p>
             </div>
           ) : (
@@ -163,7 +163,7 @@ export default async function DashboardPage() {
   );
 }
 
-/* â”€â”€ Sub-components â”€â”€ */
+/* ── Sub-components ── */
 
 function StatCard({ label, value, sub, icon, color }: {
   label: string; value: string; sub: string; icon: React.ReactNode;

@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       net_payout: fee - commission,
       status: "pending",
       payment_status: "pending",
-      // provider_id intentionally omitted â€” initial_booking_dispatch trigger assigns it
+      // provider_id intentionally omitted — initial_booking_dispatch trigger assigns it
     })
     .select("id")
     .single();
