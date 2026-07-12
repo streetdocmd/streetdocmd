@@ -43,6 +43,7 @@ export default function ClinicalNoteClient({
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [showSaved, setShowSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // All note data keyed by field name matching clinical_notes columns
   const [noteData, setNoteData] = useState<Record<string, any>>({
@@ -103,6 +104,7 @@ export default function ClinicalNoteClient({
 
   const handleSubmit = async () => {
     setSubmitting(true);
+    setSubmitError(null);
     try {
       const res = await fetch("/api/clinical-note/submit", {
         method: "POST",
@@ -119,7 +121,12 @@ export default function ClinicalNoteClient({
       });
       if (res.ok) {
         window.location.href = "/dashboard?notice=note_submitted";
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setSubmitError(body.error ?? `Submission failed (${res.status}). Please try again.`);
       }
+    } catch (e: any) {
+      setSubmitError(e?.message ?? "Network error. Please check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
@@ -142,7 +149,7 @@ export default function ClinicalNoteClient({
       case 12: return <Step12Interventions value={noteData.interventions} onChange={v => updateField("interventions", v)} />;
       case 13: return <Step13Recommendations bookingId={bookingId} patientId={patient?.id ?? ""} providerId={provider.id} value={noteData.recommendations} onChange={v => updateField("recommendations", v)} />;
       case 14: return <Step14FollowUp noteId={noteId} patientId={patient?.id} value={{ date: noteData.follow_up_date, safeguarding: noteData.safeguarding_flag }} onChange={v => { updateField("follow_up_date", v.date); updateField("safeguarding_flag", v.safeguarding); }} />;
-      case 15: return <SubmissionReview noteData={noteData} vitalsData={vitalsData} diagnosesData={diagnosesData} onSubmit={handleSubmit} submitting={submitting} onBack={() => setStep(14)} />;
+      case 15: return <SubmissionReview noteData={noteData} vitalsData={vitalsData} diagnosesData={diagnosesData} onSubmit={handleSubmit} submitting={submitting} submitError={submitError} onBack={() => setStep(14)} />;
     }
   };
 

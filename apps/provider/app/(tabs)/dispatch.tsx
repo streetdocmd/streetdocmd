@@ -104,19 +104,22 @@ export default function DispatchScreen() {
   }
 
   async function respondToDispatch(dispatchId: string, bookingId: string, response: "accepted" | "declined") {
-    await supabase
-      .from("dispatch_queue")
-      .update({ response, responded_at: new Date().toISOString() })
-      .eq("id", dispatchId);
-
     if (response === "accepted") {
-      await supabase
-        .from("bookings")
-        .update({ status: "accepted", accepted_at: new Date().toISOString() })
-        .eq("id", bookingId);
-
+      // Atomic RPC: sets dispatch.response, booking.status AND booking.provider_id in one call.
+      // Without provider_id being set, checkForActiveBooking would never find the booking.
+      const { error } = await supabase.rpc("accept_dispatch", { p_dispatch_id: dispatchId });
+      if (error) {
+        Alert.alert("Could not accept", "This offer may have already expired or been taken.");
+        return;
+      }
       startLocationTracking();
       checkForActiveBooking(provider.id);
+    } else {
+      // Decline: update dispatch_queue only — the on_dispatch_declined trigger re-routes
+      await supabase
+        .from("dispatch_queue")
+        .update({ response: "declined", responded_at: new Date().toISOString() })
+        .eq("id", dispatchId);
     }
   }
 

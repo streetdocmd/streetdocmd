@@ -6,6 +6,7 @@ type Props = {
   diagnosesData: any[];
   onSubmit: () => void;
   submitting: boolean;
+  submitError?: string | null;
   onBack: () => void;
 };
 
@@ -30,7 +31,7 @@ function checkComplete(noteData: Record<string, any>, vitalsData: Record<string,
   ];
 }
 
-export default function SubmissionReview({ noteData, vitalsData, diagnosesData, onSubmit, submitting, onBack }: Props) {
+export default function SubmissionReview({ noteData, vitalsData, diagnosesData, onSubmit, submitting, submitError, onBack }: Props) {
   const sections = checkComplete(noteData, vitalsData, diagnosesData);
   const requiredMissing = sections.filter(s => s.required && !s.complete);
   const canSubmit = requiredMissing.length === 0;
@@ -100,6 +101,12 @@ export default function SubmissionReview({ noteData, vitalsData, diagnosesData, 
         >
           ← Back to Step 14
         </button>
+
+        {submitError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p className="text-sm text-red-700 font-medium">Submission failed: {submitError}</p>
+          </div>
+        )}
 
         <button
           onClick={onSubmit}

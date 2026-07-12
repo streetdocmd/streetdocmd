@@ -7,12 +7,23 @@ export async function POST(req: NextRequest) {
 
   if (!noteId) return NextResponse.json({ error: "missing noteId" }, { status: 400 });
 
+  // Strip noteData to only valid clinical_notes columns — extra keys (e.g.
+  // current_medications_note, allergies_note) cause PostgREST to reject the update.
+  const VALID_NOTE_COLUMNS = new Set([
+    "people_in_attendance", "presenting_complaints", "chronic_issues",
+    "history", "social_history", "general_examination", "systemic_examinations",
+    "interventions", "recommendations", "follow_up_date", "safeguarding_flag",
+  ]);
+  const safeNoteData = Object.fromEntries(
+    Object.entries(noteData ?? {}).filter(([k]) => VALID_NOTE_COLUMNS.has(k))
+  );
+
   // 1. Submit the clinical note
   const now = new Date().toISOString();
   const { error: noteError } = await admin
     .from("clinical_notes")
     .update({
-      ...noteData,
+      ...safeNoteData,
       status: "submitted",
       submitted_at: now,
       updated_at: now,

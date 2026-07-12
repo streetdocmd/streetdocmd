@@ -22,11 +22,13 @@ export default function ProviderBookingCard({
 }) {
   const [open, setOpen] = useState(false);
 
-  const visit        = booking.visit;
-  const prescription = visit?.prescription;
-  const pdfUrl       = prescription?.pdf_url;
-  const drugs: any[] = prescription?.drugs ?? [];
-  const isCompleted  = booking.status === "completed";
+  const visit           = booking.visit;
+  const clinicalNote    = booking.clinicalNote;
+  const prescription    = visit?.prescription;
+  const pdfUrl          = prescription?.pdf_url;
+  const drugs: any[]    = prescription?.drugs ?? [];
+  const isCompleted     = booking.status === "completed";
+  const noteSubmitted   = clinicalNote?.status === "submitted";
 
   return (
     <div className="card overflow-hidden">
@@ -73,7 +75,24 @@ export default function ProviderBookingCard({
 
       {open && isCompleted && (
         <div className="border-t border-gray-100 p-5 bg-gray-50/50 space-y-4">
-          {visit ? (
+          {noteSubmitted ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-green-700">✓ Clinical note submitted</p>
+                {clinicalNote.submitted_at && (
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {new Date(clinicalNote.submitted_at).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}
+                  </p>
+                )}
+              </div>
+              <Link
+                href={`/dashboard/clinical-note/${booking.id}`}
+                className="text-sm text-teal-700 border border-teal-200 bg-teal-50 rounded-lg px-3 py-1.5 font-medium hover:bg-teal-100 transition-colors"
+              >
+                View Note →
+              </Link>
+            </div>
+          ) : visit ? (
             <>
               {visit.diagnosis && (
                 <div>
@@ -93,7 +112,6 @@ export default function ProviderBookingCard({
                   <p className="text-sm text-gray-700 leading-relaxed">{visit.follow_up_plan}</p>
                 </div>
               )}
-
               {drugs.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Medications Prescribed</p>
@@ -109,7 +127,6 @@ export default function ProviderBookingCard({
                   </div>
                 </div>
               )}
-
               {pdfUrl && (
                 <a
                   href={pdfUrl}
@@ -122,7 +139,7 @@ export default function ProviderBookingCard({
               )}
             </>
           ) : (
-            <p className="text-sm text-gray-400">No clinical notes recorded for this visit.</p>
+            <p className="text-sm text-gray-400">No notes recorded for this visit.</p>
           )}
         </div>
       )}

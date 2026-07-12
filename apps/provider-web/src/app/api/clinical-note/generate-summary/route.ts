@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
+import { buildPrescriptionPDF } from "@/lib/prescription-pdf";
 
 function buildAbnormalVitals(vitals: any): any[] {
   if (!vitals) return [];
@@ -61,8 +62,9 @@ export async function POST(req: NextRequest) {
 
   const { data: vitals } = await admin.from("vitals").select("*").eq("clinical_note_id", noteId).maybeSingle();
   const { data: diagnoses } = await admin.from("clinical_note_diagnoses").select("*").eq("clinical_note_id", noteId).order("diagnosis_type");
-  const { data: prescriptions } = await admin.from("prescriptions").select("drugs").eq("booking_id", note.booking_id);
-  const { data: investigations } = await admin.from("investigation_orders").select("test_name, status, lab_partners(name)").eq("booking_id", note.booking_id);
+  const { data: prescriptions } = await admin.from("prescriptions").select("id, drugs").eq("booking_id", note.booking_id);
+  const { data: investigationOrders } = await admin.from("investigation_orders").select("tests, status").eq("booking_id", note.booking_id);
+  const { data: patientRow } = await admin.from("users").select("name").eq("id", note.patient_id).single();
 
   const complaints = note.presenting_complaints as any[];
   const reasonForVisit = complaints?.[0]?.description ?? "Home visit";
@@ -79,10 +81,12 @@ export async function POST(req: NextRequest) {
     }))
   );
 
-  const investigationsFormatted = (investigations ?? []).map((inv: any) => ({
-    test_name: inv.test_name,
-    expected_timeline: "Results will be available within 24-48 hours",
-  }));
+  const investigationsFormatted = (investigationOrders ?? []).flatMap((order: any) =>
+    (order.tests as any[] ?? []).map((t: any) => ({
+      test_name: t.test_name,
+      expected_timeline: "Results will be available within 24-48 hours",
+    }))
+  );
 
   const recommendations = buildRecommendations(note.recommendations);
   const providerName = `${(note.providers as any)?.name ?? ""}${(note.providers as any)?.credentials ? ` (${(note.providers as any).credentials})` : ""}`;
@@ -102,6 +106,41 @@ export async function POST(req: NextRequest) {
     follow_up_date: note.follow_up_date ?? null,
     visible_to_patient: true,
   });
+
+  // Generate prescription PDF if drugs were prescribed
+  const allDrugs = (prescriptions ?? []).flatMap((p: any) => p.drugs as any[] ?? []);
+  if (allDrugs.length > 0) {
+    try {
+      const dateStr = new Date().toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" });
+      const provider = note.providers as any;
+      const pdfBytes = await buildPrescriptionPDF({
+        refId: note.booking_id,
+        date: dateStr,
+        providerName: provider?.name ?? "Provider",
+        providerCredentials: provider?.credentials ?? "",
+        providerSpecialty: provider?.specialty ?? "",
+        patientName: patientRow?.name ?? "Patient",
+        diagnosis: plainDiagnosis,
+        treatment: recommendations,
+        followUp: note.follow_up_date ? `Follow up on ${note.follow_up_date}` : "",
+        drugs: allDrugs,
+      });
+
+      const fileName = `${note.booking_id}.pdf`;
+      const { error: uploadErr } = await admin.storage
+        .from("prescriptions")
+        .upload(fileName, pdfBytes, { contentType: "application/pdf", upsert: true });
+
+      if (!uploadErr) {
+        const { data: urlData } = admin.storage.from("prescriptions").getPublicUrl(fileName);
+        const pdfUrl = urlData.publicUrl;
+        // Update all prescription rows for this booking with the PDF URL
+        await admin.from("prescriptions").update({ pdf_url: pdfUrl }).eq("booking_id", note.booking_id);
+      }
+    } catch {
+      // PDF generation is non-critical — summary is already saved
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

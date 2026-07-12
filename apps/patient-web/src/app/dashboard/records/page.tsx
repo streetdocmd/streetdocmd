@@ -1,4 +1,4 @@
-import { createServerSupabase } from "@/lib/supabase-server";
+import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS } from "@streetdocmd/shared";
 import RecordCard from "./RecordCard";
 
@@ -22,8 +22,11 @@ export default async function RecordsPage() {
   let summariesMap: Record<string, any> = {};
 
   if (bookingIds.length > 0) {
-    // Old path: visits table (created by complete-visit API)
-    const { data: visits } = await supabase
+    // Use admin client for sub-queries — ownership is already proven via bookingIds
+    // (scoped to patient_id = user.id above), so bypassing RLS here is safe.
+    const admin = createAdminSupabase();
+
+    const { data: visits } = await admin
       .from("visits")
       .select("id, booking_id, diagnosis, treatment, follow_up_plan, prescription_url")
       .in("booking_id", bookingIds);
@@ -32,16 +35,14 @@ export default async function RecordsPage() {
 
     const visitIds = (visits ?? []).map((v: any) => v.id);
     if (visitIds.length > 0) {
-      const { data: prescriptions } = await supabase
+      const { data: prescriptions } = await admin
         .from("prescriptions")
         .select("id, visit_id, pdf_url, drugs")
         .in("visit_id", visitIds);
       for (const p of prescriptions ?? []) prescriptionsMap[p.visit_id] = p;
     }
 
-    // New path: visit_summaries generated from submitted clinical notes.
-    // Bridge through clinical_notes to get booking_id → summary.
-    const { data: clinicalNotes } = await supabase
+    const { data: clinicalNotes } = await admin
       .from("clinical_notes")
       .select("id, booking_id")
       .in("booking_id", bookingIds)
@@ -53,7 +54,7 @@ export default async function RecordsPage() {
     );
 
     if (noteIds.length > 0) {
-      const { data: summaries } = await supabase
+      const summariesResult = await (admin as any)
         .from("visit_summaries")
         .select(
           "clinical_note_id, plain_diagnosis, reason_for_visit, what_was_done, " +
@@ -61,8 +62,9 @@ export default async function RecordsPage() {
         )
         .in("clinical_note_id", noteIds)
         .eq("visible_to_patient", true);
+      const summaries: any[] = summariesResult?.data ?? [];
 
-      for (const s of summaries ?? []) {
+      for (const s of summaries) {
         const bookingId = noteToBooking[s.clinical_note_id];
         if (bookingId) summariesMap[bookingId] = s;
       }

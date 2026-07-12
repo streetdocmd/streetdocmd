@@ -31,6 +31,13 @@ export default function Step13Recommendations({
   const [data, setData] = useState<Partial<Recommendations>>(value ?? {});
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [investigations, setInvestigations] = useState<any[]>([]);
+  const [sentReferrals, setSentReferrals] = useState<any[]>([]);
+
+  // Referral form
+  const [hospitals, setHospitals] = useState<any[]>([]);
+  const [referralForm, setReferralForm] = useState({ hospitalPartnerId: "", urgency: "routine" as "routine" | "urgent" | "emergency", reason: "", clinicalSummary: "" });
+  const [sendingReferral, setSendingReferral] = useState(false);
+  const [referralSent, setReferralSent] = useState(false);
 
   // Prescription inline form
   const [showRxForm, setShowRxForm] = useState(false);
@@ -54,6 +61,13 @@ export default function Step13Recommendations({
       .then(({ data: d }) => setPrescriptions(d ?? []));
     supabase.from("investigation_orders").select("tests, status").eq("booking_id", bookingId)
       .then(({ data: d }) => setInvestigations(d ?? []));
+    supabase.from("hospital_referrals").select("id, status, urgency, reason, hospital_partner_id, pdf_url, hospital_partners(name)").eq("booking_id", bookingId)
+      .then(({ data: d }) => setSentReferrals(d ?? []));
+    supabase.from("hospital_partners").select("id, name, address, specialties").eq("active", true).order("name")
+      .then(({ data: d }) => {
+        setHospitals(d ?? []);
+        if (d && d.length > 0) setReferralForm(f => ({ ...f, hospitalPartnerId: d[0].id }));
+      });
   }, [bookingId]);
 
   const set = (k: keyof Recommendations, v: any) => {
@@ -71,7 +85,7 @@ export default function Step13Recommendations({
     const validDrugs = drugs.filter(d => d.name.trim());
     if (!validDrugs.length) return;
     setSavingRx(true);
-    await supabase.from("prescriptions").insert({ booking_id: bookingId, drugs: validDrugs });
+    await supabase.from("prescriptions").insert({ booking_id: bookingId, provider_id: providerId, patient_id: patientId, drugs: validDrugs });
     setSavingRx(false);
     setShowRxForm(false);
     setRxSaved(true);
@@ -83,13 +97,35 @@ export default function Step13Recommendations({
   const loadCatalogue = async () => {
     if (catalogue.length > 0) return;
     setLoadingCatalogue(true);
-    const { data: lab } = await supabase.from("lab_partners").select("id, name").eq("active", true).limit(1).single();
-    if (!lab) { setLoadingCatalogue(false); return; }
-    setLabPartner(lab);
+
+    // Proximity dispatch: find nearest active lab with home collection
+    const [{ data: booking }, { data: labs }] = await Promise.all([
+      supabase.from("bookings").select("lat, lng").eq("id", bookingId).single(),
+      supabase.from("lab_partners").select("id, name, lat, lng").eq("active", true).eq("home_collection_available", true),
+    ]);
+
+    if (!labs?.length) { setLoadingCatalogue(false); return; }
+
+    let chosenLab = labs[0];
+    if (booking?.lat != null && booking?.lng != null) {
+      let bestDist = Infinity;
+      for (const l of labs) {
+        if (l.lat == null || l.lng == null) continue;
+        const dLat = (l.lat - booking.lat) * Math.PI / 180;
+        const dLng = (l.lng - booking.lng) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 +
+          Math.cos(booking.lat * Math.PI / 180) * Math.cos(l.lat * Math.PI / 180) *
+          Math.sin(dLng / 2) ** 2;
+        const d = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        if (d < bestDist) { bestDist = d; chosenLab = l; }
+      }
+    }
+
+    setLabPartner(chosenLab);
     const { data: tests } = await supabase
       .from("investigation_catalogue")
       .select("id, test_name, test_code, price, sample_type, turnaround_hours")
-      .eq("lab_partner_id", lab.id).eq("active", true).order("test_name");
+      .eq("lab_partner_id", chosenLab.id).eq("active", true).order("test_name");
     setCatalogue(tests ?? []);
     setLoadingCatalogue(false);
   };
@@ -310,8 +346,130 @@ export default function Step13Recommendations({
             </button>
           ))}
         </div>
+
+        {/* Sent referrals */}
+        {sentReferrals.length > 0 && (
+          <div className="space-y-2">
+            {sentReferrals.map(r => (
+              <div key={r.id} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                <div>
+                  <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mr-2 ${
+                    r.urgency === "emergency" ? "bg-red-100 text-red-700" :
+                    r.urgency === "urgent" ? "bg-amber-100 text-amber-700" :
+                    "bg-gray-100 text-gray-600"
+                  }`}>{r.urgency}</span>
+                  <span className="text-gray-700 font-medium">{(r.hospital_partners as any)?.name ?? "Hospital"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 capitalize">{r.status}</span>
+                  {r.pdf_url && (
+                    <a href={r.pdf_url} target="_blank" rel="noreferrer"
+                      className="text-xs text-blue-600 hover:underline font-medium">View Letter</a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {data.referral_required && (
-          <p className="text-xs text-gray-500">Document referral details in the additional recommendations box below.</p>
+          <div className="border border-gray-100 rounded-xl p-3 space-y-3 bg-gray-50">
+            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Referral Details</p>
+
+            {/* Urgency */}
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1">Urgency *</label>
+              <div className="flex gap-2">
+                {(["routine", "urgent", "emergency"] as const).map(u => (
+                  <button key={u} type="button" onClick={() => setReferralForm(f => ({ ...f, urgency: u }))}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border capitalize transition-colors ${
+                      referralForm.urgency === u
+                        ? u === "emergency" ? "bg-red-600 text-white border-red-600"
+                          : u === "urgent" ? "bg-amber-500 text-white border-amber-500"
+                          : "bg-teal-600 text-white border-teal-600"
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                    }`}>
+                    {u}
+                  </button>
+                ))}
+              </div>
+              {referralForm.urgency === "emergency" && (
+                <p className="text-xs text-red-600 font-medium mt-1">Emergency: referral will be dispatched to the 3 nearest available hospitals simultaneously.</p>
+              )}
+            </div>
+
+            {/* Hospital selection — only for non-emergency */}
+            {referralForm.urgency !== "emergency" && (
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">Hospital *</label>
+                {hospitals.length === 0 ? (
+                  <p className="text-xs text-gray-400">No hospital partners configured yet.</p>
+                ) : (
+                  <select value={referralForm.hospitalPartnerId}
+                    onChange={e => setReferralForm(f => ({ ...f, hospitalPartnerId: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    {hospitals.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+                  </select>
+                )}
+              </div>
+            )}
+
+            {/* Reason */}
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1">Reason for Referral *</label>
+              <textarea rows={2} value={referralForm.reason}
+                onChange={e => setReferralForm(f => ({ ...f, reason: e.target.value }))}
+                placeholder="Primary reason for referral…"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+            </div>
+
+            {/* Clinical summary */}
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1">Clinical Summary (for the hospital)</label>
+              <textarea rows={3} value={referralForm.clinicalSummary}
+                onChange={e => setReferralForm(f => ({ ...f, clinicalSummary: e.target.value }))}
+                placeholder="Brief clinical history, relevant findings, current medications…"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+            </div>
+
+            {referralSent && (
+              <p className="text-xs text-green-600 font-medium">✓ Referral letter sent</p>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  if (!referralForm.reason.trim()) return;
+                  if (referralForm.urgency !== "emergency" && !referralForm.hospitalPartnerId) return;
+                  setSendingReferral(true);
+                  const res = await fetch("/api/referral", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      bookingId, patientId, providerId,
+                      urgency: referralForm.urgency,
+                      reason: referralForm.reason,
+                      clinicalSummary: referralForm.clinicalSummary,
+                      hospitalPartnerId: referralForm.urgency !== "emergency" ? referralForm.hospitalPartnerId : undefined,
+                    }),
+                  });
+                  setSendingReferral(false);
+                  if (res.ok) {
+                    setReferralSent(true);
+                    setReferralForm(f => ({ ...f, reason: "", clinicalSummary: "" }));
+                    const { data: d } = await supabase
+                      .from("hospital_referrals")
+                      .select("id, status, urgency, reason, hospital_partner_id, pdf_url, hospital_partners(name)")
+                      .eq("booking_id", bookingId);
+                    setSentReferrals(d ?? []);
+                  }
+                }}
+                disabled={sendingReferral || !referralForm.reason.trim() || (referralForm.urgency !== "emergency" && !referralForm.hospitalPartnerId)}
+                className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors">
+                {sendingReferral ? "Sending…" : referralForm.urgency === "emergency" ? "Dispatch Emergency Referral" : "Send Referral Letter"}
+              </button>
+            </div>
+          </div>
         )}
       </div>
 

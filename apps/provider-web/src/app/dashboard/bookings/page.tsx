@@ -22,6 +22,7 @@ export default async function BookingsPage() {
 
   let visitsMap: Record<string, any> = {};
   let prescriptionsMap: Record<string, any> = {};
+  let clinicalNoteMap: Record<string, any> = {};
 
   if (bookingIds.length > 0) {
     const { data: visits } = await supabase
@@ -40,6 +41,13 @@ export default async function BookingsPage() {
 
       for (const p of prescriptions ?? []) prescriptionsMap[p.visit_id] = p;
     }
+
+    const { data: clinicalNotes } = await supabase
+      .from("clinical_notes")
+      .select("id, booking_id, status, submitted_at")
+      .in("booking_id", bookingIds);
+
+    for (const cn of clinicalNotes ?? []) clinicalNoteMap[cn.booking_id] = cn;
   }
 
   const enriched = list.map((b: any) => {
@@ -47,7 +55,7 @@ export default async function BookingsPage() {
     if (visit) {
       visit.prescription = prescriptionsMap[visit.id] ?? null;
     }
-    return { ...b, visit };
+    return { ...b, visit, clinicalNote: clinicalNoteMap[b.id] ?? null };
   });
 
   return (
