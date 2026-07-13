@@ -19,7 +19,7 @@ const SERVICE_ICONS: Record<ServiceType, string> = {
   wound_care: "🩹",
   elderly_review: "👴",
   nursing_care: "💉",
-  custom_request: "��",
+  custom_request: "✏️",
 };
 
 export default async function DashboardHome() {
