@@ -58,7 +58,8 @@ export default function PaystackButton({
         ref: `SDM-${bookingId}-${Date.now()}`,
         metadata: { booking_id: bookingId, patient_name: name },
         callback: (response) => {
-          // Fire-and-forget verify — admin webhook handles reliable confirmation
+          // Read-only nudge only — the Paystack webhook (server-to-server) is what
+          // actually confirms payment and moves the booking to "paid"
           fetch("/api/payments/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

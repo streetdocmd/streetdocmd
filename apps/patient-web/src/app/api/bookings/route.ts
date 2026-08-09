@@ -32,9 +32,11 @@ export async function POST(req: NextRequest) {
       fee,
       commission,
       net_payout: fee - commission,
-      status: "pending",
+      status: "pending_payment",
       payment_status: "pending",
-      // provider_id intentionally omitted — initial_booking_dispatch trigger assigns it
+      // provider_id intentionally omitted — set by accept_dispatch() once a provider
+      // accepts, which can only happen after the webhook confirms payment and the
+      // dispatch trigger fires the booking into the provider pool
     })
     .select("id")
     .single();
