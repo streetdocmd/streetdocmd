@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
   const { data: booking } = await admin
     .from("bookings")
-    .select("id, status, patient_id, patient:users!patient_id(name)")
+    .select("id, status, patient_id, net_payout, patient:users!patient_id(name)")
     .eq("id", bookingId)
     .eq("provider_id", provider.id)
     .single();
@@ -41,8 +41,14 @@ export async function POST(req: NextRequest) {
   const now = new Date().toISOString();
   const patientName = (booking.patient as any)?.[0]?.name ?? (booking.patient as any)?.name ?? "Patient";
 
-  // 1. Complete the booking
+  // 1. Complete the booking and credit the provider's wallet — payment is
+  // confirmed long before this point (dispatch itself only fires post-payment),
+  // so the payout is released on visit completion rather than at payment time.
   await admin.from("bookings").update({ status: "completed", completed_at: now }).eq("id", bookingId);
+
+  if (booking.net_payout) {
+    await admin.rpc("increment_wallet", { p_provider_id: provider.id, p_amount: booking.net_payout });
+  }
 
   // 2. Insert visit record
   const { data: visit } = await admin.from("visits").insert({

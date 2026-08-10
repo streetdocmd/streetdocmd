@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const STATUS_FLOW = [
-  { value: "pending_payment", label: "Awaiting Payment" },
   { value: "sent",            label: "Received" },
+  { value: "pending_payment", label: "Awaiting Payment" },
   { value: "confirmed",       label: "Confirmed" },
   { value: "dispensing",      label: "Dispensing" },
   { value: "dispatched",      label: "Dispatched" },
@@ -64,8 +64,8 @@ export default function PharmacyOrderActions({ order }: { order: any }) {
       body.eta        = eta || null;
     }
 
-    // On "confirmed" — set prices
-    if (nextStep.value === "confirmed") {
+    // On "pending_payment" — set prices (hands the order off to the patient to pay)
+    if (nextStep.value === "pending_payment") {
       body.drugPrices   = prices;
       body.outOfStock   = outOfStock;
     }
@@ -228,8 +228,16 @@ export default function PharmacyOrderActions({ order }: { order: any }) {
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
+      {/* Awaiting payment — nothing for pharmacy to do until the webhook confirms it */}
+      {order.status === "pending_payment" && (
+        <p className="text-center text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-xl py-3">
+          Priced — waiting for the patient to complete payment. This order moves to
+          "Confirmed" automatically once payment clears.
+        </p>
+      )}
+
       {/* Advance status button */}
-      {nextStep && order.status !== "delivered" && order.status !== "cancelled" && (
+      {nextStep && !["delivered", "cancelled", "expired", "pending_payment"].includes(order.status) && (
         <button onClick={advanceStatus} disabled={advancing}
           className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50">
           {advancing ? "Updating…" : `Mark as: ${nextStep.label}`}
