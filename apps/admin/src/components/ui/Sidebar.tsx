@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useSidebar } from "@/components/ui/SidebarContext";
 
 function ClinicalNoteIcon({ active }: { active: boolean }) {
   return (
@@ -78,6 +79,7 @@ const NAV_SECTIONS = [
 
 export default function Sidebar() {
   const path = usePathname();
+  const { open, close } = useSidebar();
 
   function isActive(href: string) {
     if (href === "/dashboard") return path === "/dashboard";
@@ -85,60 +87,85 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-60 bg-navy-700 flex flex-col shrink-0 h-screen sticky top-0">
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden">
-            <Image
-              src="/logo.jpeg"
-              alt="StreetdocMD"
-              width={28}
-              height={28}
-              className="object-contain"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-            />
+    <>
+      {/* Mobile backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={close}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`w-60 bg-navy-700 flex flex-col shrink-0 h-screen fixed inset-y-0 left-0 z-40 transition-transform duration-200 ease-in-out md:sticky md:top-0 md:translate-x-0 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Logo */}
+        <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden">
+              <Image
+                src="/logo.jpeg"
+                alt="StreetdocMD"
+                width={28}
+                height={28}
+                className="object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            </div>
+            <div>
+              <p className="text-white font-bold text-sm leading-tight">StreetdocMD</p>
+              <p className="text-blue-300 text-xs">Admin Console</p>
+            </div>
           </div>
-          <div>
-            <p className="text-white font-bold text-sm leading-tight">StreetdocMD</p>
-            <p className="text-blue-300 text-xs">Admin Console</p>
-          </div>
+          <button
+            onClick={close}
+            aria-label="Close menu"
+            className="md:hidden text-blue-300 hover:text-white p-1"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
-        {NAV_SECTIONS.map(({ label, items }) => (
-          <div key={label}>
-            <p className="text-xs font-semibold text-blue-300/60 uppercase tracking-widest px-3 mb-2">
-              {label}
-            </p>
-            <ul className="space-y-0.5">
-              {items.map(({ href, label: itemLabel, icon: Icon }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      isActive(href)
-                        ? "bg-blue-brand text-white shadow-sm"
-                        : "text-blue-100/80 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <Icon active={isActive(href)} />
-                    {itemLabel}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </nav>
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
+          {NAV_SECTIONS.map(({ label, items }) => (
+            <div key={label}>
+              <p className="text-xs font-semibold text-blue-300/60 uppercase tracking-widest px-3 mb-2">
+                {label}
+              </p>
+              <ul className="space-y-0.5">
+                {items.map(({ href, label: itemLabel, icon: Icon }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      onClick={close}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        isActive(href)
+                          ? "bg-blue-brand text-white shadow-sm"
+                          : "text-blue-100/80 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <Icon active={isActive(href)} />
+                      {itemLabel}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
 
-      {/* Footer */}
-      <div className="px-5 py-4 border-t border-white/10">
-        <p className="text-xs text-blue-300/50 italic">Care. Anywhere. Anytime.</p>
-      </div>
-    </aside>
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-white/10">
+          <p className="text-xs text-blue-300/50 italic">Care. Anywhere. Anytime.</p>
+        </div>
+      </aside>
+    </>
   );
 }
 
