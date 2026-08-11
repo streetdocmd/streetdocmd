@@ -25,7 +25,7 @@ export const SERVICE_LABELS: Record<ServiceType, string> = {
 export const SERVICE_PRICES: Record<ServiceType, number> = {
   general_consultation: 8000,
   wellness_check: 5000,
-  wound_care: 6000,
+  wound_care: 100,
   elderly_review: 10000,
   nursing_care: 12000,
   custom_request: 8000,
