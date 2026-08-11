@@ -53,7 +53,7 @@ export default function Header() {
         {/* Status indicator */}
         <div className="flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-medium px-3 py-1.5 rounded-full border border-green-100">
           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-          Platform Live
+          Live
         </div>
 
         {/* User menu */}
