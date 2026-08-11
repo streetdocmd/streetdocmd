@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
+// This is to test vercel-github commit connectection
 
 type Emergency = {
   id: string;
