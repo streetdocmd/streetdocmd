@@ -56,26 +56,37 @@ export default function BookProviderClient({
     setBooking(true);
     setError("");
 
-    const res = await fetch("/api/bookings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        service_type: service,
-        patient_lat: coords.lat,
-        patient_lng: coords.lng,
-        patient_address: address,
-        notes: description ?? null,
-      }),
-    });
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service_type: service,
+          patient_lat: coords.lat,
+          patient_lng: coords.lng,
+          patient_address: address,
+          notes: description ?? null,
+        }),
+      });
 
-    const json = await res.json();
-    if (!res.ok) {
-      setError(json.error ?? "Could not create booking");
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        // Server returned a non-JSON body (e.g. a crash page) — fall through to the generic message below.
+      }
+
+      if (!res.ok) {
+        setError(json?.error ?? `Could not create booking (${res.status}). Please try again.`);
+        setBooking(false);
+        return;
+      }
+
+      router.push(`/dashboard/book/payment/${json.booking_id}`);
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
       setBooking(false);
-      return;
     }
-
-    router.push(`/dashboard/book/payment/${json.booking_id}`);
   }
 
   return (
