@@ -105,10 +105,10 @@ export default function PharmacyClient({
       {/* Orders tab */}
       {tab === "orders" && (
         <div className="space-y-4">
-          <div className="flex gap-2 flex-wrap text-sm">
+          <div className="flex gap-2 overflow-x-auto text-sm pb-1">
             {[["all","All"], ["flagged","⚠ Flagged"], ["sent","New"], ["dispatched","Dispatched"], ["delivered","Delivered"]].map(([v, l]) => (
               <button key={v} onClick={() => setFilter(v)}
-                className={`px-3 py-1.5 rounded-full font-medium ${filter === v ? "bg-teal-brand text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap shrink-0 ${filter === v ? "bg-teal-brand text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                 {l}
               </button>
             ))}
@@ -160,10 +160,10 @@ export default function PharmacyClient({
       {/* Partners tab */}
       {tab === "partners" && (
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-semibold text-gray-900">Pharmacy Partners ({partnerList.length})</h2>
             <button onClick={() => setShowForm(!showForm)}
-              className="px-4 py-2 bg-teal-brand text-white rounded-lg text-sm font-semibold hover:opacity-90">
+              className="px-4 py-2 bg-teal-brand text-white rounded-lg text-sm font-semibold hover:opacity-90 self-start sm:self-auto">
               {showForm ? "Cancel" : "+ Add Partner"}
             </button>
           </div>
@@ -171,7 +171,7 @@ export default function PharmacyClient({
           {showForm && (
             <form onSubmit={createPartner} className="card p-5 space-y-4">
               <p className="font-semibold text-gray-900">New Pharmacy Partner</p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label className="label">Name *</label><input className="input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required /></div>
                 <div><label className="label">Phone *</label><input className="input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} required /></div>
                 <div><label className="label">Email</label><input className="input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
@@ -271,7 +271,7 @@ function PharmacyStaffPanel({ staff, partners }: { staff: any[]; partners: any[]
       {showForm && (
         <form onSubmit={addStaff} className="card p-5 space-y-4">
           <p className="font-semibold text-gray-900">New Pharmacy Staff Member</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className="label">Name *</label><input className="input" required value={form.name} onChange={e => setF("name", e.target.value)} /></div>
             <div><label className="label">Email *</label><input className="input" type="email" required value={form.email} onChange={e => setF("email", e.target.value)} /></div>
             <div><label className="label">Phone</label><input className="input" type="tel" value={form.phone} onChange={e => setF("phone", e.target.value)} /></div>
@@ -292,6 +292,7 @@ function PharmacyStaffPanel({ staff, partners }: { staff: any[]; partners: any[]
         <div className="card p-10 text-center text-gray-400">No pharmacy staff added yet.</div>
       ) : (
         <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -315,6 +316,7 @@ function PharmacyStaffPanel({ staff, partners }: { staff: any[]; partners: any[]
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

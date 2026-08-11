@@ -197,7 +197,7 @@ export default function OrderDetail({ order }: { order: any }) {
           {resultRows.map((row, i) => (
             <div key={i} className="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50">
               <p className="text-sm font-semibold text-gray-700">{row.test_name}</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="label">Result value</label>
                   <input className="input" placeholder="e.g. 12.5" value={row.result_value} onChange={e => updateRow(i, "result_value", e.target.value)} />

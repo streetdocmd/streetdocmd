@@ -16,7 +16,7 @@ export default async function CataloguePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link href="/dashboard/clinical-notes" className="text-sm text-gray-500 hover:underline">← Clinical Notes</Link>
           <h1 className="text-2xl font-bold text-gray-900 mt-1">Diagnosis Catalogue</h1>

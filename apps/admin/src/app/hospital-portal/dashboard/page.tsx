@@ -182,7 +182,7 @@ export default function HospitalPortalDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{profile?.name ?? "Hospital"} Portal</h1>
           <p className="text-sm text-gray-500 mt-0.5">StreetdocMD referral management</p>
@@ -198,7 +198,7 @@ export default function HospitalPortalDashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
         {([
           ["new",         `New Referrals (${newReferrals.length})`],
           ["in_progress", `In Progress (${inProgressRefs.length})`],
@@ -206,7 +206,7 @@ export default function HospitalPortalDashboard() {
           ["profile",     "Profile"],
         ] as [Tab, string][]).map(([t, label]) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
               tab === t ? "border-red-600 text-red-600" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}>
             {label}
@@ -248,7 +248,7 @@ export default function HospitalPortalDashboard() {
       {tab === "profile" && profile && (
         <div className="card p-6 space-y-4">
           <h2 className="font-semibold text-gray-900 text-lg">{profile.name}</h2>
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <Row label="Address"        value={profile.address} />
             <Row label="Phone"          value={profile.phone} />
             <Row label="Email"          value={profile.email} />

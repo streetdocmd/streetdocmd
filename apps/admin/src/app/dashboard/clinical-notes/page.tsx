@@ -44,12 +44,12 @@ export default async function ClinicalNotesPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Clinical Notes</h1>
           <p className="text-sm text-gray-500 mt-0.5">{filtered.length} submitted note{filtered.length !== 1 ? "s" : ""}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Link href="/dashboard/clinical-notes/uncodified" className="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-50">
             Uncodified Diagnoses →
           </Link>

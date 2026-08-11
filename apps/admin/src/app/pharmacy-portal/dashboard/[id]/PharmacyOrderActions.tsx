@@ -194,7 +194,7 @@ export default function PharmacyOrderActions({ order }: { order: any }) {
       {nextStep?.value === "dispatched" && (
         <div className="card p-5 space-y-3">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Rider Details</p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><label className="label">Rider name *</label><input className="input" value={riderName} onChange={e => setRiderName(e.target.value)} /></div>
             <div><label className="label">Rider phone *</label><input className="input" value={riderPhone} onChange={e => setRiderPhone(e.target.value)} /></div>
             <div className="col-span-2"><label className="label">Estimated arrival time</label>

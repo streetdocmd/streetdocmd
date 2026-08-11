@@ -66,7 +66,7 @@ export default function FacilitiesClient({
       <h1 className="text-2xl font-bold text-gray-900">Facility Applications</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: "Total",           value: stats.total },
           { label: "Pending Review",  value: stats.pending,           color: "text-yellow-600" },
@@ -81,10 +81,10 @@ export default function FacilitiesClient({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-200 flex-wrap">
+      <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
               tab === t.key ? "border-teal-600 text-teal-600" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}>
             {t.label}
@@ -97,6 +97,7 @@ export default function FacilitiesClient({
         <div className="card p-12 text-center text-gray-400">No applications in this category.</div>
       ) : (
         <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -145,6 +146,7 @@ export default function FacilitiesClient({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

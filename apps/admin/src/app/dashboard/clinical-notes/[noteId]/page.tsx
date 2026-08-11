@@ -44,12 +44,12 @@ export default async function ClinicalNoteDetailPage({ params }: { params: { not
   return (
     <div className="space-y-5 max-w-4xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link href="/dashboard/clinical-notes" className="text-sm text-gray-500 hover:underline">← Clinical Notes</Link>
           <h1 className="text-xl font-bold text-gray-900 mt-1">Clinical Note — Read Only</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {note.safeguarding_flag && (
             <span className="bg-red-100 text-red-700 border border-red-200 rounded-lg px-3 py-1.5 text-sm font-semibold">🔴 Safeguarding Flagged</span>
           )}
@@ -67,7 +67,7 @@ export default async function ClinicalNoteDetailPage({ params }: { params: { not
       )}
 
       {/* Provider & Patient */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Section title="Provider">
           <Field label="Name" value={provider?.name} />
           <Field label="Credentials" value={provider?.credentials} />
@@ -113,7 +113,7 @@ export default async function ClinicalNoteDetailPage({ params }: { params: { not
       {/* Vitals */}
       {vitals && (
         <Section title="Vitals">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {vitals.bp_systolic && <Field label="Blood Pressure" value={`${vitals.bp_systolic}/${vitals.bp_diastolic} mmHg`} />}
             {vitals.pulse_rate && <Field label="Pulse Rate" value={`${vitals.pulse_rate} bpm (${vitals.pulse_rhythm ?? "—"})`} />}
             {vitals.temperature && <Field label="Temperature" value={`${vitals.temperature}°${vitals.temp_unit}`} />}

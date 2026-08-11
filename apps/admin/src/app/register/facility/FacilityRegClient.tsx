@@ -193,12 +193,12 @@ export default function FacilityRegClient() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-teal-700 text-white py-6 px-6">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+        <div className="max-w-2xl mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-teal-200">Partner Registration</p>
             <h1 className="text-xl font-bold">{selectedFacility.icon} {selectedFacility.title}</h1>
           </div>
-          <button onClick={() => setFacilityType(null)} className="text-teal-200 hover:text-white text-sm underline">
+          <button onClick={() => setFacilityType(null)} className="text-teal-200 hover:text-white text-sm underline self-start sm:self-auto">
             Change type
           </button>
         </div>
@@ -212,10 +212,10 @@ export default function FacilityRegClient() {
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                 formStep > n ? "bg-teal-600 text-white" : formStep === n ? "bg-teal-100 text-teal-700 border-2 border-teal-600" : "bg-gray-100 text-gray-400"
               }`}>{formStep > n ? "✓" : n}</div>
-              {n < 4 && <div className={`flex-1 h-0.5 w-8 ${formStep > n ? "bg-teal-400" : "bg-gray-200"}`} />}
+              {n < 4 && <div className={`flex-1 h-0.5 w-4 sm:w-8 ${formStep > n ? "bg-teal-400" : "bg-gray-200"}`} />}
             </div>
           ))}
-          <span className="ml-auto text-xs text-gray-400">Step {formStep} of 4</span>
+          <span className="ml-auto text-xs text-gray-400 hidden sm:inline">Step {formStep} of 4</span>
         </div>
       </div>
 
@@ -279,7 +279,7 @@ export default function FacilityRegClient() {
               <button
                 onClick={() => setFormStep(2)}
                 disabled={!basic.name || !basic.email || !basic.phone || !basic.address}
-                className="px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 disabled:opacity-40"
+                className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 disabled:opacity-40"
               >
                 Next →
               </button>
@@ -300,7 +300,7 @@ export default function FacilityRegClient() {
                     <span className="text-sm font-medium text-gray-700">Home sample collection available</span>
                   </label>
                   {labData.home_collection && (
-                    <div className="grid grid-cols-2 gap-4 pl-7">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-7">
                       <div>
                         <label className="label">Collection radius (km)</label>
                         <input className="input" type="number" value={labData.collection_radius_km}
@@ -313,7 +313,7 @@ export default function FacilityRegClient() {
                       </div>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="label">Accreditation body</label>
                       <input className="input" placeholder="e.g. MLSCN" value={labData.accreditation_body}
@@ -346,7 +346,7 @@ export default function FacilityRegClient() {
                     <span className="text-sm font-medium text-gray-700">Home delivery available</span>
                   </label>
                   {pharmData.delivery_available && (
-                    <div className="grid grid-cols-2 gap-4 pl-7">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-7">
                       <div>
                         <label className="label">Delivery radius (km)</label>
                         <input className="input" type="number" value={pharmData.delivery_radius_km}
@@ -359,7 +359,7 @@ export default function FacilityRegClient() {
                       </div>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="label">PCN registration number</label>
                       <input className="input" value={pharmData.pcn_registration}
@@ -385,7 +385,7 @@ export default function FacilityRegClient() {
                       <option value="tertiary">Tertiary / Teaching Hospital</option>
                     </select>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <label className="flex items-center gap-3 cursor-pointer col-span-2 md:col-span-1">
                       <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={hospData.emergency_available}
                         onChange={e => setHospData(d => ({ ...d, emergency_available: e.target.checked }))} />
@@ -404,7 +404,7 @@ export default function FacilityRegClient() {
                   </div>
                   <div>
                     <label className="label mb-2">Specialties</label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {HOSPITAL_SPECIALTIES.map(s => (
                         <label key={s} className="flex items-center gap-2 text-sm cursor-pointer">
                           <input type="checkbox" className="w-4 h-4 accent-teal-600"
@@ -424,9 +424,9 @@ export default function FacilityRegClient() {
                 </>
               )}
             </div>
-            <div className="flex justify-between">
-              <button onClick={() => setFormStep(1)} className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
-              <button onClick={() => setFormStep(3)} className="px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700">Next →</button>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+              <button onClick={() => setFormStep(1)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
+              <button onClick={() => setFormStep(3)} className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700">Next →</button>
             </div>
           </div>
         )}
@@ -478,9 +478,9 @@ export default function FacilityRegClient() {
                 <p className="text-xs text-gray-400 mt-1">JPG, PNG or WEBP. Exterior and interior shots welcome.</p>
               </div>
             </div>
-            <div className="flex justify-between">
-              <button onClick={() => setFormStep(2)} className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
-              <button onClick={() => setFormStep(4)} className="px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700">Review →</button>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+              <button onClick={() => setFormStep(2)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
+              <button onClick={() => setFormStep(4)} className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700">Review →</button>
             </div>
           </div>
         )}
@@ -548,10 +548,10 @@ export default function FacilityRegClient() {
 
             {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
-            <div className="flex justify-between">
-              <button onClick={() => setFormStep(3)} className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+              <button onClick={() => setFormStep(3)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
               <button onClick={handleSubmit} disabled={submitting}
-                className="px-8 py-3 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 disabled:opacity-50">
+                className="w-full sm:w-auto px-8 py-3 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 disabled:opacity-50">
                 {submitting ? "Submitting…" : "Submit Application"}
               </button>
             </div>

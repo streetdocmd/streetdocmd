@@ -42,7 +42,7 @@ export default async function FinancePage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Financial Overview</h1>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {revenueCards.map(({ label, value }) => (
           <div key={label} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
@@ -59,38 +59,40 @@ export default async function FinancePage() {
         {pendingWithdrawals.length === 0 ? (
           <p className="text-sm text-gray-400">No pending withdrawals</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="text-gray-500 uppercase text-xs border-b">
-              <tr>
-                <th className="text-left pb-2">Provider</th>
-                <th className="text-left pb-2">Amount</th>
-                <th className="text-left pb-2">Bank</th>
-                <th className="text-left pb-2">Account</th>
-                <th className="text-left pb-2">Requested</th>
-                <th className="text-left pb-2">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {pendingWithdrawals.map((w: any) => (
-                <tr key={w.id}>
-                  <td className="py-3 font-medium">{w.providers?.name}</td>
-                  <td className="py-3">{formatNaira(w.amount)}</td>
-                  <td className="py-3 text-gray-600">{w.bank_name}</td>
-                  <td className="py-3 text-gray-600">{w.account_number} Â· {w.account_name}</td>
-                  <td className="py-3 text-gray-400 text-xs">
-                    {new Date(w.requested_at).toLocaleDateString("en-NG")}
-                  </td>
-                  <td className="py-3">
-                    <form action={`/api/withdrawals/${w.id}/approve`} method="POST" className="inline">
-                      <button className="text-xs bg-green-600 text-white px-3 py-1 rounded-full hover:bg-green-700">
-                        Approve
-                      </button>
-                    </form>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-gray-500 uppercase text-xs border-b">
+                <tr>
+                  <th className="text-left pb-2">Provider</th>
+                  <th className="text-left pb-2">Amount</th>
+                  <th className="text-left pb-2">Bank</th>
+                  <th className="text-left pb-2">Account</th>
+                  <th className="text-left pb-2">Requested</th>
+                  <th className="text-left pb-2">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {pendingWithdrawals.map((w: any) => (
+                  <tr key={w.id}>
+                    <td className="py-3 font-medium">{w.providers?.name}</td>
+                    <td className="py-3">{formatNaira(w.amount)}</td>
+                    <td className="py-3 text-gray-600">{w.bank_name}</td>
+                    <td className="py-3 text-gray-600">{w.account_number} Â· {w.account_name}</td>
+                    <td className="py-3 text-gray-400 text-xs">
+                      {new Date(w.requested_at).toLocaleDateString("en-NG")}
+                    </td>
+                    <td className="py-3">
+                      <form action={`/api/withdrawals/${w.id}/approve`} method="POST" className="inline">
+                        <button className="text-xs bg-green-600 text-white px-3 py-1 rounded-full hover:bg-green-700">
+                          Approve
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
