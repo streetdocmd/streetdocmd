@@ -42,18 +42,29 @@ export default function VerificationActions({
     fd.append("action", action);
     if (action === "reject") fd.append("notes", reason.trim());
 
-    const res = await fetch(`/api/providers/${providerId}/verify`, {
-      method: "POST",
-      body: fd,
-      redirect: "manual",
-    });
+    try {
+      const res = await fetch(`/api/providers/${providerId}/verify`, {
+        method: "POST",
+        body: fd,
+        redirect: "manual",
+      });
 
-    if (res.ok || res.status === 0 || res.type === "opaqueredirect") {
-      router.refresh();
-      setMode("idle");
-      setReason("");
-    } else {
-      setError("Action failed. Please try again.");
+      if (res.ok || res.status === 0 || res.type === "opaqueredirect") {
+        router.refresh();
+        setMode("idle");
+        setReason("");
+      } else {
+        let message = `Action failed (${res.status}).`;
+        try {
+          const body = await res.json();
+          if (body?.error) message = body.error;
+        } catch {
+          // Response wasn't JSON — fall back to the generic status-based message.
+        }
+        setError(message);
+      }
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
     }
     setLoading(null);
   }
