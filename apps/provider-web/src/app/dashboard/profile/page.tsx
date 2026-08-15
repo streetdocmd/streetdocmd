@@ -11,7 +11,7 @@ export default async function ProfilePage() {
 
   const { data: provider } = await supabase
     .from("providers")
-    .select("id, name, specialty, credentials, mdcn_number, nmcn_number, rating, total_visits, verification_status, bio, years_experience, service_radius_km, working_hours_start, working_hours_end, bank_name, bank_account_number, bank_account_name")
+    .select("id, name, specialty, credentials, license_body, license_number, rating, total_visits, verification_status, bio, years_experience, service_radius_km, working_hours_start, working_hours_end, bank_name, bank_account_number, bank_account_name")
     .eq("user_id", user.id)
     .single();
   if (!provider) return null;
@@ -26,6 +26,8 @@ export default async function ProfilePage() {
     certificate: "University Certificate",
     mdcn_licence: "MDCN Licence",
     nmcn_licence: "NMCN Licence",
+    mrtb_licence: "MRTB Licence",
+    mlscn_licence: "MLSCN Licence",
     nin: "NIN",
     passport: "Passport",
   };
@@ -41,8 +43,9 @@ export default async function ProfilePage() {
             <h2 className="text-xl font-bold text-gray-900">{provider.name}</h2>
             <p className="text-gray-500 text-sm mt-0.5">{provider.specialty}</p>
             <p className="text-gray-400 text-xs mt-0.5">{provider.credentials}</p>
-            {provider.mdcn_number && <p className="text-xs text-gray-400 mt-0.5">MDCN: {provider.mdcn_number}</p>}
-            {provider.nmcn_number && <p className="text-xs text-gray-400 mt-0.5">NMCN: {provider.nmcn_number}</p>}
+            {provider.license_number && (
+              <p className="text-xs text-gray-400 mt-0.5">{provider.license_body}: {provider.license_number}</p>
+            )}
           </div>
           <div className="text-right shrink-0">
             <span className={`badge ${

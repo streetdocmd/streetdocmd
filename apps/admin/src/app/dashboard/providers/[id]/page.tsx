@@ -6,6 +6,8 @@ import VerificationActions from "./VerificationActions";
 const DOC_LABELS: Record<string, string> = {
   mdcn_licence: "MDCN Licence",
   nmcn_licence: "NMCN Licence",
+  mrtb_licence: "MRTB Licence",
+  mlscn_licence: "MLSCN Licence",
   nin: "NIN",
   passport: "Passport Photo",
   certificate: "Certificate",
@@ -115,11 +117,8 @@ export default async function ProviderDetailPage({ params }: { params: { id: str
             <p className="text-gray-600">{provider.specialty} · {provider.credentials}</p>
             <p className="text-sm text-gray-400 mt-0.5">{provider.years_experience} yr{provider.years_experience !== 1 ? "s" : ""} experience</p>
             <div className="flex flex-wrap gap-4 mt-2">
-              {provider.mdcn_number && (
-                <p className="text-sm text-gray-600">MDCN: <strong>{provider.mdcn_number}</strong></p>
-              )}
-              {provider.nmcn_number && (
-                <p className="text-sm text-gray-600">NMCN: <strong>{provider.nmcn_number}</strong></p>
+              {provider.license_number && (
+                <p className="text-sm text-gray-600">{provider.license_body}: <strong>{provider.license_number}</strong></p>
               )}
               {(provider.users as any)?.email && (
                 <p className="text-sm text-gray-500">{(provider.users as any).email}</p>

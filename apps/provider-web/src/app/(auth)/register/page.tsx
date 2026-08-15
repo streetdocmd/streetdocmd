@@ -2,15 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-const SPECIALTIES = [
-  "Medical Doctor (General)",
-  "Medical Doctor (Specialist)",
-  "Registered Nurse",
-  "Physiotherapist",
-  "Medical Laboratory Scientist",
-  "Community Health Officer",
-];
+import { SPECIALTIES, getPractitionerType } from "@streetdocmd/shared";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,15 +13,13 @@ export default function RegisterPage() {
     password: "",
     specialty: "",
     credentials: "",
-    mdcn_number: "",
-    nmcn_number: "",
+    license_number: "",
     years_experience: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const isDoctor = form.specialty.startsWith("Medical Doctor");
-  const isNurse = form.specialty === "Registered Nurse";
+  const practitionerType = getPractitionerType(form.specialty);
 
   function set(field: string, value: string) {
     setForm(f => ({ ...f, [field]: value }));
@@ -39,6 +29,10 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
     if (!form.specialty) { setError("Please select your specialty."); return; }
+    if (practitionerType && !form.license_number.trim()) {
+      setError(`Please enter your ${practitionerType.licenseLabel}.`);
+      return;
+    }
     setLoading(true);
 
     const res = await fetch("/api/register", {
@@ -98,16 +92,16 @@ export default function RegisterPage() {
               <label className="label">Qualifications summary</label>
               <input className="input" placeholder="e.g. MBBS (UniLag), 2019" value={form.credentials} onChange={e => set("credentials", e.target.value)} required />
             </div>
-            {isDoctor && (
+            {practitionerType && (
               <div className="col-span-2">
-                <label className="label">MDCN Registration Number</label>
-                <input className="input" placeholder="e.g. MD/12345" value={form.mdcn_number} onChange={e => set("mdcn_number", e.target.value)} />
-              </div>
-            )}
-            {isNurse && (
-              <div className="col-span-2">
-                <label className="label">NMCN Registration Number</label>
-                <input className="input" placeholder="e.g. NR/12345" value={form.nmcn_number} onChange={e => set("nmcn_number", e.target.value)} />
+                <label className="label">{practitionerType.licenseLabel}</label>
+                <input
+                  className="input"
+                  placeholder={`e.g. ${practitionerType.licenseBody}/12345`}
+                  value={form.license_number}
+                  onChange={e => set("license_number", e.target.value)}
+                  required
+                />
               </div>
             )}
             <div>

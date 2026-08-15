@@ -71,8 +71,8 @@ export interface Provider {
   photo_url: string | null;
   specialty: string;
   credentials: string;
-  mdcn_number: string | null;
-  nmcn_number: string | null;
+  license_body: string | null;
+  license_number: string | null;
   years_experience: number;
   bio: string | null;
   verification_status: VerificationStatus;
@@ -99,7 +99,7 @@ export interface Provider {
 export interface ProviderDocument {
   id: string;
   provider_id: string;
-  document_type: "mdcn_licence" | "nmcn_licence" | "nin" | "passport" | "certificate";
+  document_type: "mdcn_licence" | "nmcn_licence" | "mrtb_licence" | "mlscn_licence" | "nin" | "passport" | "certificate";
   file_url: string;
   uploaded_at: string;
   reviewed_at: string | null;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { getPractitionerType } from "@streetdocmd/shared";
 
 const clean = (s: string) => s.replace(/[^\x00-\xFF]/g, "").trim();
 
@@ -23,10 +24,18 @@ async function getSignInClient() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { email, password, name, phone, specialty, credentials, mdcn_number, nmcn_number, years_experience } = body;
+  const { email, password, name, phone, specialty, credentials, license_number, years_experience } = body;
 
   if (!email || !password || !name || !phone || !specialty) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  // Derive the licensing body from the specialty server-side rather than
+  // trusting a client-sent value — the specialty -> body mapping is the
+  // single source of truth in @streetdocmd/shared.
+  const practitionerType = getPractitionerType(specialty);
+  if (practitionerType && !license_number) {
+    return NextResponse.json({ error: `Missing ${practitionerType.licenseLabel}` }, { status: 400 });
   }
 
   const admin = createAdminSupabase();
@@ -82,8 +91,8 @@ export async function POST(req: NextRequest) {
       phone,
       specialty,
       credentials,
-      mdcn_number: mdcn_number || null,
-      nmcn_number: nmcn_number || null,
+      license_body: practitionerType?.licenseBody ?? null,
+      license_number: practitionerType ? license_number : null,
       years_experience: parseInt(years_experience) || 0,
     });
     if (provErr) {
