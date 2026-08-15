@@ -8,7 +8,11 @@ import LocationBroadcaster from "@/components/LocationBroadcaster";
 
 export const revalidate = 0;
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { notice?: string };
+}) {
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -44,6 +48,16 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {searchParams.notice === "note_submitted" && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+          <span className="text-xl">✓</span>
+          <div>
+            <p className="text-sm font-semibold text-green-800">Clinical note submitted</p>
+            <p className="text-xs text-green-600">The visit is marked complete and your payout has been credited.</p>
+          </div>
+        </div>
+      )}
+
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4">
         <div className="card p-4 text-center">

@@ -14,14 +14,23 @@ export default async function DocumentsPage() {
     .single();
 
   if (!provider) redirect("/register");
-  if (provider.verification_status !== "pending") redirect("/dashboard");
+  // "under_review" and "verified" providers have nothing to do here.
+  // "pending" (first submission) and "rejected" (re-applying) both need the form.
+  if (provider.verification_status === "under_review" || provider.verification_status === "verified") {
+    redirect("/dashboard");
+  }
 
   const { data: existingDocs } = await supabase
     .from("provider_documents")
     .select("id")
     .eq("provider_id", provider.id);
 
-  if (existingDocs && existingDocs.length > 0) redirect("/onboarding/pending");
+  // A first-time "pending" submission that already has docs is mid-review —
+  // send it to the waiting screen. A "rejected" provider reaching here is
+  // re-applying and needs the form even though old doc rows still exist.
+  if (provider.verification_status === "pending" && existingDocs && existingDocs.length > 0) {
+    redirect("/onboarding/pending");
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

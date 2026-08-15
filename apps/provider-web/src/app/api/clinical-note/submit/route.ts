@@ -105,8 +105,26 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // 7. Update booking status
-  await admin.from("bookings").update({ status: "completed" }).eq("id", bookingId);
+  // 7. Complete the booking and credit the provider's wallet — payment is
+  // confirmed long before this point (dispatch itself only fires post-payment),
+  // so the payout is released on visit completion rather than at payment time.
+  // The `.neq("status", "completed")` guard makes this idempotent: if this
+  // route is ever called twice for the same booking, the wallet is only
+  // credited on the transition that actually completes it.
+  const { data: completedBooking, error: completeError } = await admin
+    .from("bookings")
+    .update({ status: "completed", completed_at: new Date().toISOString() })
+    .eq("id", bookingId)
+    .neq("status", "completed")
+    .select("provider_id, net_payout")
+    .single();
+
+  if (!completeError && completedBooking?.net_payout) {
+    await admin.rpc("increment_wallet", {
+      p_provider_id: completedBooking.provider_id,
+      p_amount: completedBooking.net_payout,
+    });
+  }
 
   // 8. Trigger visit summary generation (non-blocking)
   fetch(`${req.nextUrl.origin}/api/clinical-note/generate-summary`, {

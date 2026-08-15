@@ -29,6 +29,16 @@ function isImage(url: string) {
   return /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url);
 }
 
+// provider_documents.file_url holds a bare storage path for documents
+// uploaded since the provider-docs bucket became private. Older rows still
+// hold a full public-URL string from before that change — extract the path
+// portion from either shape so a signed URL can be generated consistently.
+function providerDocPath(fileUrl: string) {
+  const marker = "/storage/v1/object/public/provider-docs/";
+  const idx = fileUrl.indexOf(marker);
+  return idx >= 0 ? fileUrl.slice(idx + marker.length) : fileUrl;
+}
+
 export default async function ProviderDetailPage({ params }: { params: { id: string } }) {
   const supabase = createAdminSupabase();
 
@@ -47,9 +57,20 @@ export default async function ProviderDetailPage({ params }: { params: { id: str
 
   if (!provider) redirect("/dashboard/providers");
 
-  const docs = (provider.provider_documents ?? []) as {
+  const rawDocs = (provider.provider_documents ?? []) as {
     id: string; document_type: string; file_url: string; uploaded_at: string;
   }[];
+
+  // provider-docs is a private bucket (credential documents) — resolve each
+  // file to a short-lived signed URL rather than linking to it directly.
+  const docs = await Promise.all(
+    rawDocs.map(async (doc) => {
+      const { data: signed } = await supabase.storage
+        .from("provider-docs")
+        .createSignedUrl(providerDocPath(doc.file_url), 600);
+      return { ...doc, viewUrl: signed?.signedUrl ?? null };
+    })
+  );
 
   type VerifyLog = {
     id: string; action: string; notes: string | null; created_at: string;
@@ -146,11 +167,18 @@ export default async function ProviderDetailPage({ params }: { params: { id: str
             {docs.map((doc) => (
               <div key={doc.id} className="border border-gray-100 rounded-xl overflow-hidden">
                 {/* Image preview */}
-                {isImage(doc.file_url) ? (
-                  <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                {!doc.viewUrl ? (
+                  <div className="flex items-center justify-center h-40 bg-gray-50">
+                    <div className="text-center">
+                      <p className="text-4xl mb-2">⚠️</p>
+                      <p className="text-sm text-gray-400 font-medium">Preview unavailable</p>
+                    </div>
+                  </div>
+                ) : isImage(doc.file_url) ? (
+                  <a href={doc.viewUrl} target="_blank" rel="noopener noreferrer">
                     <div className="relative h-40 bg-gray-50">
                       <Image
-                        src={doc.file_url}
+                        src={doc.viewUrl}
                         alt={DOC_LABELS[doc.document_type] ?? doc.document_type}
                         fill
                         className="object-contain"
@@ -159,7 +187,7 @@ export default async function ProviderDetailPage({ params }: { params: { id: str
                   </a>
                 ) : (
                   <a
-                    href={doc.file_url}
+                    href={doc.viewUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center h-40 bg-gray-50 hover:bg-gray-100 transition-colors"
@@ -179,14 +207,16 @@ export default async function ProviderDetailPage({ params }: { params: { id: str
                       Uploaded {new Date(doc.uploaded_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
                   </div>
-                  <a
-                    href={doc.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    Full size ↗
-                  </a>
+                  {doc.viewUrl && (
+                    <a
+                      href={doc.viewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      Full size ↗
+                    </a>
+                  )}
                 </div>
               </div>
             ))}
