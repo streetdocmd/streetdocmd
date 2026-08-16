@@ -157,7 +157,7 @@ export default function FacilityRegClient() {
           <p className="text-3xl mb-3">🏥</p>
           <h1 className="text-3xl font-bold mb-2">Join the StreetdocMD Partner Network</h1>
           <p className="text-teal-100 max-w-lg mx-auto">
-            Register your facility to receive patient referrals from verified StreetdocMD doctors
+            Register your facility to receive patients.
           </p>
         </div>
 
