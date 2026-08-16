@@ -18,7 +18,7 @@ export default async function ProvidersPage({
 
   const { data: providers } = await supabase
     .from("providers")
-    .select("id, name, specialty, credentials, verification_status, rating, total_visits, created_at")
+    .select("id, name, specialty, specialist_field, credentials, verification_status, rating, total_visits, created_at")
     .eq("verification_status", status)
     .order("created_at", { ascending: true });
 
@@ -64,7 +64,9 @@ export default async function ProvidersPage({
               {(providers ?? []).map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">{p.name}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.specialty}</td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {p.specialty}{p.specialist_field ? ` — ${p.specialist_field}` : ""}
+                  </td>
                   <td className="px-4 py-3 text-gray-600">{p.credentials}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-xs ${STATUS_STYLES[p.verification_status]}`}>

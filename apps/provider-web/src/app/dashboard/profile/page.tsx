@@ -11,7 +11,7 @@ export default async function ProfilePage() {
 
   const { data: provider } = await supabase
     .from("providers")
-    .select("id, name, specialty, credentials, license_body, license_number, rating, total_visits, verification_status, bio, years_experience, service_radius_km, working_hours_start, working_hours_end, bank_name, bank_account_number, bank_account_name")
+    .select("id, name, specialty, specialist_field, credentials, license_body, license_number, rating, total_visits, verification_status, bio, years_experience, service_radius_km, working_hours_start, working_hours_end, bank_name, bank_account_number, bank_account_name")
     .eq("user_id", user.id)
     .single();
   if (!provider) return null;
@@ -41,7 +41,9 @@ export default async function ProfilePage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900">{provider.name}</h2>
-            <p className="text-gray-500 text-sm mt-0.5">{provider.specialty}</p>
+            <p className="text-gray-500 text-sm mt-0.5">
+              {provider.specialty}{provider.specialist_field ? ` — ${provider.specialist_field}` : ""}
+            </p>
             <p className="text-gray-400 text-xs mt-0.5">{provider.credentials}</p>
             {provider.license_number && (
               <p className="text-xs text-gray-400 mt-0.5">{provider.license_body}: {provider.license_number}</p>

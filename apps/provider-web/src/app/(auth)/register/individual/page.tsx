@@ -12,6 +12,7 @@ export default function RegisterIndividualPage() {
     phone: "",
     password: "",
     specialty: "",
+    specialist_field: "",
     credentials: "",
     license_number: "",
     years_experience: "",
@@ -29,6 +30,10 @@ export default function RegisterIndividualPage() {
     e.preventDefault();
     setError("");
     if (!form.specialty) { setError("Please select your specialty."); return; }
+    if (practitionerType?.requiresSpecialistField && !form.specialist_field.trim()) {
+      setError("Please enter your specialist field.");
+      return;
+    }
     if (practitionerType && !form.license_number.trim()) {
       setError(`Please enter your ${practitionerType.licenseLabel}.`);
       return;
@@ -91,6 +96,18 @@ export default function RegisterIndividualPage() {
                 {SPECIALTIES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
+            {practitionerType?.requiresSpecialistField && (
+              <div className="col-span-2">
+                <label className="label">Specialist field</label>
+                <input
+                  className="input"
+                  placeholder="e.g. Cardiology, Paediatrics, Orthopaedic Surgery"
+                  value={form.specialist_field}
+                  onChange={e => set("specialist_field", e.target.value)}
+                  required
+                />
+              </div>
+            )}
             <div className="col-span-2">
               <label className="label">Qualifications summary</label>
               <input className="input" placeholder="e.g. MBBS (UniLag), 2019" value={form.credentials} onChange={e => set("credentials", e.target.value)} required />

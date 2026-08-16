@@ -67,10 +67,6 @@ export const SUBSCRIPTION_PLANS = {
 // production — do not rename existing entries, only add new ones, or
 // existing provider rows will silently stop matching.
 //
-// "Community Health Officer" is intentionally not in PRACTITIONER_TYPES:
-// it has no mapped regulatory body today, so it collects no licence number
-// or licence document, exactly as before.
-//
 // Pharmacists are deliberately not an individual specialty here — a
 // pharmacy only registers as an entity (see the facility registration
 // flow); there is no individual/self-registered pharmacist path.
@@ -81,7 +77,6 @@ export const SPECIALTIES = [
   "Registered Nurse",
   "Physiotherapist",
   "Medical Laboratory Scientist",
-  "Community Health Officer",
 ] as const;
 
 export interface PractitionerTypeConfig {
@@ -92,6 +87,9 @@ export interface PractitionerTypeConfig {
   /** Can this profession also be registered by an admin as affiliated with
    *  a hospital, in addition to registering independently? */
   allowsAffiliation: boolean;
+  /** Must this practitioner also declare which field they specialize in
+   *  (e.g. "Cardiology")? Only Medical Doctor (Specialist) today. */
+  requiresSpecialistField?: boolean;
 }
 
 export const PRACTITIONER_TYPES: Record<string, PractitionerTypeConfig> = {
@@ -108,6 +106,7 @@ export const PRACTITIONER_TYPES: Record<string, PractitionerTypeConfig> = {
     licenceDocType: "mdcn_licence",
     licenceDocLabel: "MDCN Medical Licence",
     allowsAffiliation: false,
+    requiresSpecialistField: true,
   },
   "Registered Nurse": {
     licenseBody: "NMCN",

@@ -114,7 +114,9 @@ export default async function ProviderDetailPage({ params }: { params: { id: str
           )}
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-gray-900">{provider.name}</h2>
-            <p className="text-gray-600">{provider.specialty} · {provider.credentials}</p>
+            <p className="text-gray-600">
+              {provider.specialty}{provider.specialist_field ? ` — ${provider.specialist_field}` : ""} · {provider.credentials}
+            </p>
             <p className="text-sm text-gray-400 mt-0.5">{provider.years_experience} yr{provider.years_experience !== 1 ? "s" : ""} experience</p>
             <div className="flex flex-wrap gap-4 mt-2">
               {provider.license_number && (

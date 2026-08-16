@@ -24,7 +24,7 @@ async function getSignInClient() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { email, password, name, phone, specialty, credentials, license_number, years_experience } = body;
+  const { email, password, name, phone, specialty, specialist_field, credentials, license_number, years_experience } = body;
 
   if (!email || !password || !name || !phone || !specialty) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -36,6 +36,9 @@ export async function POST(req: NextRequest) {
   const practitionerType = getPractitionerType(specialty);
   if (practitionerType && !license_number) {
     return NextResponse.json({ error: `Missing ${practitionerType.licenseLabel}` }, { status: 400 });
+  }
+  if (practitionerType?.requiresSpecialistField && !specialist_field) {
+    return NextResponse.json({ error: "Missing specialist field" }, { status: 400 });
   }
 
   const admin = createAdminSupabase();
@@ -90,6 +93,7 @@ export async function POST(req: NextRequest) {
       name,
       phone,
       specialty,
+      specialist_field: practitionerType?.requiresSpecialistField ? specialist_field : null,
       credentials,
       license_body: practitionerType?.licenseBody ?? null,
       license_number: practitionerType ? license_number : null,

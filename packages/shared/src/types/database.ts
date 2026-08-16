@@ -70,6 +70,7 @@ export interface Provider {
   name: string;
   photo_url: string | null;
   specialty: string;
+  specialist_field: string | null;
   credentials: string;
   license_body: string | null;
   license_number: string | null;
