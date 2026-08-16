@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase";
 
 type FacilityType = "lab" | "pharmacy" | "hospital";
 
+const INDIVIDUAL_PORTAL_URL = "https://provider.streetdocmd.com/register";
+
 const NIGERIAN_STATES = [
   "Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno",
   "Cross River","Delta","Ebonyi","Edo","Ekiti","Enugu","FCT","Gombe","Imo",
@@ -153,7 +155,11 @@ export default function FacilityRegClient() {
   if (!facilityType) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-teal-700 text-white py-12 px-6 text-center">
+        <div className="bg-teal-700 text-white py-12 px-6 text-center relative">
+          <a href={INDIVIDUAL_PORTAL_URL}
+            className="absolute top-4 left-4 sm:top-6 sm:left-6 text-teal-200 hover:text-white text-sm underline">
+            ← Change registration type
+          </a>
           <p className="text-3xl mb-3">🏥</p>
           <h1 className="text-3xl font-bold mb-2">Join the StreetdocMD Partner Network</h1>
           <p className="text-teal-100 max-w-lg mx-auto">
@@ -165,6 +171,18 @@ export default function FacilityRegClient() {
           <p className="text-center text-sm font-semibold text-gray-500 uppercase tracking-widest mb-8">
             Select your facility type to get started
           </p>
+
+          <div className="bg-white border border-gray-200 rounded-xl px-5 py-4 mb-8 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <p className="text-sm text-gray-600 flex-1">
+              This page is for <strong>organizations</strong> — a hospital, laboratory, or pharmacy. Registering
+              as an individual doctor, nurse, physiotherapist, or lab scientist?
+            </p>
+            <a href={INDIVIDUAL_PORTAL_URL}
+              className="text-sm font-semibold text-teal-700 hover:text-teal-800 whitespace-nowrap">
+              Go to the individual practitioner portal →
+            </a>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {FACILITY_TYPES.map(f => (
               <button
@@ -193,14 +211,19 @@ export default function FacilityRegClient() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-teal-700 text-white py-6 px-6">
-        <div className="max-w-2xl mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-teal-200">Partner Registration</p>
-            <h1 className="text-xl font-bold">{selectedFacility.icon} {selectedFacility.title}</h1>
+        <div className="max-w-2xl mx-auto space-y-2">
+          <a href={INDIVIDUAL_PORTAL_URL} className="text-teal-300 hover:text-white text-xs underline inline-block">
+            ← Change registration type
+          </a>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-teal-200">Partner Registration</p>
+              <h1 className="text-xl font-bold">{selectedFacility.icon} {selectedFacility.title}</h1>
+            </div>
+            <button onClick={() => setFacilityType(null)} className="text-teal-200 hover:text-white text-sm underline self-start sm:self-auto">
+              Change type
+            </button>
           </div>
-          <button onClick={() => setFacilityType(null)} className="text-teal-200 hover:text-white text-sm underline self-start sm:self-auto">
-            Change type
-          </button>
         </div>
       </div>
 
