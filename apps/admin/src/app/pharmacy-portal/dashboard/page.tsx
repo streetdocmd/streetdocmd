@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 
+const STALE_INVENTORY_DAYS = 14;
+
 const STATUS_LABELS: Record<string, string> = {
   pending_payment: "Awaiting Payment",
   sent:            "New Order",
@@ -27,6 +29,7 @@ export default function PharmacyDashboard() {
   const [loading, setLoading]     = useState(true);
   const [partnerId, setPartnerId] = useState<string | null>(null);
   const [filter, setFilter]       = useState<string>("active");
+  const [inventoryNudge, setInventoryNudge] = useState<string | null>(null);
 
   useEffect(() => { init(); }, []);
 
@@ -41,6 +44,19 @@ export default function PharmacyDashboard() {
       const { data: staff } = await supabase.from("pharmacy_staff").select("pharmacy_partner_id").eq("user_id", user.id).single();
       pid = staff?.pharmacy_partner_id ?? null;
       setPartnerId(pid);
+    }
+
+    if (pid) {
+      const { data: catalogue } = await supabase.from("drug_catalogue").select("updated_at").eq("pharmacy_partner_id", pid).eq("active", true);
+      if (!catalogue || catalogue.length === 0) {
+        setInventoryNudge("You haven't added any inventory yet — patients can't order medication from you until you do.");
+      } else {
+        const latest = catalogue.reduce((l, d) => new Date(d.updated_at) > new Date(l) ? d.updated_at : l, catalogue[0].updated_at);
+        const days = Math.floor((Date.now() - new Date(latest).getTime()) / (1000 * 60 * 60 * 24));
+        if (days > STALE_INVENTORY_DAYS) {
+          setInventoryNudge(`Your prices were last updated ${days} days ago — worth a check to make sure they're still accurate?`);
+        }
+      }
     }
 
     await loadOrders(pid, profile?.role ?? "");
@@ -79,6 +95,15 @@ export default function PharmacyDashboard() {
 
   return (
     <div className="space-y-6">
+      {inventoryNudge && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3.5 flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-sm text-amber-800">{inventoryNudge}</p>
+          <Link href="/pharmacy-portal/inventory" className="text-xs font-semibold text-amber-800 underline underline-offset-2 shrink-0">
+            Go to Inventory →
+          </Link>
+        </div>
+      )}
+
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-gray-900">Prescription Orders</h1>
         <div className="flex gap-2 text-sm">
