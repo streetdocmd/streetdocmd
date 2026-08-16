@@ -13,7 +13,7 @@ export default async function DocumentsPage() {
     .eq("user_id", user.id)
     .single();
 
-  if (!provider) redirect("/register");
+  if (!provider) redirect("/register/individual");
   // "under_review" and "verified" providers have nothing to do here.
   // "pending" (first submission) and "rejected" (re-applying) both need the form.
   if (provider.verification_status === "under_review" || provider.verification_status === "verified") {

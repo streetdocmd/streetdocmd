@@ -15,15 +15,23 @@ const STATUS_COLOR: Record<string, string> = {
   cancelled:    "bg-red-100 text-red-700",
 };
 
-type Tab = "referrals" | "partners";
+type Tab = "referrals" | "partners" | "providers";
+
+// Kept in sync with apps/admin/src/app/api/hospitals/providers/route.ts —
+// only specialties that make sense as hospital-affiliated, individually-
+// dispatched providers. Lab Technicians affiliate with a Lab Partner
+// instead (existing lab_staff mechanism), not through this form.
+const HOSPITAL_AFFILIATED_SPECIALTIES = ["Physiotherapist"];
 
 export default function HospitalsClient({
   referrals,
   partners,
+  affiliatedProviders,
   stats,
 }: {
   referrals: any[];
   partners: any[];
+  affiliatedProviders: any[];
   stats: { totalReferrals: number; pendingCount: number; inProgressCount: number; completedCount: number; emergencyCount: number };
 }) {
   const [tab, setTab]       = useState<Tab>("referrals");
@@ -38,6 +46,44 @@ export default function HospitalsClient({
     emergency_available: true, ambulance_available: false,
     bed_count: "", specialties: [] as string[],
   });
+
+  const [providerList, setProviderList]   = useState(affiliatedProviders);
+  const [showProviderForm, setShowProviderForm] = useState(false);
+  const [savingProvider, setSavingProvider]     = useState(false);
+  const [providerError, setProviderError]       = useState("");
+  const [providerForm, setProviderForm] = useState({
+    hospital_partner_id: "", name: "", email: "", phone: "", password: "",
+    specialty: HOSPITAL_AFFILIATED_SPECIALTIES[0], license_number: "",
+    credentials: "", years_experience: "",
+  });
+
+  async function createAffiliatedProvider(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingProvider(true);
+    setProviderError("");
+    const res = await fetch("/api/hospitals/providers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(providerForm),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setProviderError(json.error ?? "Could not create provider account");
+      setSavingProvider(false);
+      return;
+    }
+    const hospital = partnerList.find(p => p.id === providerForm.hospital_partner_id);
+    setProviderList(prev => [
+      { id: json.provider.id, name: json.provider.name, specialty: json.provider.specialty,
+        license_body: null, license_number: null, verification_status: "pending",
+        hospital_partner_id: providerForm.hospital_partner_id,
+        hospital_partners: { name: hospital?.name ?? "" } },
+      ...prev,
+    ]);
+    setShowProviderForm(false);
+    setProviderForm({ hospital_partner_id: "", name: "", email: "", phone: "", password: "", specialty: HOSPITAL_AFFILIATED_SPECIALTIES[0], license_number: "", credentials: "", years_experience: "" });
+    setSavingProvider(false);
+  }
 
   const filtered = filter === "all" ? referrals
     : filter === "emergency" ? referrals.filter(r => r.urgency === "emergency")
@@ -103,13 +149,13 @@ export default function HospitalsClient({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-200">
-        {(["referrals", "partners"] as Tab[]).map(t => (
+      <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
+        {(["referrals", "partners", "providers"] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors capitalize ${
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors capitalize whitespace-nowrap shrink-0 ${
               tab === t ? "border-teal-brand text-teal-brand" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}>
-            {t === "referrals" ? "Referrals" : "Hospital Partners"}
+            {t === "referrals" ? "Referrals" : t === "partners" ? "Hospital Partners" : "Affiliated Providers"}
           </button>
         ))}
       </div>
@@ -264,6 +310,94 @@ export default function HospitalsClient({
               <div className="card p-12 text-center">
                 <p className="text-4xl mb-3">🏥</p>
                 <p className="font-semibold text-gray-700">No hospital partners yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Affiliated Providers tab */}
+      {tab === "providers" && (
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-semibold text-gray-900">Hospital-Affiliated Providers ({providerList.length})</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Individually dispatched like any provider — a hospital link is just for that hospital's own records.
+              </p>
+            </div>
+            <button onClick={() => setShowProviderForm(!showProviderForm)}
+              className="px-4 py-2 bg-teal-brand text-white rounded-lg text-sm font-semibold hover:opacity-90 self-start sm:self-auto">
+              {showProviderForm ? "Cancel" : "+ Add Provider"}
+            </button>
+          </div>
+
+          {showProviderForm && (
+            <form onSubmit={createAffiliatedProvider} className="card p-5 space-y-4">
+              <p className="font-semibold text-gray-900">New Hospital-Affiliated Provider</p>
+              <p className="text-xs text-gray-500">
+                This creates their account on their behalf. They'll still need to sign in and upload their
+                own credential documents for the normal admin review before they can accept bookings —
+                share the email and temporary password below with them directly.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="label">Hospital *</label>
+                  <select className="input" required value={providerForm.hospital_partner_id}
+                    onChange={e => setProviderForm(f => ({ ...f, hospital_partner_id: e.target.value }))}>
+                    <option value="">Select hospital…</option>
+                    {partnerList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-2"><label className="label">Full name *</label><input className="input" required value={providerForm.name} onChange={e => setProviderForm(f => ({ ...f, name: e.target.value }))} /></div>
+                <div><label className="label">Email *</label><input className="input" type="email" required value={providerForm.email} onChange={e => setProviderForm(f => ({ ...f, email: e.target.value }))} /></div>
+                <div><label className="label">Phone *</label><input className="input" required value={providerForm.phone} onChange={e => setProviderForm(f => ({ ...f, phone: e.target.value }))} /></div>
+                <div><label className="label">Temporary password *</label><input className="input" type="text" required minLength={8} value={providerForm.password} onChange={e => setProviderForm(f => ({ ...f, password: e.target.value }))} /></div>
+                <div>
+                  <label className="label">Specialty *</label>
+                  <select className="input" required value={providerForm.specialty}
+                    onChange={e => setProviderForm(f => ({ ...f, specialty: e.target.value }))}>
+                    {HOSPITAL_AFFILIATED_SPECIALTIES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div><label className="label">MRTB Registration Number *</label><input className="input" required value={providerForm.license_number} onChange={e => setProviderForm(f => ({ ...f, license_number: e.target.value }))} /></div>
+                <div><label className="label">Qualifications summary *</label><input className="input" required placeholder="e.g. BSc Physiotherapy (UNILAG), 2018" value={providerForm.credentials} onChange={e => setProviderForm(f => ({ ...f, credentials: e.target.value }))} /></div>
+                <div><label className="label">Years of experience</label><input className="input" type="number" min="0" max="50" value={providerForm.years_experience} onChange={e => setProviderForm(f => ({ ...f, years_experience: e.target.value }))} /></div>
+              </div>
+              {providerError && <p className="text-sm text-red-600">{providerError}</p>}
+              <button type="submit" disabled={savingProvider}
+                className="px-6 py-2.5 bg-teal-brand text-white rounded-lg font-semibold text-sm disabled:opacity-50">
+                {savingProvider ? "Creating…" : "Create Provider Account"}
+              </button>
+            </form>
+          )}
+
+          <div className="space-y-3">
+            {providerList.map((p: any) => (
+              <div key={p.id} className="card p-4 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-gray-900">{p.name}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      p.verification_status === "verified" ? "bg-green-100 text-green-700" :
+                      p.verification_status === "rejected" ? "bg-red-100 text-red-700" :
+                      "bg-amber-100 text-amber-700"
+                    }`}>
+                      {p.verification_status.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500">{p.specialty} · {(p.hospital_partners as any)?.name ?? "—"}</p>
+                  {p.license_number && <p className="text-xs text-gray-400">{p.license_body}: {p.license_number}</p>}
+                </div>
+                <a href={`/dashboard/providers/${p.id}`} className="text-xs text-teal-brand hover:underline font-medium shrink-0">
+                  Review →
+                </a>
+              </div>
+            ))}
+            {providerList.length === 0 && (
+              <div className="card p-12 text-center">
+                <p className="text-4xl mb-3">🧑‍⚕️</p>
+                <p className="font-semibold text-gray-700">No hospital-affiliated providers yet</p>
               </div>
             )}
           </div>
