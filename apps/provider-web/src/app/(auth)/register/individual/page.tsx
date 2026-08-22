@@ -16,6 +16,8 @@ export default function RegisterIndividualPage() {
     credentials: "",
     license_number: "",
     years_experience: "",
+    expected_rate: "",
+    questions: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -127,6 +129,27 @@ export default function RegisterIndividualPage() {
             <div>
               <label className="label">Years of experience</label>
               <input type="number" min="0" max="50" className="input" placeholder="0" value={form.years_experience} onChange={e => set("years_experience", e.target.value)} />
+            </div>
+            <div className="col-span-2">
+              <label className="label">What would you consider a reasonable amount per booking/consultation?</label>
+              <input
+                type="number"
+                min="0"
+                className="input"
+                placeholder="e.g. 5000"
+                value={form.expected_rate}
+                onChange={e => set("expected_rate", e.target.value)}
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="label">Any questions or suggestions for us?</label>
+              <textarea
+                className="input"
+                rows={3}
+                placeholder="Ask us anything, or share any suggestions you have"
+                value={form.questions}
+                onChange={e => set("questions", e.target.value)}
+              />
             </div>
           </div>
 
