@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
@@ -33,7 +33,7 @@ export default function FacilityRegClient() {
   const router = useRouter();
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0); // 0=select type, 1-4=form steps
   const [facilityType, setFacilityType] = useState<FacilityType | null>(null);
-  const [formStep, setFormStep] = useState<1 | 2 | 3 | 4>(1);
+  const [formStep, setFormStep] = useState<1 | 2 | 3>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -66,16 +66,6 @@ export default function FacilityRegClient() {
     specialties: [] as string[], other_specialty: "",
   });
 
-  // Documents
-  const [docs, setDocs] = useState<{
-    licence_url?: string; cac_url?: string; photo_urls: string[];
-  }>({ photo_urls: [] });
-  const [uploading, setUploading] = useState<string | null>(null);
-
-  const licenceRef = useRef<HTMLInputElement>(null);
-  const cacRef = useRef<HTMLInputElement>(null);
-  const photoRef = useRef<HTMLInputElement>(null);
-
   const FACILITY_TYPES: { type: FacilityType; icon: string; title: string; desc: string; earn: string }[] = [
     { type: "lab", icon: "🧪", title: "Laboratory", desc: "Receive investigation orders and deliver results directly to patients and providers", earn: "Earn 85% of test fees" },
     { type: "pharmacy", icon: "💊", title: "Pharmacy", desc: "Receive digital prescriptions and deliver medications to patients at home", earn: "Earn 92% of drug sales" },
@@ -83,79 +73,6 @@ export default function FacilityRegClient() {
   ];
 
   function setB(k: keyof typeof basic, v: string) { setBasic(b => ({ ...b, [k]: v })); }
-
-  async function uploadFile(file: File, path: string): Promise<string | null> {
-    const supabase = createClient();
-    const { data, error } = await supabase.storage
-      .from("facility-applications")
-      .upload(path, file, { upsert: true });
-    if (error) {
-      console.error("Supabase upload error:", error);
-      throw error;
-    }
-    const { data: pub } = supabase.storage.from("facility-applications").getPublicUrl(data.path);
-    return pub.publicUrl;
-  }
-
-  const [uploadError, setUploadError] = useState("");
-
-  async function handleLicenceUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading("licence");
-    setUploadError("");
-    try {
-      const url = await uploadFile(file, `${Date.now()}-licence-${file.name}`);
-      if (url) setDocs(d => ({ ...d, licence_url: url }));
-      else setUploadError("Licence upload failed. Check your connection and try again.");
-    } catch (err: any) {
-      console.error("Licence upload threw:", err);
-      setUploadError(err?.message ?? "Licence upload failed unexpectedly.");
-    } finally {
-      setUploading(null);
-    }
-  }
-
-  async function handleCacUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading("cac");
-    setUploadError("");
-    try {
-      const url = await uploadFile(file, `${Date.now()}-cac-${file.name}`);
-      if (url) setDocs(d => ({ ...d, cac_url: url }));
-      else setUploadError("CAC certificate upload failed. Check your connection and try again.");
-    } catch (err: any) {
-      console.error("CAC upload threw:", err);
-      setUploadError(err?.message ?? "CAC certificate upload failed unexpectedly.");
-    } finally {
-      setUploading(null);
-    }
-  }
-
-  async function handlePhotosUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []).slice(0, 3);
-    if (!files.length) return;
-    setUploading("photos");
-    setUploadError("");
-    try {
-      const urls: string[] = [];
-      for (const f of files) {
-        const url = await uploadFile(f, `${Date.now()}-photo-${f.name}`);
-        if (url) urls.push(url);
-      }
-      if (urls.length) {
-        setDocs(d => ({ ...d, photo_urls: [...d.photo_urls, ...urls].slice(0, 3) }));
-      } else {
-        setUploadError("Photo upload failed. Check your connection and try again.");
-      }
-    } catch (err: any) {
-      console.error("Photo upload threw:", err);
-      setUploadError(err?.message ?? "Photo upload failed unexpectedly.");
-    } finally {
-      setUploading(null);
-    }
-  }
 
   function toggleSpecialty(s: string) {
     setHospData(h => ({
@@ -181,7 +98,6 @@ export default function FacilityRegClient() {
           facility_type: facilityType,
           ...basic,
           type_specific_data: typeData,
-          documents: docs,
         }),
       });
       if (!res.ok) throw new Error(await res.text());
@@ -271,15 +187,15 @@ export default function FacilityRegClient() {
       {/* Progress */}
       <div className="bg-white border-b border-gray-200 px-6 py-3">
         <div className="max-w-2xl mx-auto flex items-center gap-2">
-          {[1,2,3,4].map(n => (
+          {[1,2,3].map(n => (
             <div key={n} className="flex items-center gap-2">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                 formStep > n ? "bg-teal-600 text-white" : formStep === n ? "bg-teal-100 text-teal-700 border-2 border-teal-600" : "bg-gray-100 text-gray-400"
               }`}>{formStep > n ? "✓" : n}</div>
-              {n < 4 && <div className={`flex-1 h-0.5 w-4 sm:w-8 ${formStep > n ? "bg-teal-400" : "bg-gray-200"}`} />}
+              {n < 3 && <div className={`flex-1 h-0.5 w-4 sm:w-8 ${formStep > n ? "bg-teal-400" : "bg-gray-200"}`} />}
             </div>
           ))}
-          <span className="ml-auto text-xs text-gray-400 hidden sm:inline">Step {formStep} of 4</span>
+          <span className="ml-auto text-xs text-gray-400 hidden sm:inline">Step {formStep} of 3</span>
         </div>
       </div>
 
@@ -495,68 +411,8 @@ export default function FacilityRegClient() {
           </div>
         )}
 
-        {/* Step 3: Documents */}
+        {/* Step 3: Review */}
         {formStep === 3 && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">Documents</h2>
-            <div className="card p-6 space-y-5">
-              <div>
-                <label className={labelClass}>Professional licence / accreditation certificate</label>
-                <div className="mt-1 flex items-center gap-3">
-                  <button onClick={() => licenceRef.current?.click()}
-                    disabled={uploading === "licence"}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50">
-                    {uploading === "licence" ? "Uploading…" : docs.licence_url ? "✓ Uploaded — change" : "Choose file"}
-                  </button>
-                  {docs.licence_url && <a href={docs.licence_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">View</a>}
-                </div>
-                <input ref={licenceRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleLicenceUpload} />
-              </div>
-
-              <div>
-                <label className={labelClass}>CAC certificate</label>
-                <div className="mt-1 flex items-center gap-3">
-                  <button onClick={() => cacRef.current?.click()}
-                    disabled={uploading === "cac"}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50">
-                    {uploading === "cac" ? "Uploading…" : docs.cac_url ? "✓ Uploaded — change" : "Choose file"}
-                  </button>
-                  {docs.cac_url && <a href={docs.cac_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">View</a>}
-                </div>
-                <input ref={cacRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleCacUpload} />
-              </div>
-
-              <div>
-                <label className={labelClass}>Facility photos (up to 3)</label>
-                <div className="mt-1 flex items-center gap-3 flex-wrap">
-                  <button onClick={() => photoRef.current?.click()}
-                    disabled={uploading === "photos" || docs.photo_urls.length >= 3}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50">
-                    {uploading === "photos" ? "Uploading…" : `Add photos (${docs.photo_urls.length}/3)`}
-                  </button>
-                  {docs.photo_urls.map((url, i) => (
-                    <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">Photo {i+1}</a>
-                  ))}
-                </div>
-                <input ref={photoRef} type="file" accept=".jpg,.jpeg,.png,.webp" multiple className="hidden" onChange={handlePhotosUpload} />
-                <p className="text-xs text-gray-400 mt-1">JPG, PNG or WEBP. Exterior and interior shots welcome.</p>
-              </div>
-
-              {uploadError && (
-                <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                  {uploadError}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-              <button onClick={() => setFormStep(2)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
-              <button onClick={() => setFormStep(4)} className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700">Review →</button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 4: Review */}
-        {formStep === 4 && (
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-gray-900">Review & Submit</h2>
 
@@ -604,16 +460,10 @@ export default function FacilityRegClient() {
               )}
             </div>
 
-            <div className="card p-5 space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-gray-700">Documents</p>
-                <button onClick={() => setFormStep(3)} className="text-xs text-blue-600 hover:underline">Edit</button>
-              </div>
-              <div className="text-sm text-gray-500 space-y-0.5">
-                <p>{docs.licence_url ? "✓ Licence uploaded" : "○ No licence uploaded"}</p>
-                <p>{docs.cac_url ? "✓ CAC certificate uploaded" : "○ No CAC certificate uploaded"}</p>
-                <p>{docs.photo_urls.length > 0 ? `✓ ${docs.photo_urls.length} photo(s) uploaded` : "○ No photos uploaded"}</p>
-              </div>
+            <div className="card p-5 bg-gray-50">
+              <p className="text-sm text-gray-600">
+                📄 You'll be asked to upload your licence, CAC certificate, and facility photos from your dashboard once your account is created.
+              </p>
             </div>
 
             <div className="card p-6 space-y-2">
@@ -630,7 +480,7 @@ export default function FacilityRegClient() {
             {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-              <button onClick={() => setFormStep(3)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
+              <button onClick={() => setFormStep(2)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
               <button onClick={handleSubmit} disabled={submitting}
                 className="w-full sm:w-auto px-8 py-3 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 disabled:opacity-50">
                 {submitting ? "Submitting…" : "Submit Application"}
