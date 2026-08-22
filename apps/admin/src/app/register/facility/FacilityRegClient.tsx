@@ -94,35 +94,64 @@ export default function FacilityRegClient() {
     return pub.publicUrl;
   }
 
+  const [uploadError, setUploadError] = useState("");
+
   async function handleLicenceUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading("licence");
-    const url = await uploadFile(file, `${Date.now()}-licence-${file.name}`);
-    if (url) setDocs(d => ({ ...d, licence_url: url }));
-    setUploading(null);
+    setUploadError("");
+    try {
+      const url = await uploadFile(file, `${Date.now()}-licence-${file.name}`);
+      if (url) setDocs(d => ({ ...d, licence_url: url }));
+      else setUploadError("Licence upload failed. Check your connection and try again.");
+    } catch (err: any) {
+      console.error("Licence upload threw:", err);
+      setUploadError(err?.message ?? "Licence upload failed unexpectedly.");
+    } finally {
+      setUploading(null);
+    }
   }
 
   async function handleCacUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading("cac");
-    const url = await uploadFile(file, `${Date.now()}-cac-${file.name}`);
-    if (url) setDocs(d => ({ ...d, cac_url: url }));
-    setUploading(null);
+    setUploadError("");
+    try {
+      const url = await uploadFile(file, `${Date.now()}-cac-${file.name}`);
+      if (url) setDocs(d => ({ ...d, cac_url: url }));
+      else setUploadError("CAC certificate upload failed. Check your connection and try again.");
+    } catch (err: any) {
+      console.error("CAC upload threw:", err);
+      setUploadError(err?.message ?? "CAC certificate upload failed unexpectedly.");
+    } finally {
+      setUploading(null);
+    }
   }
 
   async function handlePhotosUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []).slice(0, 3);
     if (!files.length) return;
     setUploading("photos");
-    const urls: string[] = [];
-    for (const f of files) {
-      const url = await uploadFile(f, `${Date.now()}-photo-${f.name}`);
-      if (url) urls.push(url);
+    setUploadError("");
+    try {
+      const urls: string[] = [];
+      for (const f of files) {
+        const url = await uploadFile(f, `${Date.now()}-photo-${f.name}`);
+        if (url) urls.push(url);
+      }
+      if (urls.length) {
+        setDocs(d => ({ ...d, photo_urls: [...d.photo_urls, ...urls].slice(0, 3) }));
+      } else {
+        setUploadError("Photo upload failed. Check your connection and try again.");
+      }
+    } catch (err: any) {
+      console.error("Photo upload threw:", err);
+      setUploadError(err?.message ?? "Photo upload failed unexpectedly.");
+    } finally {
+      setUploading(null);
     }
-    setDocs(d => ({ ...d, photo_urls: [...d.photo_urls, ...urls].slice(0, 3) }));
-    setUploading(null);
   }
 
   function toggleSpecialty(s: string) {
@@ -509,6 +538,12 @@ export default function FacilityRegClient() {
                 <input ref={photoRef} type="file" accept=".jpg,.jpeg,.png,.webp" multiple className="hidden" onChange={handlePhotosUpload} />
                 <p className="text-xs text-gray-400 mt-1">JPG, PNG or WEBP. Exterior and interior shots welcome.</p>
               </div>
+
+              {uploadError && (
+                <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {uploadError}
+                </p>
+              )}
             </div>
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
               <button onClick={() => setFormStep(2)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
