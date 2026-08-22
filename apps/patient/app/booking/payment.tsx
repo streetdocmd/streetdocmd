@@ -30,7 +30,7 @@ export default function PaymentScreen() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const res = await fetch("https://streetdocmd.vercel.app/api/payments/initialize", {
+    const res = await fetch("https://admin.streetdocmd.com/api/payments/initialize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ bookingId, userId: user.id }),

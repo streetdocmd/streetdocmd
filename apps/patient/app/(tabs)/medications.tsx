@@ -50,7 +50,7 @@ interface MedOrder {
   }[];
 }
 
-const PATIENT_WEB_URL = "https://streetdocmd-patient-web.vercel.app";
+const PATIENT_WEB_URL = "https://app.streetdocmd.com";
 
 export default function MedicationsScreen() {
   const [orders, setOrders] = useState<MedOrder[]>([]);

@@ -176,9 +176,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     // Notify via SMS
     const portalUrls: Record<string, string> = {
-      lab: "https://streetdocmd.vercel.app/lab-portal/login",
-      pharmacy: "https://streetdocmd.vercel.app/pharmacy-portal/login",
-      hospital: "https://streetdocmd.vercel.app/hospital-portal/login",
+      lab: "https://admin.streetdocmd.com/lab-portal/login",
+      pharmacy: "https://admin.streetdocmd.com/pharmacy-portal/login",
+      hospital: "https://admin.streetdocmd.com/hospital-portal/login",
     };
     const termiiKey = process.env.TERMII_API_KEY;
     if (termiiKey && app.phone) {

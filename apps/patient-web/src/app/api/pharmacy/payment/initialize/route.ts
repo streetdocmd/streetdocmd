@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       email:        patient?.email ?? `patient+${effectiveUserId}@streetdocmd.com`,
       amount:       Math.round(order.total_amount * 100), // kobo
       reference:    ref,
-      callback_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://streetdocmd-patient-web.vercel.app"}/api/pharmacy/payment/verify?orderId=${orderId}`,
+      callback_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://app.streetdocmd.com"}/api/pharmacy/payment/verify?orderId=${orderId}`,
       metadata:     { order_id: orderId, type: "prescription_order" },
     }),
   });

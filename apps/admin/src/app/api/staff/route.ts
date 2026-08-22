@@ -61,9 +61,9 @@ export async function POST(req: NextRequest) {
   // Notify via SMS
   const termiiKey = process.env.TERMII_API_KEY;
   const portalUrls: Record<string, string> = {
-    lab:      "https://streetdocmd.vercel.app/lab-portal/login",
-    pharmacy: "https://streetdocmd.vercel.app/pharmacy-portal/login",
-    hospital: "https://streetdocmd.vercel.app/hospital-portal/login",
+    lab:      "https://admin.streetdocmd.com/lab-portal/login",
+    pharmacy: "https://admin.streetdocmd.com/pharmacy-portal/login",
+    hospital: "https://admin.streetdocmd.com/hospital-portal/login",
   };
   if (termiiKey && phone) {
     await fetch("https://api.ng.termii.com/api/sms/send", {

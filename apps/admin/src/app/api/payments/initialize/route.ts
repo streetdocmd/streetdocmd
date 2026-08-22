@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       amount: booking.fee * 100, // kobo
       reference,
       metadata: { booking_id },
-      callback_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/payments/callback`,
+      callback_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://admin.streetdocmd.com"}/api/payments/callback`,
     }),
   });
 

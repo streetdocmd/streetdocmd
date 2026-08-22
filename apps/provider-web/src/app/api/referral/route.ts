@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
     if (termiiKey && hospital.phone) {
       const urgencyText = urgency === "emergency" ? "EMERGENCY REFERRAL" : urgency === "urgent" ? "URGENT REFERRAL" : "Referral";
       await sendSMS(termiiKey, hospital.phone,
-        `StreetdocMD ${urgencyText}: A patient has been referred to ${hospital.name}. Please log in to your hospital portal to review. Portal: https://streetdocmd.vercel.app/hospital-portal`
+        `StreetdocMD ${urgencyText}: A patient has been referred to ${hospital.name}. Please log in to your hospital portal to review. Portal: https://admin.streetdocmd.com/hospital-portal`
       );
     }
   }));
