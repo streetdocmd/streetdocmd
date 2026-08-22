@@ -25,9 +25,15 @@ export async function POST(req: NextRequest) {
   // Fetch provider info
   const [{ data: booking }, { data: provider }, { data: patient }] = await Promise.all([
     admin.from("bookings").select("address, lat, lng").eq("id", bookingId).single(),
-    admin.from("providers").select("name, credentials, specialty").eq("id", providerId).single(),
+    admin.from("providers").select("name, credentials, specialty, profession").eq("id", providerId).single(),
     admin.from("users").select("name, dob, phone").eq("id", patientId).single(),
   ]);
+
+  // Hospital referral is a doctor-only clinical action — a nurse/physio
+  // provider does not get it just by having a valid provider row.
+  if (provider?.profession !== "doctor") {
+    return NextResponse.json({ error: "Only doctors can create hospital referrals" }, { status: 403 });
+  }
 
   // Fetch active diagnoses for this booking's clinical note
   const { data: noteRow } = await admin

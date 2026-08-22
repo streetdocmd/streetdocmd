@@ -13,6 +13,8 @@ const SERVICES: ServiceType[] = [
   "wound_care",
   "elderly_review",
   "nursing_care",
+  "physiotherapy_assessment",
+  "physiotherapy_session",
 ];
 
 export default function HomeScreen() {
@@ -51,7 +53,15 @@ export default function HomeScreen() {
       router.push("/booking/custom-request");
       return;
     }
+    if (service === "wellness_check") {
+      router.push("/booking/lab-investigations");
+      return;
+    }
     router.push({ pathname: "/booking/select-provider", params: { service } });
+  }
+
+  function serviceLabel(service: ServiceType): string {
+    return service === "wellness_check" ? "Request Lab Investigations" : SERVICE_LABELS[service];
   }
 
   return (
@@ -75,8 +85,10 @@ export default function HomeScreen() {
             onPress={() => selectService(service)}
             activeOpacity={0.8}
           >
-            <Text style={styles.cardTitle}>{SERVICE_LABELS[service]}</Text>
-            <Text style={styles.cardPrice}>{formatNaira(SERVICE_PRICES[service])}</Text>
+            <Text style={styles.cardTitle}>{serviceLabel(service)}</Text>
+            <Text style={styles.cardPrice}>
+              {service === "wellness_check" ? "From " + formatNaira(SERVICE_PRICES[service]) : formatNaira(SERVICE_PRICES[service])}
+            </Text>
           </TouchableOpacity>
         ))}
         <TouchableOpacity

@@ -1,5 +1,6 @@
 import { createServerSupabase } from "@/lib/supabase-server";
 import Link from "next/link";
+import { PROFESSION_LABELS } from "@/lib/shared";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
@@ -18,7 +19,7 @@ export default async function ProvidersPage({
 
   const { data: providers } = await supabase
     .from("providers")
-    .select("id, name, specialty, specialist_field, credentials, verification_status, rating, total_visits, created_at")
+    .select("id, name, specialty, specialist_field, profession, credentials, verification_status, rating, total_visits, created_at")
     .eq("verification_status", status)
     .order("created_at", { ascending: true });
 
@@ -52,6 +53,7 @@ export default async function ProvidersPage({
             <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
               <tr>
                 <th className="text-left px-4 py-3">Name</th>
+                <th className="text-left px-4 py-3">Profession</th>
                 <th className="text-left px-4 py-3">Specialty</th>
                 <th className="text-left px-4 py-3">Credentials</th>
                 <th className="text-left px-4 py-3">Status</th>
@@ -64,6 +66,9 @@ export default async function ProvidersPage({
               {(providers ?? []).map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">{p.name}</td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {(PROFESSION_LABELS as Record<string, string>)[p.profession] ?? p.profession}
+                  </td>
                   <td className="px-4 py-3 text-gray-600">
                     {p.specialty}{p.specialist_field ? ` — ${p.specialist_field}` : ""}
                   </td>
@@ -89,7 +94,7 @@ export default async function ProvidersPage({
               ))}
               {(providers ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
                     No providers with status "{status.replace(/_/g, " ")}"
                   </td>
                 </tr>

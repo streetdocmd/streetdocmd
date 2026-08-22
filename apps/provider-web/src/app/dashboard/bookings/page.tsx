@@ -8,7 +8,7 @@ export default async function BookingsPage() {
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: provider } = await supabase.from("providers").select("id").eq("user_id", user!.id).single();
+  const { data: provider } = await supabase.from("providers").select("id, profession").eq("user_id", user!.id).single();
   if (!provider) return null;
 
   const { data: bookings } = await supabase
@@ -22,7 +22,7 @@ export default async function BookingsPage() {
 
   let visitsMap: Record<string, any> = {};
   let prescriptionsMap: Record<string, any> = {};
-  let clinicalNoteMap: Record<string, any> = {};
+  let encounterMap: Record<string, any> = {};
 
   if (bookingIds.length > 0) {
     const { data: visits } = await supabase
@@ -42,12 +42,18 @@ export default async function BookingsPage() {
       for (const p of prescriptions ?? []) prescriptionsMap[p.visit_id] = p;
     }
 
-    const { data: clinicalNotes } = await supabase
-      .from("clinical_notes")
+    // Which encounter table to read depends on this provider's profession —
+    // a provider only ever has rows in their own profession's table.
+    const encounterTable = provider.profession === "nurse" ? "nursing_encounters"
+      : provider.profession === "physiotherapist" ? "physiotherapy_encounters"
+      : "clinical_notes";
+
+    const { data: encounters } = await supabase
+      .from(encounterTable)
       .select("id, booking_id, status, submitted_at")
       .in("booking_id", bookingIds);
 
-    for (const cn of clinicalNotes ?? []) clinicalNoteMap[cn.booking_id] = cn;
+    for (const e of encounters ?? []) encounterMap[e.booking_id] = e;
   }
 
   const enriched = list.map((b: any) => {
@@ -55,7 +61,7 @@ export default async function BookingsPage() {
     if (visit) {
       visit.prescription = prescriptionsMap[visit.id] ?? null;
     }
-    return { ...b, visit, clinicalNote: clinicalNoteMap[b.id] ?? null };
+    return { ...b, visit, encounter: encounterMap[b.id] ?? null };
   });
 
   return (
@@ -76,6 +82,7 @@ export default async function BookingsPage() {
               <ProviderBookingCard
                 key={b.id}
                 booking={b}
+                profession={provider.profession}
                 serviceLabel={(SERVICE_LABELS as Record<string, string>)[b.service_type]}
                 statusLabel={(BOOKING_STATUS_LABELS as Record<string, string>)[b.status]}
                 isActive={isActive}

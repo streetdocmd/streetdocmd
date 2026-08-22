@@ -2,6 +2,7 @@ import { createAdminSupabase } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import VerificationActions from "./VerificationActions";
+import { PROFESSION_LABELS, formatNaira } from "@/lib/shared";
 
 const DOC_LABELS: Record<string, string> = {
   mdcn_licence: "MDCN Licence",
@@ -44,7 +45,7 @@ function providerDocPath(fileUrl: string) {
 export default async function ProviderDetailPage({ params }: { params: { id: string } }) {
   const supabase = createAdminSupabase();
 
-  const [{ data: provider }, { data: logs }] = await Promise.all([
+  const [{ data: provider }, { data: logs }, { data: services }] = await Promise.all([
     supabase
       .from("providers")
       .select("*, users(email), provider_documents(*)")
@@ -53,6 +54,11 @@ export default async function ProviderDetailPage({ params }: { params: { id: str
     supabase
       .from("verification_logs")
       .select("id, action, notes, created_at, users(name)")
+      .eq("provider_id", params.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("provider_services")
+      .select("id, name, description, price, duration_minutes, active")
       .eq("provider_id", params.id)
       .order("created_at", { ascending: false }),
   ]);
@@ -113,7 +119,12 @@ export default async function ProviderDetailPage({ params }: { params: { id: str
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-gray-900">{provider.name}</h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-xl font-bold text-gray-900">{provider.name}</h2>
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                {(PROFESSION_LABELS as Record<string, string>)[provider.profession] ?? provider.profession}
+              </span>
+            </div>
             <p className="text-gray-600">
               {provider.specialty}{provider.specialist_field ? ` — ${provider.specialist_field}` : ""} · {provider.credentials}
             </p>
@@ -224,6 +235,36 @@ export default async function ProviderDetailPage({ params }: { params: { id: str
           </div>
         )}
       </div>
+
+      {/* Services */}
+      {provider.profession !== "doctor" && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="font-semibold text-gray-900 mb-4">
+            Services
+            <span className="ml-2 text-xs font-normal text-gray-400">({(services ?? []).length})</span>
+          </h3>
+          {(services ?? []).length === 0 ? (
+            <p className="text-sm text-gray-400">This provider hasn't listed any services yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {(services ?? []).map((s: any) => (
+                <div key={s.id} className="flex items-center justify-between border-b border-gray-50 last:border-0 py-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{s.name}</p>
+                    {s.description && <p className="text-xs text-gray-400">{s.description}</p>}
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-sm font-medium text-gray-700">{formatNaira(s.price)}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${s.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                      {s.active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Verification actions */}
       <VerificationActions

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { getEncounterRoute, type Profession } from "@streetdocmd/shared";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -34,15 +35,18 @@ export default function ActiveBookingClient({
   bookingId,
   currentStatus,
   patientPhone,
+  profession,
 }: {
   bookingId: string;
   currentStatus: BookingStatus;
   patientPhone: string;
   patientId: string;
   providerId: string;
+  profession: Profession;
 }) {
   const router = useRouter();
   const supabase = createClient();
+  const encounterHref = getEncounterRoute(profession, bookingId);
 
   const [status, setStatus]   = useState<BookingStatus>(currentStatus);
   const [loading, setLoading] = useState(false);
@@ -65,7 +69,7 @@ export default function ActiveBookingClient({
     await supabase.from("bookings").update(update).eq("id", bookingId);
 
     if (nextStatus === "arrived") {
-      router.push(`/dashboard/clinical-note/${bookingId}`);
+      router.push(encounterHref);
       return;
     }
 
@@ -111,11 +115,11 @@ export default function ActiveBookingClient({
         </div>
       </a>
 
-      {/* Continue Clinical Note (arrived or in_progress — provider navigated back) */}
+      {/* Continue visit note (arrived or in_progress — provider navigated back) */}
       {(status === "arrived" || status === "in_progress") && (
-        <a href={`/dashboard/clinical-note/${bookingId}`}
+        <a href={encounterHref}
           className="w-full py-3 rounded-xl font-semibold text-white bg-teal-brand hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
-          📋 Continue Clinical Note →
+          📋 Continue Visit Note →
         </a>
       )}
 

@@ -42,30 +42,41 @@ export default async function RecordsPage() {
       for (const p of prescriptions ?? []) prescriptionsMap[p.visit_id] = p;
     }
 
-    const { data: clinicalNotes } = await admin
-      .from("clinical_notes")
-      .select("id, booking_id")
-      .in("booking_id", bookingIds)
-      .eq("status", "submitted");
+    // A completed visit's summary can live under any of the three encounter
+    // types (clinical_notes for doctors, nursing_encounters, or
+    // physiotherapy_encounters) — visit_summaries is polymorphic across all
+    // three, so each is looked up the same way and merged into one map.
+    const SUMMARY_COLUMNS =
+      "clinical_note_id, nursing_encounter_id, physiotherapy_encounter_id, " +
+      "plain_diagnosis, reason_for_visit, what_was_done, " +
+      "medications, investigations, recommendations, follow_up_date, abnormal_vitals";
 
-    const noteIds = (clinicalNotes ?? []).map((cn: any) => cn.id);
-    const noteToBooking = Object.fromEntries(
-      (clinicalNotes ?? []).map((cn: any) => [cn.id, cn.booking_id])
-    );
+    const [clinicalNotesResult, nursingEncountersResult, physioEncountersResult] = await Promise.all([
+      admin.from("clinical_notes").select("id, booking_id").in("booking_id", bookingIds).eq("status", "submitted"),
+      admin.from("nursing_encounters").select("id, booking_id").in("booking_id", bookingIds).eq("status", "submitted"),
+      admin.from("physiotherapy_encounters").select("id, booking_id").in("booking_id", bookingIds).eq("status", "submitted"),
+    ]);
 
-    if (noteIds.length > 0) {
-      const summariesResult = await (admin as any)
+    const encounterSources: { encounters: any[]; column: string }[] = [
+      { encounters: clinicalNotesResult.data ?? [], column: "clinical_note_id" },
+      { encounters: nursingEncountersResult.data ?? [], column: "nursing_encounter_id" },
+      { encounters: physioEncountersResult.data ?? [], column: "physiotherapy_encounter_id" },
+    ];
+
+    for (const { encounters, column } of encounterSources) {
+      const ids = encounters.map((e: any) => e.id);
+      if (ids.length === 0) continue;
+
+      const encounterToBooking = Object.fromEntries(encounters.map((e: any) => [e.id, e.booking_id]));
+
+      const { data: summaries } = await (admin as any)
         .from("visit_summaries")
-        .select(
-          "clinical_note_id, plain_diagnosis, reason_for_visit, what_was_done, " +
-          "medications, investigations, recommendations, follow_up_date, abnormal_vitals"
-        )
-        .in("clinical_note_id", noteIds)
+        .select(SUMMARY_COLUMNS)
+        .in(column, ids)
         .eq("visible_to_patient", true);
-      const summaries: any[] = summariesResult?.data ?? [];
 
-      for (const s of summaries) {
-        const bookingId = noteToBooking[s.clinical_note_id];
+      for (const s of summaries ?? []) {
+        const bookingId = encounterToBooking[s[column]];
         if (bookingId) summariesMap[bookingId] = s;
       }
     }

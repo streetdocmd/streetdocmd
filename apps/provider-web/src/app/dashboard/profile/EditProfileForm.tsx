@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase";
 interface Profile {
   providerId: string;
   bio: string | null;
+  languages: string[] | null;
   years_experience: number;
   service_radius_km: number;
   working_hours_start: string | null;
@@ -19,6 +20,7 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
   const router = useRouter();
   const [form, setForm] = useState({
     bio: profile.bio ?? "",
+    languages: (profile.languages ?? []).join(", "),
     years_experience: String(profile.years_experience),
     service_radius_km: String(profile.service_radius_km),
     working_hours_start: profile.working_hours_start ?? "08:00",
@@ -43,6 +45,7 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
     const supabase = createClient();
     const { error: err } = await supabase.from("providers").update({
       bio: form.bio || null,
+      languages: form.languages.split(",").map(l => l.trim()).filter(Boolean),
       years_experience: parseInt(form.years_experience) || 0,
       service_radius_km: parseInt(form.service_radius_km) || 10,
       working_hours_start: form.working_hours_start || null,
@@ -70,6 +73,15 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
             placeholder="Brief description of your experience and approach…"
             value={form.bio}
             onChange={e => set("bio", e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="label">Languages spoken</label>
+          <input
+            className="input"
+            placeholder="e.g. English, Yoruba, Pidgin"
+            value={form.languages}
+            onChange={e => set("languages", e.target.value)}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">

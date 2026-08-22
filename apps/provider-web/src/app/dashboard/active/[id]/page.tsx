@@ -14,7 +14,7 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
 
   const { data: provider } = await supabase
     .from("providers")
-    .select("id")
+    .select("id, profession")
     .eq("user_id", user.id)
     .single();
   if (!provider) redirect("/dashboard");
@@ -70,6 +70,7 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
         patientPhone={patient?.phone ?? ""}
         patientId={(booking as any).patient_id}
         providerId={provider.id}
+        profession={provider.profession}
       />
     </div>
   );

@@ -2,17 +2,29 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import type { Profession } from "@streetdocmd/shared";
 
-const NAV = [
+const BASE_NAV = [
   { href: "/dashboard", label: "Home", icon: "🏠" },
   { href: "/dashboard/bookings", label: "Bookings", icon: "📋" },
+];
+
+const SERVICES_NAV = { href: "/dashboard/services", label: "Services", icon: "🩺" };
+
+const END_NAV = [
   { href: "/dashboard/earnings", label: "Earnings", icon: "💰" },
   { href: "/dashboard/profile", label: "Profile", icon: "👤" },
 ];
 
-export default function Navbar({ providerName }: { providerName: string }) {
+export default function Navbar({ providerName, profession }: { providerName: string; profession?: Profession }) {
   const pathname = usePathname();
   const router = useRouter();
+
+  // Doctor's bookable "services" are the fixed consultation types built into
+  // booking already — only nurse/physio manage their own service catalogue.
+  const NAV = profession && profession !== "doctor"
+    ? [...BASE_NAV, SERVICES_NAV, ...END_NAV]
+    : [...BASE_NAV, ...END_NAV];
 
   async function signOut() {
     const supabase = createClient();

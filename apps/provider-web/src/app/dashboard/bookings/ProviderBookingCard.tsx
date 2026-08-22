@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { formatNaira } from "@streetdocmd/shared";
+import { formatNaira, getEncounterRoute, type Profession } from "@streetdocmd/shared";
 
 const STATUS_COLORS: Record<string, string> = {
   accepted:    "bg-blue-100 text-blue-800",
@@ -13,9 +13,10 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function ProviderBookingCard({
-  booking, serviceLabel, statusLabel, isActive,
+  booking, profession, serviceLabel, statusLabel, isActive,
 }: {
   booking: any;
+  profession: Profession;
   serviceLabel: string;
   statusLabel: string;
   isActive: boolean;
@@ -23,12 +24,12 @@ export default function ProviderBookingCard({
   const [open, setOpen] = useState(false);
 
   const visit           = booking.visit;
-  const clinicalNote    = booking.clinicalNote;
+  const encounter       = booking.encounter;
   const prescription    = visit?.prescription;
   const pdfUrl          = prescription?.pdf_url;
   const drugs: any[]    = prescription?.drugs ?? [];
   const isCompleted     = booking.status === "completed";
-  const noteSubmitted   = clinicalNote?.status === "submitted";
+  const noteSubmitted   = encounter?.status === "submitted";
 
   return (
     <div className="card overflow-hidden">
@@ -78,15 +79,15 @@ export default function ProviderBookingCard({
           {noteSubmitted ? (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-green-700">✓ Clinical note submitted</p>
-                {clinicalNote.submitted_at && (
+                <p className="text-sm font-semibold text-green-700">✓ Visit note submitted</p>
+                {encounter.submitted_at && (
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {new Date(clinicalNote.submitted_at).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}
+                    {new Date(encounter.submitted_at).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}
                   </p>
                 )}
               </div>
               <Link
-                href={`/dashboard/clinical-note/${booking.id}`}
+                href={getEncounterRoute(profession, booking.id)}
                 className="text-sm text-teal-700 border border-teal-200 bg-teal-50 rounded-lg px-3 py-1.5 font-medium hover:bg-teal-100 transition-colors"
               >
                 View Note →

@@ -31,10 +31,15 @@ export async function POST(req: NextRequest) {
   // Get provider
   const { data: provider } = await admin
     .from("providers")
-    .select("id")
+    .select("id, profession")
     .eq("user_id", user.id)
     .single();
   if (!provider) return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+
+  // Prescribing is a doctor-only clinical action.
+  if (provider.profession !== "doctor") {
+    return NextResponse.json({ error: "Only doctors can prescribe" }, { status: 403 });
+  }
 
   // Get nearest active pharmacy partner by patient location
   let bookingLat: number | null = null;

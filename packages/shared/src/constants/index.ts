@@ -1,4 +1,4 @@
-import type { ServiceType } from "../types/database";
+import type { ServiceType, Profession } from "../types/database";
 
 export const SERVICE_LABELS: Record<ServiceType, string> = {
   general_consultation: "General Consultation",
@@ -7,6 +7,8 @@ export const SERVICE_LABELS: Record<ServiceType, string> = {
   elderly_review: "Elderly Review",
   nursing_care: "Nursing Care",
   custom_request: "Custom Request",
+  physiotherapy_assessment: "Physiotherapy Assessment",
+  physiotherapy_session: "Physiotherapy Session",
 };
 
 export const SERVICE_PRICES: Record<ServiceType, number> = {
@@ -16,6 +18,8 @@ export const SERVICE_PRICES: Record<ServiceType, number> = {
   elderly_review: 10000,
   nursing_care: 12000,
   custom_request: 8000,
+  physiotherapy_assessment: 15000,
+  physiotherapy_session: 20000,
 };
 
 export const SERVICE_DESCRIPTIONS: Record<ServiceType, string> = {
@@ -25,6 +29,22 @@ export const SERVICE_DESCRIPTIONS: Record<ServiceType, string> = {
   elderly_review: "Comprehensive health assessment for elderly patients",
   nursing_care: "Professional nursing care and procedures at home",
   custom_request: "Describe your specific medical need",
+  physiotherapy_assessment: "An initial physiotherapy evaluation to assess your condition and plan treatment",
+  physiotherapy_session: "A follow-up physiotherapy treatment or rehabilitation session at home",
+};
+
+// Which profession fulfils each bookable service — used to route dispatch
+// matching (bookings.profession) without the patient needing to know or
+// care about professions directly.
+export const SERVICE_PROFESSION: Record<ServiceType, Profession> = {
+  general_consultation: "doctor",
+  wellness_check: "doctor",
+  custom_request: "doctor",
+  wound_care: "nurse",
+  elderly_review: "nurse",
+  nursing_care: "nurse",
+  physiotherapy_assessment: "physiotherapist",
+  physiotherapy_session: "physiotherapist",
 };
 
 export const PLATFORM_COMMISSION_RATE = 0.2; // 20%
@@ -76,7 +96,6 @@ export const SPECIALTIES = [
   "Medical Doctor (Specialist)",
   "Registered Nurse",
   "Physiotherapist",
-  "Medical Laboratory Scientist",
 ] as const;
 
 export interface PractitionerTypeConfig {
@@ -133,4 +152,63 @@ export const PRACTITIONER_TYPES: Record<string, PractitionerTypeConfig> = {
 
 export function getPractitionerType(specialty: string): PractitionerTypeConfig | null {
   return PRACTITIONER_TYPES[specialty] ?? null;
+}
+
+// ─── Profession (platform-level, coarse) ────────────────────────────────────
+//
+// `specialty` above is the human-facing practitioner type shown at
+// registration and on profiles. `profession` is the coarse category that
+// dispatch matching, clinical-action permissions, and encounter routing
+// key off — every specialty maps to exactly one profession.
+
+export const PROFESSIONS: Record<string, Profession> = {
+  "Medical Doctor (General)": "doctor",
+  "Medical Doctor (Specialist)": "doctor",
+  "Registered Nurse": "nurse",
+  "Physiotherapist": "physiotherapist",
+  "Medical Laboratory Scientist": "lab_scientist",
+};
+
+export function getProfession(specialty: string): Profession {
+  return PROFESSIONS[specialty] ?? "doctor";
+}
+
+export const PROFESSION_LABELS: Record<Profession, string> = {
+  doctor: "Doctor",
+  nurse: "Nurse",
+  physiotherapist: "Physiotherapist",
+  lab_scientist: "Medical Laboratory Scientist",
+};
+
+// Explicit capability grants per profession — a profession only gets a
+// capability if it's listed here. A doctor does not automatically gain
+// nurse/physio capabilities and vice versa; each is granted independently.
+export type ProviderCapability =
+  | "clinical_note"        // doctor's 14-step encounter
+  | "nursing_encounter"
+  | "physiotherapy_encounter"
+  | "prescribe"
+  | "order_labs"
+  | "refer_to_hospital";
+
+export const PROFESSION_CAPABILITIES: Record<Profession, ProviderCapability[]> = {
+  doctor: ["clinical_note", "prescribe", "order_labs", "refer_to_hospital"],
+  nurse: ["nursing_encounter"],
+  physiotherapist: ["physiotherapy_encounter"],
+  lab_scientist: [],
+};
+
+export function hasCapability(profession: Profession, capability: ProviderCapability): boolean {
+  return PROFESSION_CAPABILITIES[profession]?.includes(capability) ?? false;
+}
+
+// Where a provider's in-progress/completed booking encounter lives, per
+// profession. The doctor's route is untouched (`/dashboard/clinical-note`);
+// nurse and physio get their own sibling routes.
+export function getEncounterRoute(profession: Profession, bookingId: string): string {
+  switch (profession) {
+    case "nurse": return `/dashboard/nursing-note/${bookingId}`;
+    case "physiotherapist": return `/dashboard/physio-note/${bookingId}`;
+    default: return `/dashboard/clinical-note/${bookingId}`;
+  }
 }

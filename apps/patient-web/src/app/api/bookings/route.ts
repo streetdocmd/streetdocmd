@@ -1,6 +1,6 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
-import { SERVICE_PRICES } from "@/lib/shared";
+import { SERVICE_PRICES, SERVICE_PROFESSION } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
 
 export async function POST(req: NextRequest) {
@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
       .insert({
         patient_id: user.id,
         service_type,
+        profession: SERVICE_PROFESSION[service_type as ServiceType],
         patient_lat,
         patient_lng,
         patient_address,

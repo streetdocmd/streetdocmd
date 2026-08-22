@@ -2,6 +2,12 @@ export type UserRole = "patient" | "provider" | "admin";
 
 export type VerificationStatus = "pending" | "under_review" | "verified" | "rejected";
 
+// The provider's platform-level profession. Derived from `providers.specialty`
+// (see PROFESSIONS in constants) — specialty is the human-facing practitioner
+// type ("Physiotherapist", "Medical Doctor (Specialist)"), profession is the
+// coarse category dispatch matching, permissions, and encounter routing use.
+export type Profession = "doctor" | "nurse" | "physiotherapist" | "lab_scientist";
+
 export type BookingStatus =
   | "pending"
   | "accepted"
@@ -21,7 +27,9 @@ export type ServiceType =
   | "wound_care"
   | "elderly_review"
   | "nursing_care"
-  | "custom_request";
+  | "custom_request"
+  | "physiotherapy_assessment"
+  | "physiotherapy_session";
 
 export type SubscriptionPlan = "basic" | "standard" | "premium" | "family";
 
@@ -70,6 +78,8 @@ export interface Provider {
   name: string;
   photo_url: string | null;
   specialty: string;
+  profession: Profession;
+  languages: string[];
   specialist_field: string | null;
   credentials: string;
   license_body: string | null;
@@ -113,6 +123,7 @@ export interface Booking {
   family_member_id: string | null;
   provider_id: string | null;
   service_type: ServiceType;
+  profession: Profession;
   status: BookingStatus;
   patient_lat: number;
   patient_lng: number;
@@ -234,4 +245,71 @@ export interface VerificationLog {
   action: "approved" | "rejected" | "suspended" | "reinstated";
   notes: string | null;
   created_at: string;
+}
+
+export interface ProviderService {
+  id: string;
+  provider_id: string;
+  profession: Profession;
+  name: string;
+  description: string | null;
+  price: number;
+  duration_minutes: number | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type EncounterStatus = "draft" | "submitted";
+
+// Nursing encounter — deliberately structured differently from the
+// doctor's 14-step clinical_notes, not a copy of it. Each stage is a loose
+// jsonb bag today; concrete shapes are defined at the UI layer and can
+// evolve without a migration.
+export interface NursingEncounter {
+  id: string;
+  booking_id: string;
+  patient_id: string;
+  provider_id: string;
+  status: EncounterStatus;
+  visit_reason: string | null;
+  patient_assessment: Record<string, unknown> | null;
+  vitals: Record<string, unknown> | null;
+  nursing_assessment: Record<string, unknown> | null;
+  intervention: Record<string, unknown> | null;
+  patient_education: Record<string, unknown> | null;
+  outcome: Record<string, unknown> | null;
+  escalation: Record<string, unknown> | null;
+  care_tasks: Record<string, unknown> | null;
+  follow_up_date: string | null;
+  follow_up_notes: string | null;
+  safeguarding_flag: boolean;
+  submitted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Physiotherapy encounter — deliberately structured differently from the
+// doctor's 14-step clinical_notes, not a copy of it.
+export interface PhysiotherapyEncounter {
+  id: string;
+  booking_id: string;
+  patient_id: string;
+  provider_id: string;
+  status: EncounterStatus;
+  referral_reason: string | null;
+  subjective_assessment: Record<string, unknown> | null;
+  pain_symptoms: Record<string, unknown> | null;
+  objective_assessment: Record<string, unknown> | null;
+  functional_measurements: Record<string, unknown> | null;
+  professional_assessment: Record<string, unknown> | null;
+  intervention: Record<string, unknown> | null;
+  patient_response: Record<string, unknown> | null;
+  progress: Record<string, unknown> | null;
+  home_program: Record<string, unknown> | null;
+  next_session_plan: string | null;
+  follow_up_date: string | null;
+  submitted_at: string | null;
+  created_at: string;
+  updated_at: string;
 }

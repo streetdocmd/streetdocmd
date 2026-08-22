@@ -9,7 +9,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: provider } = await supabase
     .from("providers")
-    .select("id, name, verification_status")
+    .select("id, name, verification_status, profession")
     .eq("user_id", user.id)
     .single();
 
@@ -28,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar providerName={firstName} />
+      <Navbar providerName={firstName} profession={provider.profession} />
       <main className="max-w-5xl mx-auto px-4 py-6">
         {children}
       </main>

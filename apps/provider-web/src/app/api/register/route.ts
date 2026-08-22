@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { getPractitionerType } from "@streetdocmd/shared";
+import { getPractitionerType, getProfession } from "@streetdocmd/shared";
 
 const clean = (s: string) => s.replace(/[^\x00-\xFF]/g, "").trim();
 
@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
       name,
       phone,
       specialty,
+      profession: getProfession(specialty),
       specialist_field: practitionerType?.requiresSpecialistField ? specialist_field : null,
       credentials,
       license_body: practitionerType?.licenseBody ?? null,

@@ -6,7 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { supabase } from "../../lib/supabase";
 import {
-  Provider, ServiceType, SERVICE_LABELS, SERVICE_PRICES,
+  Provider, ServiceType, SERVICE_LABELS, SERVICE_PRICES, SERVICE_PROFESSION,
   formatNaira, getDistanceKm, getEtaMinutes
 } from "@streetdocmd/shared";
 
@@ -35,6 +35,7 @@ export default function SelectProviderScreen() {
       booking_lat: lat,
       booking_lng: lng,
       radius_km: 15,
+      p_profession: SERVICE_PROFESSION[service],
     });
 
     if (error || !data?.length) {
@@ -72,6 +73,7 @@ export default function SelectProviderScreen() {
         patient_id: user.id,
         provider_id: provider.id,
         service_type: service,
+        profession: SERVICE_PROFESSION[service],
         patient_lat: userLat,
         patient_lng: userLng,
         patient_address: "Current location",

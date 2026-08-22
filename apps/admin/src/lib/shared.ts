@@ -7,9 +7,12 @@ export type VerificationStatus = "pending" | "under_review" | "verified" | "reje
 export type BookingStatus = "pending" | "accepted" | "en_route" | "arrived" | "in_progress" | "completed" | "cancelled";
 export type PaymentMethod = "card" | "bank_transfer" | "ussd" | "subscription_credit";
 export type PaymentStatus = "pending" | "successful" | "failed" | "refunded";
-export type ServiceType = "general_consultation" | "wellness_check" | "wound_care" | "elderly_review" | "nursing_care" | "custom_request";
+export type ServiceType =
+  | "general_consultation" | "wellness_check" | "wound_care" | "elderly_review"
+  | "nursing_care" | "custom_request" | "physiotherapy_assessment" | "physiotherapy_session";
 export type SubscriptionPlan = "basic" | "standard" | "premium" | "family";
 export type SubscriptionStatus = "active" | "expired" | "cancelled" | "paused";
+export type Profession = "doctor" | "nurse" | "physiotherapist" | "lab_scientist";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -20,6 +23,8 @@ export const SERVICE_LABELS: Record<ServiceType, string> = {
   elderly_review: "Elderly Review",
   nursing_care: "Nursing Care",
   custom_request: "Custom Request",
+  physiotherapy_assessment: "Physiotherapy Assessment",
+  physiotherapy_session: "Physiotherapy Session",
 };
 
 export const SERVICE_PRICES: Record<ServiceType, number> = {
@@ -29,6 +34,8 @@ export const SERVICE_PRICES: Record<ServiceType, number> = {
   elderly_review: 10000,
   nursing_care: 12000,
   custom_request: 8000,
+  physiotherapy_assessment: 15000,
+  physiotherapy_session: 20000,
 };
 
 export const SERVICE_DESCRIPTIONS: Record<ServiceType, string> = {
@@ -38,6 +45,15 @@ export const SERVICE_DESCRIPTIONS: Record<ServiceType, string> = {
   elderly_review: "Comprehensive health assessment for elderly patients",
   nursing_care: "Professional nursing care and procedures at home",
   custom_request: "Describe your specific medical need",
+  physiotherapy_assessment: "An initial physiotherapy evaluation to assess your condition and plan treatment",
+  physiotherapy_session: "A follow-up physiotherapy treatment or rehabilitation session at home",
+};
+
+export const PROFESSION_LABELS: Record<Profession, string> = {
+  doctor: "Doctor",
+  nurse: "Nurse",
+  physiotherapist: "Physiotherapist",
+  lab_scientist: "Medical Laboratory Scientist",
 };
 
 export const PLATFORM_COMMISSION_RATE = 0.2;

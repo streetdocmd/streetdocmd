@@ -84,7 +84,7 @@ export default function LabPortalDashboard() {
     let query = supabase
       .from("investigation_orders")
       .select(`
-        id, status, ordered_at, tests, clinical_notes,
+        id, status, ordered_at, tests, clinical_notes, requested_by,
         users!patient_id(name, phone),
         providers(name)
       `)
@@ -146,7 +146,10 @@ export default function LabPortalDashboard() {
                   </span>
                 </div>
                 <p className="font-semibold text-gray-900">
-                  {(order.users as any)?.name ?? "Patient"} · ordered by Dr {(order.providers as any)?.name ?? "Provider"}
+                  {(order.users as any)?.name ?? "Patient"} ·{" "}
+                  {(order as any).requested_by === "patient"
+                    ? "requested directly by patient"
+                    : `ordered by Dr ${(order.providers as any)?.name ?? "Provider"}`}
                 </p>
                 <p className="text-sm text-gray-500">
                   {order.tests?.map((t) => t.test_name).join(", ")}

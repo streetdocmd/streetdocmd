@@ -7,6 +7,13 @@ export async function POST(req: NextRequest) {
 
   if (!noteId) return NextResponse.json({ error: "missing noteId" }, { status: 400 });
 
+  if (providerId) {
+    const { data: provider } = await admin.from("providers").select("profession").eq("id", providerId).single();
+    if (provider && provider.profession !== "doctor") {
+      return NextResponse.json({ error: "Only doctors can submit a clinical note" }, { status: 403 });
+    }
+  }
+
   // Strip noteData to only valid clinical_notes columns — extra keys (e.g.
   // current_medications_note, allergies_note) cause PostgREST to reject the update.
   const VALID_NOTE_COLUMNS = new Set([

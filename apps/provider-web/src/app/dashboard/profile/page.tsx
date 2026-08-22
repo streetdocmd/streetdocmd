@@ -11,7 +11,7 @@ export default async function ProfilePage() {
 
   const { data: provider } = await supabase
     .from("providers")
-    .select("id, name, specialty, specialist_field, credentials, license_body, license_number, rating, total_visits, verification_status, bio, years_experience, service_radius_km, working_hours_start, working_hours_end, bank_name, bank_account_number, bank_account_name")
+    .select("id, name, specialty, specialist_field, credentials, license_body, license_number, rating, total_visits, verification_status, bio, languages, years_experience, service_radius_km, working_hours_start, working_hours_end, bank_name, bank_account_number, bank_account_name")
     .eq("user_id", user.id)
     .single();
   if (!provider) return null;
@@ -103,6 +103,7 @@ export default async function ProfilePage() {
         profile={{
           providerId: provider.id,
           bio: provider.bio,
+          languages: provider.languages,
           years_experience: provider.years_experience,
           service_radius_km: provider.service_radius_km,
           working_hours_start: provider.working_hours_start,
