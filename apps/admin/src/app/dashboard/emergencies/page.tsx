@@ -147,9 +147,9 @@ export default async function EmergenciesPage() {
           {contacts.length > 0 && (
             <ul className="divide-y divide-gray-50">
               {contacts.map(c => (
-                <li key={c.id} className="flex items-center justify-between px-5 py-3 gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{c.name}</p>
+                <li key={c.id} className="flex items-center justify-between px-5 py-3 gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{c.name}</p>
                     <p className="text-xs text-gray-400">{c.phone} · <span className="capitalize">{c.role}</span></p>
                   </div>
                   <div className="flex items-center gap-3">

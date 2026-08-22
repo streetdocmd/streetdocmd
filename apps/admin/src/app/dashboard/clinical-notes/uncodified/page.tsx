@@ -40,40 +40,42 @@ export default async function UncodifiedPage() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                {["Free-text Diagnosis", "Frequency", "Latest Provider", "Date", "Actions"].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {sorted.map(([description, { items, count }]) => {
-                const latest = items[0];
-                return (
-                  <tr key={description} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-gray-800">{description}</p>
-                      {latest.plain_language_diagnosis && <p className="text-xs text-gray-400 mt-0.5">Patient sees: "{latest.plain_language_diagnosis}"</p>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="bg-amber-100 text-amber-700 rounded-full px-2.5 py-1 text-xs font-bold">{count}</span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{(latest.providers as any)?.name ?? "—"}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
-                      {latest.created_at ? new Date(latest.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" }) : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <AssignIcd10 diagnosisIds={items.map(i => i.id)} description={description} />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  {["Free-text Diagnosis", "Frequency", "Latest Provider", "Date", "Actions"].map(h => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {sorted.map(([description, { items, count }]) => {
+                  const latest = items[0];
+                  return (
+                    <tr key={description} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-gray-800">{description}</p>
+                        {latest.plain_language_diagnosis && <p className="text-xs text-gray-400 mt-0.5">Patient sees: "{latest.plain_language_diagnosis}"</p>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="bg-amber-100 text-amber-700 rounded-full px-2.5 py-1 text-xs font-bold">{count}</span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{(latest.providers as any)?.name ?? "—"}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                        {latest.created_at ? new Date(latest.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" }) : "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <AssignIcd10 diagnosisIds={items.map(i => i.id)} description={description} />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

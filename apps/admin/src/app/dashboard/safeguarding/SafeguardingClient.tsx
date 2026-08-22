@@ -30,7 +30,7 @@ export default function SafeguardingClient({ alerts, unresolvedCount }: { alerts
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Safeguarding</h1>
           <p className="text-sm text-gray-500 mt-0.5">Flagged clinical encounters — admin only</p>
@@ -48,7 +48,7 @@ export default function SafeguardingClient({ alerts, unresolvedCount }: { alerts
       </div>
 
       {/* Filter toggle */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <button onClick={() => setShowResolved(false)}
           className={`px-4 py-2 rounded-full text-sm font-medium ${!showResolved ? "bg-red-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
           Unresolved ({localAlerts.filter(a => !a.resolved).length})

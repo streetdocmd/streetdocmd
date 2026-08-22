@@ -1,8 +1,9 @@
 "use client";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { getPractitionerType } from "@streetdocmd/shared";
 
-type DocType = "certificate" | "mdcn_licence" | "nmcn_licence";
+type DocType = "certificate" | "mdcn_licence" | "nmcn_licence" | "mrtb_licence" | "mlscn_licence";
 
 interface FileSlot {
   type: DocType;
@@ -20,12 +21,7 @@ export default function DocumentUploadForm({
   specialty: string;
 }) {
   const router = useRouter();
-  const isDoctor = specialty.startsWith("Medical Doctor");
-  const isNurse = specialty === "Registered Nurse";
-
-  const licenceType: DocType = isNurse ? "nmcn_licence" : "mdcn_licence";
-  const licenceLabel = isNurse ? "NMCN Nursing Licence" : "MDCN Medical Licence";
-  const showLicence = isDoctor || isNurse;
+  const practitionerType = getPractitionerType(specialty);
 
   const [slots, setSlots] = useState<FileSlot[]>([
     {
@@ -37,12 +33,12 @@ export default function DocumentUploadForm({
       uploading: false,
       done: false,
     },
-    ...(showLicence
+    ...(practitionerType
       ? [
           {
-            type: licenceType,
-            label: licenceLabel,
-            description: `Your current ${isNurse ? "NMCN" : "MDCN"} practising licence (PDF or image)`,
+            type: practitionerType.licenceDocType as DocType,
+            label: practitionerType.licenceDocLabel,
+            description: `Your current ${practitionerType.licenseBody} practising licence (PDF or image)`,
             required: true,
             file: null,
             uploading: false,

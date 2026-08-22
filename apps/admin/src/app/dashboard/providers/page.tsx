@@ -18,7 +18,7 @@ export default async function ProvidersPage({
 
   const { data: providers } = await supabase
     .from("providers")
-    .select("id, name, specialty, credentials, verification_status, rating, total_visits, created_at")
+    .select("id, name, specialty, specialist_field, credentials, verification_status, rating, total_visits, created_at")
     .eq("verification_status", status)
     .order("created_at", { ascending: true });
 
@@ -29,12 +29,12 @@ export default async function ProvidersPage({
       <h1 className="text-2xl font-bold text-gray-900">Provider Management</h1>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200">
+      <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
         {tabs.map((t) => (
           <Link
             key={t}
             href={`/dashboard/providers?status=${t}`}
-            className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors whitespace-nowrap shrink-0 ${
               status === t
                 ? "border-brand-blue text-brand-blue"
                 : "border-transparent text-gray-500 hover:text-gray-700"
@@ -47,52 +47,56 @@ export default async function ProvidersPage({
 
       {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
-            <tr>
-              <th className="text-left px-4 py-3">Name</th>
-              <th className="text-left px-4 py-3">Specialty</th>
-              <th className="text-left px-4 py-3">Credentials</th>
-              <th className="text-left px-4 py-3">Status</th>
-              <th className="text-left px-4 py-3">Rating</th>
-              <th className="text-left px-4 py-3">Visits</th>
-              <th className="text-left px-4 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {(providers ?? []).map((p) => (
-              <tr key={p.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{p.name}</td>
-                <td className="px-4 py-3 text-gray-600">{p.specialty}</td>
-                <td className="px-4 py-3 text-gray-600">{p.credentials}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${STATUS_STYLES[p.verification_status]}`}>
-                    {p.verification_status.replace(/_/g, " ")}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-600">
-                  {p.rating > 0 ? `${p.rating} ★` : "—"}
-                </td>
-                <td className="px-4 py-3 text-gray-600">{p.total_visits}</td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/dashboard/providers/${p.id}`}
-                    className="text-brand-blue hover:underline"
-                  >
-                    Review
-                  </Link>
-                </td>
-              </tr>
-            ))}
-            {(providers ?? []).length === 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
-                  No providers with status "{status.replace(/_/g, " ")}"
-                </td>
+                <th className="text-left px-4 py-3">Name</th>
+                <th className="text-left px-4 py-3">Specialty</th>
+                <th className="text-left px-4 py-3">Credentials</th>
+                <th className="text-left px-4 py-3">Status</th>
+                <th className="text-left px-4 py-3">Rating</th>
+                <th className="text-left px-4 py-3">Visits</th>
+                <th className="text-left px-4 py-3">Action</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {(providers ?? []).map((p) => (
+                <tr key={p.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-medium text-gray-900">{p.name}</td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {p.specialty}{p.specialist_field ? ` — ${p.specialist_field}` : ""}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">{p.credentials}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${STATUS_STYLES[p.verification_status]}`}>
+                      {p.verification_status.replace(/_/g, " ")}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {p.rating > 0 ? `${p.rating} ★` : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">{p.total_visits}</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/dashboard/providers/${p.id}`}
+                      className="text-brand-blue hover:underline"
+                    >
+                      Review
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+              {(providers ?? []).length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                    No providers with status "{status.replace(/_/g, " ")}"
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

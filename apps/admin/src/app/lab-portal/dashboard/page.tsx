@@ -108,7 +108,7 @@ export default function LabPortalDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Investigation Orders</h1>
         <div className="flex gap-3 text-sm">
           <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-medium">

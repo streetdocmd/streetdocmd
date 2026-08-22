@@ -15,7 +15,10 @@ export default function PharmacyPortalLayout({ children }: { children: ReactNode
               <p className="text-blue-600 text-xs">Pharmacy Partner Portal</p>
             </div>
           </div>
-          <Link href="/pharmacy-portal/dashboard" className="text-sm text-gray-500 hover:text-gray-900">Dashboard</Link>
+          <nav className="flex items-center gap-5">
+            <Link href="/pharmacy-portal/dashboard" className="text-sm text-gray-500 hover:text-gray-900">Dashboard</Link>
+            <Link href="/pharmacy-portal/inventory" className="text-sm text-gray-500 hover:text-gray-900">Inventory</Link>
+          </nav>
         </header>
         <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
       </body>

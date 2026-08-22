@@ -13,7 +13,7 @@ export default async function PendingPage() {
     .eq("user_id", user.id)
     .single();
 
-  if (!provider) redirect("/register");
+  if (!provider) redirect("/register/individual");
   if (provider.verification_status === "verified") redirect("/dashboard");
 
   const isRejected = provider.verification_status === "rejected";

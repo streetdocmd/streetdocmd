@@ -24,14 +24,16 @@ export default function PharmacyClient({
   orders,
   partners,
   staff,
+  drugs,
   stats,
 }: {
   orders: any[];
   partners: any[];
   staff: any[];
+  drugs: any[];
   stats: { totalCommission: number; totalRevenue: number; deliveredCount: number; flaggedCount: number };
 }) {
-  const [tab, setTab]             = useState<"orders" | "partners" | "staff">("orders");
+  const [tab, setTab]             = useState<"orders" | "partners" | "staff" | "inventory">("orders");
   const [filter, setFilter]       = useState("all");
   const [showForm, setShowForm]   = useState(false);
   const [form, setForm]           = useState({ name: "", phone: "", email: "", address: "" });
@@ -93,10 +95,10 @@ export default function PharmacyClient({
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200">
-        {(["orders", "partners", "staff"] as const).map(t => (
+      <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
+        {(["orders", "partners", "staff", "inventory"] as const).map(t => (
           <button key={t} onClick={() => setTab(t as any)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize ${tab === t ? "border-teal-brand text-teal-brand" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize whitespace-nowrap shrink-0 ${tab === t ? "border-teal-brand text-teal-brand" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
             {t}
           </button>
         ))}
@@ -105,10 +107,10 @@ export default function PharmacyClient({
       {/* Orders tab */}
       {tab === "orders" && (
         <div className="space-y-4">
-          <div className="flex gap-2 flex-wrap text-sm">
+          <div className="flex gap-2 overflow-x-auto text-sm pb-1">
             {[["all","All"], ["flagged","⚠ Flagged"], ["sent","New"], ["dispatched","Dispatched"], ["delivered","Delivered"]].map(([v, l]) => (
               <button key={v} onClick={() => setFilter(v)}
-                className={`px-3 py-1.5 rounded-full font-medium ${filter === v ? "bg-teal-brand text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap shrink-0 ${filter === v ? "bg-teal-brand text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                 {l}
               </button>
             ))}
@@ -157,13 +159,16 @@ export default function PharmacyClient({
       {/* Staff tab */}
       {tab === "staff" && <PharmacyStaffPanel staff={staff} partners={partnerList} />}
 
+      {/* Inventory tab */}
+      {tab === "inventory" && <AdminInventoryPanel drugs={drugs} partners={partnerList} />}
+
       {/* Partners tab */}
       {tab === "partners" && (
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-semibold text-gray-900">Pharmacy Partners ({partnerList.length})</h2>
             <button onClick={() => setShowForm(!showForm)}
-              className="px-4 py-2 bg-teal-brand text-white rounded-lg text-sm font-semibold hover:opacity-90">
+              className="px-4 py-2 bg-teal-brand text-white rounded-lg text-sm font-semibold hover:opacity-90 self-start sm:self-auto">
               {showForm ? "Cancel" : "+ Add Partner"}
             </button>
           </div>
@@ -171,7 +176,7 @@ export default function PharmacyClient({
           {showForm && (
             <form onSubmit={createPartner} className="card p-5 space-y-4">
               <p className="font-semibold text-gray-900">New Pharmacy Partner</p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label className="label">Name *</label><input className="input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required /></div>
                 <div><label className="label">Phone *</label><input className="input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} required /></div>
                 <div><label className="label">Email</label><input className="input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
@@ -271,7 +276,7 @@ function PharmacyStaffPanel({ staff, partners }: { staff: any[]; partners: any[]
       {showForm && (
         <form onSubmit={addStaff} className="card p-5 space-y-4">
           <p className="font-semibold text-gray-900">New Pharmacy Staff Member</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className="label">Name *</label><input className="input" required value={form.name} onChange={e => setF("name", e.target.value)} /></div>
             <div><label className="label">Email *</label><input className="input" type="email" required value={form.email} onChange={e => setF("email", e.target.value)} /></div>
             <div><label className="label">Phone</label><input className="input" type="tel" value={form.phone} onChange={e => setF("phone", e.target.value)} /></div>
@@ -292,6 +297,7 @@ function PharmacyStaffPanel({ staff, partners }: { staff: any[]; partners: any[]
         <div className="card p-10 text-center text-gray-400">No pharmacy staff added yet.</div>
       ) : (
         <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -315,6 +321,196 @@ function PharmacyStaffPanel({ staff, partners }: { staff: any[]; partners: any[]
               })}
             </tbody>
           </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const BLANK_DRUG_FORM = {
+  pharmacy_partner_id: "", drug_name: "", generic_name: "", formulation: "Tablet",
+  strength: "", price: "", stock_quantity: "", prescription_required: false,
+};
+
+function AdminInventoryPanel({ drugs, partners }: { drugs: any[]; partners: any[] }) {
+  const [drugList, setDrugList]       = useState(drugs);
+  const [partnerFilter, setPartnerFilter] = useState("all");
+  const [search, setSearch]           = useState("");
+  const [showForm, setShowForm]       = useState(false);
+  const [saving, setSaving]           = useState(false);
+  const [form, setForm]               = useState({ ...BLANK_DRUG_FORM, pharmacy_partner_id: partners[0]?.id ?? "" });
+  const [editingId, setEditingId]     = useState<string | null>(null);
+  const [editValues, setEditValues]   = useState({ price: "", stock_quantity: "" });
+  const [savingRow, setSavingRow]     = useState<string | null>(null);
+
+  async function addDrug(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    const res = await fetch("/api/pharmacy/drugs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    if (res.ok) {
+      const d = await res.json();
+      setDrugList(prev => [d, ...prev]);
+      setForm({ ...BLANK_DRUG_FORM, pharmacy_partner_id: partners[0]?.id ?? "" });
+      setShowForm(false);
+    }
+    setSaving(false);
+  }
+
+  function startEdit(d: any) {
+    setEditingId(d.id);
+    setEditValues({ price: String(d.price), stock_quantity: String(d.stock_quantity) });
+  }
+
+  async function saveEdit(id: string) {
+    setSavingRow(id);
+    const res = await fetch(`/api/pharmacy/drugs/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(editValues),
+    });
+    if (res.ok) {
+      const stock = parseInt(editValues.stock_quantity) || 0;
+      const price = parseFloat(editValues.price) || 0;
+      setDrugList(prev => prev.map(d => d.id === id ? { ...d, price, stock_quantity: stock, in_stock: stock > 0 } : d));
+      setEditingId(null);
+    }
+    setSavingRow(null);
+  }
+
+  async function toggleActive(id: string, current: boolean) {
+    setSavingRow(id);
+    const res = await fetch(`/api/pharmacy/drugs/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active: !current }),
+    });
+    if (res.ok) setDrugList(prev => prev.map(d => d.id === id ? { ...d, active: !current } : d));
+    setSavingRow(null);
+  }
+
+  const visible = drugList
+    .filter(d => partnerFilter === "all" || d.pharmacy_partner_id === partnerFilter)
+    .filter(d => d.drug_name.toLowerCase().includes(search.toLowerCase()) || (d.generic_name ?? "").toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="font-semibold text-gray-900">Drug Inventory ({drugList.length})</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Pharmacies manage their own inventory from their portal — use this to seed a catalogue or help a partner directly.</p>
+        </div>
+        <button onClick={() => setShowForm(!showForm)}
+          className="px-4 py-2 bg-teal-brand text-white rounded-lg text-sm font-semibold hover:opacity-90 self-start sm:self-auto">
+          {showForm ? "Cancel" : "+ Add Drug"}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={addDrug} className="card p-5 space-y-4">
+          <p className="font-semibold text-gray-900">New Drug</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="label">Pharmacy *</label>
+              <select className="input" required value={form.pharmacy_partner_id} onChange={e => setForm(f => ({ ...f, pharmacy_partner_id: e.target.value }))}>
+                <option value="">Select pharmacy…</option>
+                {partners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+            <div><label className="label">Drug name *</label><input className="input" required value={form.drug_name} onChange={e => setForm(f => ({ ...f, drug_name: e.target.value }))} /></div>
+            <div><label className="label">Generic name</label><input className="input" value={form.generic_name} onChange={e => setForm(f => ({ ...f, generic_name: e.target.value }))} /></div>
+            <div><label className="label">Strength</label><input className="input" placeholder="e.g. 500mg" value={form.strength} onChange={e => setForm(f => ({ ...f, strength: e.target.value }))} /></div>
+            <div><label className="label">Price (₦) *</label><input className="input" type="number" min="0" step="any" required value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} /></div>
+            <div><label className="label">Stock quantity *</label><input className="input" type="number" min="0" required value={form.stock_quantity} onChange={e => setForm(f => ({ ...f, stock_quantity: e.target.value }))} /></div>
+          </div>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input type="checkbox" checked={form.prescription_required} onChange={e => setForm(f => ({ ...f, prescription_required: e.target.checked }))} />
+            Requires a prescription to dispense
+          </label>
+          <button type="submit" disabled={saving || !form.pharmacy_partner_id} className="px-6 py-2.5 bg-teal-brand text-white rounded-lg font-semibold text-sm disabled:opacity-50">
+            {saving ? "Saving…" : "Add to Inventory"}
+          </button>
+        </form>
+      )}
+
+      <div className="flex items-center gap-3 flex-wrap">
+        <input className="input max-w-xs" placeholder="Search inventory…" value={search} onChange={e => setSearch(e.target.value)} />
+        <select className="input max-w-xs" value={partnerFilter} onChange={e => setPartnerFilter(e.target.value)}>
+          <option value="all">All pharmacies</option>
+          {partners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+      </div>
+
+      {visible.length === 0 ? (
+        <div className="card p-12 text-center"><p className="text-4xl mb-3">💊</p><p className="font-semibold text-gray-700">No matching drugs</p></div>
+      ) : (
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  {["Drug", "Pharmacy", "Price", "Stock", "Status", "Action"].map(h => (
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {visible.map(d => (
+                  <tr key={d.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-gray-900">{d.drug_name}{d.strength ? ` ${d.strength}` : ""}</p>
+                      {d.generic_name && <p className="text-xs text-gray-400">{d.generic_name}</p>}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">{(d.pharmacy_partners as any)?.name ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      {editingId === d.id ? (
+                        <input className="input w-24 text-sm" type="number" min="0" step="any" value={editValues.price}
+                          onChange={e => setEditValues(v => ({ ...v, price: e.target.value }))} />
+                      ) : (
+                        <span className="text-gray-900 font-medium">₦{Number(d.price).toLocaleString()}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {editingId === d.id ? (
+                        <input className="input w-20 text-sm" type="number" min="0" value={editValues.stock_quantity}
+                          onChange={e => setEditValues(v => ({ ...v, stock_quantity: e.target.value }))} />
+                      ) : (
+                        <span className={d.stock_quantity > 0 ? "text-gray-700" : "text-red-600 font-medium"}>{d.stock_quantity}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        !d.active ? "bg-gray-100 text-gray-500" : d.stock_quantity > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      }`}>
+                        {!d.active ? "Inactive" : d.stock_quantity > 0 ? "In stock" : "Out of stock"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {editingId === d.id ? (
+                        <div className="flex gap-2">
+                          <button onClick={() => saveEdit(d.id)} disabled={savingRow === d.id} className="text-xs text-teal-brand hover:underline font-medium">
+                            {savingRow === d.id ? "Saving…" : "Save"}
+                          </button>
+                          <button onClick={() => setEditingId(null)} className="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button onClick={() => startEdit(d)} className="text-xs text-teal-brand hover:underline font-medium">Edit</button>
+                          <button onClick={() => toggleActive(d.id, d.active)} disabled={savingRow === d.id} className="text-xs text-gray-500 hover:text-gray-700">
+                            {d.active ? "Deactivate" : "Activate"}
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

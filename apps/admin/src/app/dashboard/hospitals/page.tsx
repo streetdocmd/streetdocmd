@@ -5,7 +5,7 @@ import HospitalsClient from "./HospitalsClient";
 export default async function HospitalsPage() {
   const admin = createAdminSupabase();
 
-  const [{ data: referrals }, { data: partners }] = await Promise.all([
+  const [{ data: referrals }, { data: partners }, { data: affiliatedProviders }] = await Promise.all([
     admin
       .from("hospital_referrals")
       .select(`
@@ -20,6 +20,11 @@ export default async function HospitalsPage() {
       .from("hospital_partners")
       .select("id, name, address, phone, email, hospital_level, emergency_available, ambulance_available, bed_count, specialties, active, lat, lng")
       .order("name"),
+    admin
+      .from("providers")
+      .select("id, name, specialty, license_body, license_number, verification_status, hospital_partner_id, hospital_partners(name)")
+      .not("hospital_partner_id", "is", null)
+      .order("name"),
   ]);
 
   const totalReferrals    = (referrals ?? []).length;
@@ -32,6 +37,7 @@ export default async function HospitalsPage() {
     <HospitalsClient
       referrals={(referrals ?? []) as any}
       partners={(partners ?? []) as any}
+      affiliatedProviders={(affiliatedProviders ?? []) as any}
       stats={{ totalReferrals, pendingCount, inProgressCount, completedCount, emergencyCount }}
     />
   );

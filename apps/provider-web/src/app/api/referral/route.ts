@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   const [{ data: booking }, { data: provider }, { data: patient }] = await Promise.all([
     admin.from("bookings").select("address, lat, lng").eq("id", bookingId).single(),
     admin.from("providers").select("name, credentials, specialty").eq("id", providerId).single(),
-    admin.from("users").select("name, date_of_birth, phone").eq("id", patientId).single(),
+    admin.from("users").select("name, dob, phone").eq("id", patientId).single(),
   ]);
 
   // Fetch active diagnoses for this booking's clinical note
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Compute patient age
-  const dob = patient?.date_of_birth ? new Date(patient.date_of_birth) : null;
+  const dob = patient?.dob ? new Date(patient.dob) : null;
   const patientAge = dob
     ? String(Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 3600 * 1000)))
     : "—";

@@ -21,24 +21,36 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   // Fetch current order
   const { data: order } = await admin
     .from("prescription_orders")
-    .select("id, drugs, status, patient_id, provider_id")
+    .select("id, drugs, status, payment_status, patient_id, provider_id")
     .eq("id", params.id)
     .single();
 
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
+  // "confirmed" is set exclusively by the Paystack webhook once payment clears —
+  // pharmacy staff cannot set it directly, and fulfillment (dispensing/dispatch)
+  // can only proceed once payment_status is actually "paid".
+  if (status === "confirmed") {
+    return NextResponse.json({ error: "Order is confirmed automatically once payment is received" }, { status: 403 });
+  }
+  if (["dispensing", "dispatched"].includes(status) && order.payment_status !== "paid") {
+    return NextResponse.json({ error: "Order is not paid yet" }, { status: 403 });
+  }
+
   const updates: Record<string, unknown> = { status };
 
-  // When confirming: update drug prices and calculate total
-  if (status === "confirmed" && drugPrices) {
+  // Pricing step: update drug prices, calculate total, and hand off to payment —
+  // status becomes pending_payment; the webhook moves it to confirmed once the
+  // patient actually pays.
+  if (status === "pending_payment" && drugPrices) {
     const updatedDrugs = (order.drugs as any[]).map((drug: any, i: number) => {
       if ((outOfStock as number[] ?? []).includes(i)) return { ...drug, out_of_stock: true, price: 0 };
       return { ...drug, price: drugPrices[i] ?? 0 };
     });
     const total = updatedDrugs.reduce((sum: number, d: any) => sum + (d.price ?? 0), 0);
     const commission = Math.round(total * 0.08);
-    updates.drugs          = updatedDrugs;
-    updates.total_amount   = total;
+    updates.drugs           = updatedDrugs;
+    updates.total_amount    = total;
     updates.commission_amount = commission;
   }
 

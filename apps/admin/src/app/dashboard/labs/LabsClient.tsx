@@ -35,7 +35,7 @@ export default function LabsClient({ orders, partners, staff, stats }: {
       <h1 className="text-2xl font-bold text-gray-900">Lab Investigations</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard label="Total Orders" value={stats.totalOrders.toString()} />
         <StatCard label="Resulted" value={stats.resulted.toString()} />
         <StatCard label="Commission Earned (15%)" value={formatNaira(stats.commission)} highlight />
@@ -90,14 +90,14 @@ function OrdersTable({ orders }: { orders: any[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <input
           className="input flex-1"
           placeholder="Search by patient name…"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        <select className="input w-48" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+        <select className="input w-full sm:w-48" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="all">All statuses</option>
           {Object.keys(STATUS_LABELS).map(s => (
             <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -109,6 +109,7 @@ function OrdersTable({ orders }: { orders: any[] }) {
         <div className="card p-10 text-center text-gray-400">No investigation orders found.</div>
       ) : (
         <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -142,6 +143,7 @@ function OrdersTable({ orders }: { orders: any[] }) {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
@@ -199,7 +201,7 @@ function PartnersPanel({ partners, showForm, setShowForm }: {
       {showForm && (
         <form onSubmit={addPartner} className="card p-5 space-y-4">
           <p className="font-semibold text-gray-900">New Lab Partner</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className="label">Name *</label><input className="input" required value={form.name} onChange={e => updateForm("name", e.target.value)} /></div>
             <div><label className="label">Phone *</label><input className="input" required value={form.phone} onChange={e => updateForm("phone", e.target.value)} /></div>
             <div className="col-span-2"><label className="label">Address *</label><input className="input" required value={form.address} onChange={e => updateForm("address", e.target.value)} /></div>
@@ -222,8 +224,8 @@ function PartnersPanel({ partners, showForm, setShowForm }: {
       ) : (
         <div className="space-y-3">
           {partners.map(p => (
-            <div key={p.id} className="card p-4 flex items-center justify-between">
-              <div>
+            <div key={p.id} className="card p-4 flex items-center justify-between gap-3">
+              <div className="min-w-0">
                 <p className="font-semibold text-gray-900">{p.name}</p>
                 <p className="text-sm text-gray-500">{p.address} · {p.phone}</p>
                 {p.home_collection_available && (
@@ -233,7 +235,7 @@ function PartnersPanel({ partners, showForm, setShowForm }: {
               <button
                 onClick={() => toggleActive(p.id, p.active)}
                 disabled={toggling === p.id}
-                className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors ${
+                className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors shrink-0 ${
                   p.active
                     ? "bg-green-100 text-green-700 hover:bg-red-50 hover:text-red-600"
                     : "bg-gray-100 text-gray-500 hover:bg-green-50 hover:text-green-700"
@@ -291,7 +293,7 @@ function StaffPanel({ staff, partners }: { staff: any[]; partners: any[] }) {
       {showForm && (
         <form onSubmit={addStaff} className="card p-5 space-y-4">
           <p className="font-semibold text-gray-900">New Lab Staff Member</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className="label">Name *</label><input className="input" required value={form.name} onChange={e => setF("name", e.target.value)} /></div>
             <div><label className="label">Email *</label><input className="input" type="email" required value={form.email} onChange={e => setF("email", e.target.value)} /></div>
             <div><label className="label">Phone</label><input className="input" type="tel" value={form.phone} onChange={e => setF("phone", e.target.value)} /></div>
@@ -312,6 +314,7 @@ function StaffPanel({ staff, partners }: { staff: any[]; partners: any[] }) {
         <div className="card p-10 text-center text-gray-400">No lab staff added yet.</div>
       ) : (
         <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -335,6 +338,7 @@ function StaffPanel({ staff, partners }: { staff: any[]; partners: any[] }) {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

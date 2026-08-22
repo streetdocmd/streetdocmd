@@ -13,7 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq("user_id", user.id)
     .single();
 
-  if (!provider) redirect("/register");
+  if (!provider) redirect("/register/individual");
 
   if (provider.verification_status !== "verified") {
     const { data: docs } = await supabase

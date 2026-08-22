@@ -67,19 +67,19 @@ export default function FacilityReviewClient({ application: app }: { application
     <div className="space-y-6 max-w-3xl">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-6 right-6 z-50 bg-gray-900 text-white px-5 py-3 rounded-xl text-sm shadow-lg max-w-sm">
+        <div className="fixed top-6 left-6 right-6 sm:left-auto z-50 bg-gray-900 text-white px-5 py-3 rounded-xl text-sm shadow-lg max-w-sm">
           {toast}
         </div>
       )}
 
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <a href="/dashboard/facilities" className="text-sm text-blue-brand hover:underline inline-flex items-center gap-1 mb-2">
             ← Back to Applications
           </a>
-          <h1 className="text-2xl font-bold text-gray-900">{app.name}</h1>
-          <div className="flex items-center gap-3 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 break-words">{app.name}</h1>
+          <div className="flex items-center gap-3 mt-1 flex-wrap">
             <span className="text-sm text-gray-500 capitalize">{app.facility_type}</span>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[app.status] ?? ""}`}>
               {app.status.replace("_", " ")}
@@ -89,7 +89,7 @@ export default function FacilityReviewClient({ application: app }: { application
         </div>
 
         {app.status !== "approved" && app.status !== "rejected" && (
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button onClick={() => setShowRejectModal(true)}
               className="px-5 py-2.5 border border-red-300 text-red-600 rounded-xl font-semibold hover:bg-red-50 text-sm">
               Reject
@@ -105,7 +105,7 @@ export default function FacilityReviewClient({ application: app }: { application
       {/* Basic info */}
       <div className="card p-5 space-y-3">
         <p className="text-sm font-semibold text-gray-700 uppercase tracking-wide text-xs mb-3">Basic Information</p>
-        <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <Row label="Email"    value={app.email} />
           <Row label="Phone"    value={app.phone} />
           <Row label="Address"  value={`${app.address}, ${app.city ?? ""} ${app.state ?? ""}`.trim()} />
@@ -166,7 +166,7 @@ export default function FacilityReviewClient({ application: app }: { application
       {/* Approve Modal */}
       {showApproveModal && (
         <div className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-xl">
             <p className="text-lg font-bold text-gray-900">Approve Application</p>
             <p className="text-sm text-gray-600">
               This will:
@@ -196,7 +196,7 @@ export default function FacilityReviewClient({ application: app }: { application
       {/* Reject Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-xl">
             <p className="text-lg font-bold text-gray-900">Reject Application</p>
             <p className="text-sm text-gray-600">
               Please provide a reason. This will be sent to the facility so they can reapply after addressing the issues.
