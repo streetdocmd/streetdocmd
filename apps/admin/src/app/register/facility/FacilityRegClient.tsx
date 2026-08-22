@@ -21,6 +21,14 @@ const HOSPITAL_SPECIALTIES = [
   "Psychiatry","Radiology","Neurology",
 ];
 
+// Shared field styling — explicit so inputs render correctly even if the
+// project's own "input"/"label" utility classes aren't defined/loaded.
+const inputClass =
+  "w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-900 " +
+  "placeholder:text-gray-400 shadow-sm transition-colors " +
+  "focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100";
+const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+
 export default function FacilityRegClient() {
   const router = useRouter();
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0); // 0=select type, 1-4=form steps
@@ -156,14 +164,14 @@ export default function FacilityRegClient() {
   if (!facilityType) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-navy-800 text-white py-12 px-6 text-center relative">
+        <div className="bg-teal-700 text-white py-12 px-6 text-center relative">
           <a href={INDIVIDUAL_PORTAL_URL}
-            className="absolute top-4 left-4 sm:top-6 sm:left-6 text-navy-100 hover:text-white text-sm underline">
+            className="absolute top-4 left-4 sm:top-6 sm:left-6 text-teal-200 hover:text-white text-sm underline">
             ← Change registration type
           </a>
           <p className="text-3xl mb-3">🏥</p>
           <h1 className="text-3xl font-bold mb-2">Join the StreetdocMD Partner Network</h1>
-          <p className="text-navy-100 max-w-lg mx-auto">
+          <p className="text-teal-100 max-w-lg mx-auto">
             Register your facility to receive patients.
           </p>
         </div>
@@ -179,7 +187,7 @@ export default function FacilityRegClient() {
               as an individual doctor, nurse, physiotherapist, or lab scientist?
             </p>
             <a href={INDIVIDUAL_PORTAL_URL}
-              className="text-sm font-semibold text-blue-brand hover:underline whitespace-nowrap">
+              className="text-sm font-semibold text-teal-700 hover:text-teal-800 whitespace-nowrap">
               Go to the individual practitioner portal →
             </a>
           </div>
@@ -189,12 +197,12 @@ export default function FacilityRegClient() {
               <button
                 key={f.type}
                 onClick={() => { setFacilityType(f.type); setFormStep(1); }}
-                className="card p-6 text-left hover:shadow-lg hover:border-blue-200 transition-all group"
+                className="card p-6 text-left hover:shadow-lg hover:border-teal-300 transition-all group"
               >
                 <p className="text-4xl mb-4">{f.icon}</p>
-                <p className="font-bold text-gray-900 text-lg mb-2 group-hover:text-blue-brand">{f.title}</p>
+                <p className="font-bold text-gray-900 text-lg mb-2 group-hover:text-teal-700">{f.title}</p>
                 <p className="text-sm text-gray-500 mb-4">{f.desc}</p>
-                <span className="text-xs font-semibold text-blue-brand bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-3 py-1 rounded-full">
                   {f.earn}
                 </span>
               </button>
@@ -211,17 +219,17 @@ export default function FacilityRegClient() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-navy-800 text-white py-6 px-6">
+      <div className="bg-teal-700 text-white py-6 px-6">
         <div className="max-w-2xl mx-auto space-y-2">
-          <a href={INDIVIDUAL_PORTAL_URL} className="text-navy-100 hover:text-white text-xs underline inline-block">
+          <a href={INDIVIDUAL_PORTAL_URL} className="text-teal-300 hover:text-white text-xs underline inline-block">
             ← Change registration type
           </a>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-navy-100">Partner Registration</p>
+              <p className="text-sm text-teal-200">Partner Registration</p>
               <h1 className="text-xl font-bold">{selectedFacility.icon} {selectedFacility.title}</h1>
             </div>
-            <button onClick={() => setFacilityType(null)} className="text-navy-100 hover:text-white text-sm underline self-start sm:self-auto">
+            <button onClick={() => setFacilityType(null)} className="text-teal-200 hover:text-white text-sm underline self-start sm:self-auto">
               Change type
             </button>
           </div>
@@ -234,9 +242,9 @@ export default function FacilityRegClient() {
           {[1,2,3,4].map(n => (
             <div key={n} className="flex items-center gap-2">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                formStep > n ? "bg-blue-brand text-white" : formStep === n ? "bg-blue-50 text-blue-brand border-2 border-blue-brand" : "bg-gray-100 text-gray-400"
+                formStep > n ? "bg-teal-600 text-white" : formStep === n ? "bg-teal-100 text-teal-700 border-2 border-teal-600" : "bg-gray-100 text-gray-400"
               }`}>{formStep > n ? "✓" : n}</div>
-              {n < 4 && <div className={`flex-1 h-0.5 w-4 sm:w-8 ${formStep > n ? "bg-blue-300" : "bg-gray-200"}`} />}
+              {n < 4 && <div className={`flex-1 h-0.5 w-4 sm:w-8 ${formStep > n ? "bg-teal-400" : "bg-gray-200"}`} />}
             </div>
           ))}
           <span className="ml-auto text-xs text-gray-400 hidden sm:inline">Step {formStep} of 4</span>
@@ -252,50 +260,50 @@ export default function FacilityRegClient() {
             <div className="card p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="label">Facility name *</label>
-                  <input className="input" value={basic.name} onChange={e => setB("name", e.target.value)} required />
+                  <label className={labelClass}>Facility name *</label>
+                  <input className={inputClass} value={basic.name} onChange={e => setB("name", e.target.value)} required />
                 </div>
                 <div>
-                  <label className="label">Email address *</label>
-                  <input className="input" type="email" value={basic.email} onChange={e => setB("email", e.target.value)} placeholder="Used for portal login" required />
+                  <label className={labelClass}>Email address *</label>
+                  <input className={inputClass} type="email" value={basic.email} onChange={e => setB("email", e.target.value)} placeholder="Used for portal login" required />
                 </div>
                 <div>
-                  <label className="label">Phone number *</label>
-                  <input className="input" type="tel" value={basic.phone} onChange={e => setB("phone", e.target.value)} required />
+                  <label className={labelClass}>Phone number *</label>
+                  <input className={inputClass} type="tel" value={basic.phone} onChange={e => setB("phone", e.target.value)} required />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="label">Full address *</label>
-                  <input className="input" value={basic.address} onChange={e => setB("address", e.target.value)} required />
+                  <label className={labelClass}>Full address *</label>
+                  <input className={inputClass} value={basic.address} onChange={e => setB("address", e.target.value)} required />
                 </div>
                 <div>
-                  <label className="label">City</label>
-                  <input className="input" value={basic.city} onChange={e => setB("city", e.target.value)} />
+                  <label className={labelClass}>City</label>
+                  <input className={inputClass} value={basic.city} onChange={e => setB("city", e.target.value)} />
                 </div>
                 <div>
-                  <label className="label">State</label>
-                  <select className="input" value={basic.state} onChange={e => setB("state", e.target.value)}>
+                  <label className={labelClass}>State</label>
+                  <select className={inputClass} value={basic.state} onChange={e => setB("state", e.target.value)}>
                     {NIGERIAN_STATES.map(s => <option key={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="label">Registration / Licence number</label>
-                  <input className="input" value={basic.registration_number} onChange={e => setB("registration_number", e.target.value)} />
+                  <label className={labelClass}>Registration / Licence number</label>
+                  <input className={inputClass} value={basic.registration_number} onChange={e => setB("registration_number", e.target.value)} />
                 </div>
                 <div>
-                  <label className="label">CAC number</label>
-                  <input className="input" value={basic.cac_number} onChange={e => setB("cac_number", e.target.value)} />
+                  <label className={labelClass}>CAC number</label>
+                  <input className={inputClass} value={basic.cac_number} onChange={e => setB("cac_number", e.target.value)} />
                 </div>
                 <div>
-                  <label className="label">Contact person name</label>
-                  <input className="input" value={basic.contact_person_name} onChange={e => setB("contact_person_name", e.target.value)} />
+                  <label className={labelClass}>Contact person name</label>
+                  <input className={inputClass} value={basic.contact_person_name} onChange={e => setB("contact_person_name", e.target.value)} />
                 </div>
                 <div>
-                  <label className="label">Contact person role</label>
-                  <input className="input" value={basic.contact_person_role} onChange={e => setB("contact_person_role", e.target.value)} placeholder="e.g. Director, Manager" />
+                  <label className={labelClass}>Contact person role</label>
+                  <input className={inputClass} value={basic.contact_person_role} onChange={e => setB("contact_person_role", e.target.value)} placeholder="e.g. Director, Manager" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="label">Operating hours</label>
-                  <input className="input" value={basic.operating_hours} onChange={e => setB("operating_hours", e.target.value)} placeholder="e.g. Mon–Sat 8am–8pm" />
+                  <label className={labelClass}>Operating hours</label>
+                  <input className={inputClass} value={basic.operating_hours} onChange={e => setB("operating_hours", e.target.value)} placeholder="e.g. Mon–Sat 8am–8pm" />
                 </div>
               </div>
             </div>
@@ -303,7 +311,7 @@ export default function FacilityRegClient() {
               <button
                 onClick={() => setFormStep(2)}
                 disabled={!basic.name || !basic.email || !basic.phone || !basic.address}
-                className="w-full sm:w-auto btn-primary disabled:opacity-40"
+                className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 disabled:opacity-40"
               >
                 Next →
               </button>
@@ -319,43 +327,43 @@ export default function FacilityRegClient() {
               {facilityType === "lab" && (
                 <>
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 accent-blue-600" checked={labData.home_collection}
+                    <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={labData.home_collection}
                       onChange={e => setLabData(d => ({ ...d, home_collection: e.target.checked }))} />
                     <span className="text-sm font-medium text-gray-700">Home sample collection available</span>
                   </label>
                   {labData.home_collection && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-7">
                       <div>
-                        <label className="label">Collection radius (km)</label>
-                        <input className="input" type="number" value={labData.collection_radius_km}
+                        <label className={labelClass}>Collection radius (km)</label>
+                        <input className={inputClass} type="number" value={labData.collection_radius_km}
                           onChange={e => setLabData(d => ({ ...d, collection_radius_km: e.target.value }))} />
                       </div>
                       <div>
-                        <label className="label">Number of sample collectors</label>
-                        <input className="input" type="number" value={labData.num_collectors}
+                        <label className={labelClass}>Number of sample collectors</label>
+                        <input className={inputClass} type="number" value={labData.num_collectors}
                           onChange={e => setLabData(d => ({ ...d, num_collectors: e.target.value }))} />
                       </div>
                     </div>
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="label">Accreditation body</label>
-                      <input className="input" placeholder="e.g. MLSCN" value={labData.accreditation_body}
+                      <label className={labelClass}>Accreditation body</label>
+                      <input className={inputClass} placeholder="e.g. MLSCN" value={labData.accreditation_body}
                         onChange={e => setLabData(d => ({ ...d, accreditation_body: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="label">Accreditation number</label>
-                      <input className="input" value={labData.accreditation_number}
+                      <label className={labelClass}>Accreditation number</label>
+                      <input className={inputClass} value={labData.accreditation_number}
                         onChange={e => setLabData(d => ({ ...d, accreditation_number: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="label">Standard turnaround (hours)</label>
-                      <input className="input" type="number" value={labData.standard_turnaround_hours}
+                      <label className={labelClass}>Standard turnaround (hours)</label>
+                      <input className={inputClass} type="number" value={labData.standard_turnaround_hours}
                         onChange={e => setLabData(d => ({ ...d, standard_turnaround_hours: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="label">Urgent turnaround (hours)</label>
-                      <input className="input" type="number" value={labData.urgent_turnaround_hours}
+                      <label className={labelClass}>Urgent turnaround (hours)</label>
+                      <input className={inputClass} type="number" value={labData.urgent_turnaround_hours}
                         onChange={e => setLabData(d => ({ ...d, urgent_turnaround_hours: e.target.value }))} />
                     </div>
                   </div>
@@ -365,33 +373,33 @@ export default function FacilityRegClient() {
               {facilityType === "pharmacy" && (
                 <>
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 accent-blue-600" checked={pharmData.delivery_available}
+                    <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={pharmData.delivery_available}
                       onChange={e => setPharmData(d => ({ ...d, delivery_available: e.target.checked }))} />
                     <span className="text-sm font-medium text-gray-700">Home delivery available</span>
                   </label>
                   {pharmData.delivery_available && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-7">
                       <div>
-                        <label className="label">Delivery radius (km)</label>
-                        <input className="input" type="number" value={pharmData.delivery_radius_km}
+                        <label className={labelClass}>Delivery radius (km)</label>
+                        <input className={inputClass} type="number" value={pharmData.delivery_radius_km}
                           onChange={e => setPharmData(d => ({ ...d, delivery_radius_km: e.target.value }))} />
                       </div>
                       <div>
-                        <label className="label">Delivery fee ₦ (0 = free)</label>
-                        <input className="input" type="number" value={pharmData.delivery_fee}
+                        <label className={labelClass}>Delivery fee ₦ (0 = free)</label>
+                        <input className={inputClass} type="number" value={pharmData.delivery_fee}
                           onChange={e => setPharmData(d => ({ ...d, delivery_fee: e.target.value }))} />
                       </div>
                     </div>
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="label">PCN registration number</label>
-                      <input className="input" value={pharmData.pcn_registration}
+                      <label className={labelClass}>PCN registration number</label>
+                      <input className={inputClass} value={pharmData.pcn_registration}
                         onChange={e => setPharmData(d => ({ ...d, pcn_registration: e.target.value }))} />
                     </div>
                     <div>
-                      <label className="label">Dispensing hours</label>
-                      <input className="input" placeholder="e.g. Mon–Sat 8am–9pm" value={pharmData.dispensing_hours}
+                      <label className={labelClass}>Dispensing hours</label>
+                      <input className={inputClass} placeholder="e.g. Mon–Sat 8am–9pm" value={pharmData.dispensing_hours}
                         onChange={e => setPharmData(d => ({ ...d, dispensing_hours: e.target.value }))} />
                     </div>
                   </div>
@@ -401,8 +409,8 @@ export default function FacilityRegClient() {
               {facilityType === "hospital" && (
                 <>
                   <div>
-                    <label className="label">Hospital level *</label>
-                    <select className="input" value={hospData.hospital_level}
+                    <label className={labelClass}>Hospital level *</label>
+                    <select className={inputClass} value={hospData.hospital_level}
                       onChange={e => setHospData(d => ({ ...d, hospital_level: e.target.value as any }))}>
                       <option value="primary">Primary Health Centre</option>
                       <option value="secondary">Secondary Hospital</option>
@@ -411,27 +419,27 @@ export default function FacilityRegClient() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <label className="flex items-center gap-3 cursor-pointer col-span-2 md:col-span-1">
-                      <input type="checkbox" className="w-4 h-4 accent-blue-600" checked={hospData.emergency_available}
+                      <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={hospData.emergency_available}
                         onChange={e => setHospData(d => ({ ...d, emergency_available: e.target.checked }))} />
                       <span className="text-sm font-medium text-gray-700">Emergency services available</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" className="w-4 h-4 accent-blue-600" checked={hospData.ambulance_available}
+                      <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={hospData.ambulance_available}
                         onChange={e => setHospData(d => ({ ...d, ambulance_available: e.target.checked }))} />
                       <span className="text-sm font-medium text-gray-700">Ambulance available</span>
                     </label>
                     <div>
-                      <label className="label">Approximate bed count</label>
-                      <input className="input" type="number" value={hospData.bed_count}
+                      <label className={labelClass}>Approximate bed count</label>
+                      <input className={inputClass} type="number" value={hospData.bed_count}
                         onChange={e => setHospData(d => ({ ...d, bed_count: e.target.value }))} />
                     </div>
                   </div>
                   <div>
-                    <label className="label mb-2">Specialties</label>
+                    <label className={`${labelClass} mb-2`}>Specialties</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {HOSPITAL_SPECIALTIES.map(s => (
                         <label key={s} className="flex items-center gap-2 text-sm cursor-pointer">
-                          <input type="checkbox" className="w-4 h-4 accent-blue-600"
+                          <input type="checkbox" className="w-4 h-4 accent-teal-600"
                             checked={hospData.specialties.includes(s)}
                             onChange={() => toggleSpecialty(s)} />
                           {s}
@@ -439,8 +447,8 @@ export default function FacilityRegClient() {
                       ))}
                     </div>
                     <div className="mt-3">
-                      <label className="label">Other specialty</label>
-                      <input className="input" placeholder="Any other specialty not listed above"
+                      <label className={labelClass}>Other specialty</label>
+                      <input className={inputClass} placeholder="Any other specialty not listed above"
                         value={hospData.other_specialty}
                         onChange={e => setHospData(d => ({ ...d, other_specialty: e.target.value }))} />
                     </div>
@@ -450,7 +458,7 @@ export default function FacilityRegClient() {
             </div>
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
               <button onClick={() => setFormStep(1)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
-              <button onClick={() => setFormStep(3)} className="w-full sm:w-auto btn-primary">Next →</button>
+              <button onClick={() => setFormStep(3)} className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700">Next →</button>
             </div>
           </div>
         )}
@@ -461,7 +469,7 @@ export default function FacilityRegClient() {
             <h2 className="text-lg font-bold text-gray-900">Documents</h2>
             <div className="card p-6 space-y-5">
               <div>
-                <label className="label">Professional licence / accreditation certificate</label>
+                <label className={labelClass}>Professional licence / accreditation certificate</label>
                 <div className="mt-1 flex items-center gap-3">
                   <button onClick={() => licenceRef.current?.click()}
                     disabled={uploading === "licence"}
@@ -474,7 +482,7 @@ export default function FacilityRegClient() {
               </div>
 
               <div>
-                <label className="label">CAC certificate</label>
+                <label className={labelClass}>CAC certificate</label>
                 <div className="mt-1 flex items-center gap-3">
                   <button onClick={() => cacRef.current?.click()}
                     disabled={uploading === "cac"}
@@ -487,7 +495,7 @@ export default function FacilityRegClient() {
               </div>
 
               <div>
-                <label className="label">Facility photos (up to 3)</label>
+                <label className={labelClass}>Facility photos (up to 3)</label>
                 <div className="mt-1 flex items-center gap-3 flex-wrap">
                   <button onClick={() => photoRef.current?.click()}
                     disabled={uploading === "photos" || docs.photo_urls.length >= 3}
@@ -504,7 +512,7 @@ export default function FacilityRegClient() {
             </div>
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
               <button onClick={() => setFormStep(2)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
-              <button onClick={() => setFormStep(4)} className="w-full sm:w-auto btn-primary">Review →</button>
+              <button onClick={() => setFormStep(4)} className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700">Review →</button>
             </div>
           </div>
         )}
@@ -571,9 +579,9 @@ export default function FacilityRegClient() {
             </div>
 
             <div className="card p-6 space-y-2">
-              <label className="label">Any questions or suggestions for us?</label>
+              <label className={labelClass}>Any questions or suggestions for us?</label>
               <textarea
-                className="input"
+                className={inputClass}
                 rows={3}
                 placeholder="Ask us anything, or share any suggestions you have"
                 value={basic.questions}
@@ -586,7 +594,7 @@ export default function FacilityRegClient() {
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
               <button onClick={() => setFormStep(3)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
               <button onClick={handleSubmit} disabled={submitting}
-                className="w-full sm:w-auto btn-primary disabled:opacity-50">
+                className="w-full sm:w-auto px-8 py-3 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 disabled:opacity-50">
                 {submitting ? "Submitting…" : "Submit Application"}
               </button>
             </div>
