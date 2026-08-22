@@ -89,7 +89,10 @@ export default function FacilityRegClient() {
     const { data, error } = await supabase.storage
       .from("facility-applications")
       .upload(path, file, { upsert: true });
-    if (error) { console.error(error); return null; }
+    if (error) {
+      console.error("Supabase upload error:", error);
+      throw error;
+    }
     const { data: pub } = supabase.storage.from("facility-applications").getPublicUrl(data.path);
     return pub.publicUrl;
   }
