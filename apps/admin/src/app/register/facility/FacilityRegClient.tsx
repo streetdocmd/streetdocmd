@@ -35,6 +35,7 @@ export default function FacilityRegClient() {
     city: "Ibadan", state: "Oyo",
     registration_number: "", cac_number: "",
     contact_person_name: "", contact_person_role: "", operating_hours: "",
+    questions: "",
   });
 
   // Lab-specific
@@ -155,14 +156,14 @@ export default function FacilityRegClient() {
   if (!facilityType) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-teal-700 text-white py-12 px-6 text-center relative">
+        <div className="bg-navy-800 text-white py-12 px-6 text-center relative">
           <a href={INDIVIDUAL_PORTAL_URL}
-            className="absolute top-4 left-4 sm:top-6 sm:left-6 text-teal-200 hover:text-white text-sm underline">
+            className="absolute top-4 left-4 sm:top-6 sm:left-6 text-navy-100 hover:text-white text-sm underline">
             ← Change registration type
           </a>
           <p className="text-3xl mb-3">🏥</p>
           <h1 className="text-3xl font-bold mb-2">Join the StreetdocMD Partner Network</h1>
-          <p className="text-teal-100 max-w-lg mx-auto">
+          <p className="text-navy-100 max-w-lg mx-auto">
             Register your facility to receive patients.
           </p>
         </div>
@@ -178,7 +179,7 @@ export default function FacilityRegClient() {
               as an individual doctor, nurse, physiotherapist, or lab scientist?
             </p>
             <a href={INDIVIDUAL_PORTAL_URL}
-              className="text-sm font-semibold text-teal-700 hover:text-teal-800 whitespace-nowrap">
+              className="text-sm font-semibold text-blue-brand hover:underline whitespace-nowrap">
               Go to the individual practitioner portal →
             </a>
           </div>
@@ -188,12 +189,12 @@ export default function FacilityRegClient() {
               <button
                 key={f.type}
                 onClick={() => { setFacilityType(f.type); setFormStep(1); }}
-                className="card p-6 text-left hover:shadow-lg hover:border-teal-300 transition-all group"
+                className="card p-6 text-left hover:shadow-lg hover:border-blue-200 transition-all group"
               >
                 <p className="text-4xl mb-4">{f.icon}</p>
-                <p className="font-bold text-gray-900 text-lg mb-2 group-hover:text-teal-700">{f.title}</p>
+                <p className="font-bold text-gray-900 text-lg mb-2 group-hover:text-blue-brand">{f.title}</p>
                 <p className="text-sm text-gray-500 mb-4">{f.desc}</p>
-                <span className="text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold text-blue-brand bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
                   {f.earn}
                 </span>
               </button>
@@ -210,17 +211,17 @@ export default function FacilityRegClient() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-teal-700 text-white py-6 px-6">
+      <div className="bg-navy-800 text-white py-6 px-6">
         <div className="max-w-2xl mx-auto space-y-2">
-          <a href={INDIVIDUAL_PORTAL_URL} className="text-teal-300 hover:text-white text-xs underline inline-block">
+          <a href={INDIVIDUAL_PORTAL_URL} className="text-navy-100 hover:text-white text-xs underline inline-block">
             ← Change registration type
           </a>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-teal-200">Partner Registration</p>
+              <p className="text-sm text-navy-100">Partner Registration</p>
               <h1 className="text-xl font-bold">{selectedFacility.icon} {selectedFacility.title}</h1>
             </div>
-            <button onClick={() => setFacilityType(null)} className="text-teal-200 hover:text-white text-sm underline self-start sm:self-auto">
+            <button onClick={() => setFacilityType(null)} className="text-navy-100 hover:text-white text-sm underline self-start sm:self-auto">
               Change type
             </button>
           </div>
@@ -233,9 +234,9 @@ export default function FacilityRegClient() {
           {[1,2,3,4].map(n => (
             <div key={n} className="flex items-center gap-2">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                formStep > n ? "bg-teal-600 text-white" : formStep === n ? "bg-teal-100 text-teal-700 border-2 border-teal-600" : "bg-gray-100 text-gray-400"
+                formStep > n ? "bg-blue-brand text-white" : formStep === n ? "bg-blue-50 text-blue-brand border-2 border-blue-brand" : "bg-gray-100 text-gray-400"
               }`}>{formStep > n ? "✓" : n}</div>
-              {n < 4 && <div className={`flex-1 h-0.5 w-4 sm:w-8 ${formStep > n ? "bg-teal-400" : "bg-gray-200"}`} />}
+              {n < 4 && <div className={`flex-1 h-0.5 w-4 sm:w-8 ${formStep > n ? "bg-blue-300" : "bg-gray-200"}`} />}
             </div>
           ))}
           <span className="ml-auto text-xs text-gray-400 hidden sm:inline">Step {formStep} of 4</span>
@@ -302,7 +303,7 @@ export default function FacilityRegClient() {
               <button
                 onClick={() => setFormStep(2)}
                 disabled={!basic.name || !basic.email || !basic.phone || !basic.address}
-                className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 disabled:opacity-40"
+                className="w-full sm:w-auto btn-primary disabled:opacity-40"
               >
                 Next →
               </button>
@@ -318,7 +319,7 @@ export default function FacilityRegClient() {
               {facilityType === "lab" && (
                 <>
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={labData.home_collection}
+                    <input type="checkbox" className="w-4 h-4 accent-blue-600" checked={labData.home_collection}
                       onChange={e => setLabData(d => ({ ...d, home_collection: e.target.checked }))} />
                     <span className="text-sm font-medium text-gray-700">Home sample collection available</span>
                   </label>
@@ -364,7 +365,7 @@ export default function FacilityRegClient() {
               {facilityType === "pharmacy" && (
                 <>
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={pharmData.delivery_available}
+                    <input type="checkbox" className="w-4 h-4 accent-blue-600" checked={pharmData.delivery_available}
                       onChange={e => setPharmData(d => ({ ...d, delivery_available: e.target.checked }))} />
                     <span className="text-sm font-medium text-gray-700">Home delivery available</span>
                   </label>
@@ -410,12 +411,12 @@ export default function FacilityRegClient() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <label className="flex items-center gap-3 cursor-pointer col-span-2 md:col-span-1">
-                      <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={hospData.emergency_available}
+                      <input type="checkbox" className="w-4 h-4 accent-blue-600" checked={hospData.emergency_available}
                         onChange={e => setHospData(d => ({ ...d, emergency_available: e.target.checked }))} />
                       <span className="text-sm font-medium text-gray-700">Emergency services available</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" className="w-4 h-4 accent-teal-600" checked={hospData.ambulance_available}
+                      <input type="checkbox" className="w-4 h-4 accent-blue-600" checked={hospData.ambulance_available}
                         onChange={e => setHospData(d => ({ ...d, ambulance_available: e.target.checked }))} />
                       <span className="text-sm font-medium text-gray-700">Ambulance available</span>
                     </label>
@@ -430,7 +431,7 @@ export default function FacilityRegClient() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {HOSPITAL_SPECIALTIES.map(s => (
                         <label key={s} className="flex items-center gap-2 text-sm cursor-pointer">
-                          <input type="checkbox" className="w-4 h-4 accent-teal-600"
+                          <input type="checkbox" className="w-4 h-4 accent-blue-600"
                             checked={hospData.specialties.includes(s)}
                             onChange={() => toggleSpecialty(s)} />
                           {s}
@@ -449,7 +450,7 @@ export default function FacilityRegClient() {
             </div>
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
               <button onClick={() => setFormStep(1)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
-              <button onClick={() => setFormStep(3)} className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700">Next →</button>
+              <button onClick={() => setFormStep(3)} className="w-full sm:w-auto btn-primary">Next →</button>
             </div>
           </div>
         )}
@@ -503,7 +504,7 @@ export default function FacilityRegClient() {
             </div>
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
               <button onClick={() => setFormStep(2)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
-              <button onClick={() => setFormStep(4)} className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700">Review →</button>
+              <button onClick={() => setFormStep(4)} className="w-full sm:w-auto btn-primary">Review →</button>
             </div>
           </div>
         )}
@@ -569,12 +570,23 @@ export default function FacilityRegClient() {
               </div>
             </div>
 
+            <div className="card p-6 space-y-2">
+              <label className="label">Any questions or suggestions for us?</label>
+              <textarea
+                className="input"
+                rows={3}
+                placeholder="Ask us anything, or share any suggestions you have"
+                value={basic.questions}
+                onChange={e => setB("questions", e.target.value)}
+              />
+            </div>
+
             {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
               <button onClick={() => setFormStep(3)} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50">← Back</button>
               <button onClick={handleSubmit} disabled={submitting}
-                className="w-full sm:w-auto px-8 py-3 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 disabled:opacity-50">
+                className="w-full sm:w-auto btn-primary disabled:opacity-50">
                 {submitting ? "Submitting…" : "Submit Application"}
               </button>
             </div>
