@@ -27,8 +27,6 @@ export default function Navbar({ providerName }: { providerName: string }) {
           <span className="font-bold text-lg tracking-tight">StreetdocMD</span>
           <span className="text-navy-100 text-xs hidden sm:block">Provider</span>
         </div>
-Streetdocmd2026.
-Streetdocmd2026.
         <nav className="hidden sm:flex items-center gap-1">
           {NAV.map(item => {
             const active = item.href === "/dashboard"
