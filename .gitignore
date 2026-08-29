@@ -11,3 +11,11 @@ android
 ios
 
 .vercel
+
+# Stray nested clone of this same repo that was accidentally committed as a
+# broken git submodule reference (a gitlink with no .gitmodules registering
+# it) — untracked here rather than deleted, since it sits on a local-only
+# branch (segun/add-new-features) that was never pushed anywhere. The
+# folder is left on disk; this just stops git and search tools from
+# walking into it.
+/streetdocmd/
