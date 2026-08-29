@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity,
   ScrollView, StyleSheet, ActivityIndicator,
@@ -6,8 +6,9 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 import { supabase } from "../../lib/supabase";
+import { SERVICE_PRICES, ELDERLY_FOLLOW_UP_SERVICE, calculateCommission, calculateNetPayout } from "@streetdocmd/shared";
 
-type Step = "investigations" | "prescription" | "drugs" | "pharmacy" | "completing" | "done";
+type Step = "investigations" | "prescription" | "drugs" | "pharmacy" | "follow_up" | "completing" | "done";
 
 interface Drug {
   drug_name: string;
@@ -33,6 +34,37 @@ export default function PostConsultationScreen() {
   const [drugs, setDrugs]     = useState<Drug[]>([{ ...EMPTY_DRUG }]);
   const [busy, setBusy]       = useState(false);
   const [fieldError, setFieldError] = useState("");
+  const [serviceType, setServiceType] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.from("bookings").select("service_type").eq("id", bookingId).single()
+      .then(({ data }) => setServiceType(data?.service_type ?? null));
+  }, [bookingId]);
+
+  // Elderly-review visits get an extra "request nurse follow-up" prompt
+  // before the visit is finalised.
+  function proceedToFinish() {
+    if (serviceType === "elderly_review") {
+      setStep("follow_up");
+    } else {
+      finishVisit();
+    }
+  }
+
+  async function requestFollowUp() {
+    setBusy(true);
+    const fee = SERVICE_PRICES[ELDERLY_FOLLOW_UP_SERVICE];
+    const { error } = await supabase.rpc("create_elderly_follow_up_booking", {
+      p_original_booking_id: bookingId,
+      p_fee: fee,
+      p_commission: calculateCommission(fee),
+      p_net_payout: calculateNetPayout(fee),
+    });
+    setBusy(false);
+    if (error) { setFieldError("Could not request follow-up. Please try again."); return; }
+    setFieldError("");
+    finishVisit();
+  }
 
   // ─── Drug helpers ────────────────────────────────────────────────
   function updateDrug(i: number, field: keyof Drug, val: string) {
@@ -85,7 +117,8 @@ export default function PostConsultationScreen() {
         payment_status: "pending", total_amount: 0, commission_amount: 0,
       });
     }
-    await finishVisit();
+    setBusy(false);
+    proceedToFinish();
   }
 
   // ─── Finish visit ────────────────────────────────────────────────
@@ -179,7 +212,7 @@ export default function PostConsultationScreen() {
           primaryColor="#059669"
           onPrimary={() => setStep("drugs")}
           skipLabel="No, finish visit"
-          onSkip={finishVisit}
+          onSkip={proceedToFinish}
           disabled={busy}
         />
       )}
@@ -236,6 +269,22 @@ export default function PostConsultationScreen() {
           primaryLabel="Yes, arrange home delivery"
           primaryColor="#0369A1"
           onPrimary={sendToPharmacy}
+          skipLabel="No, finish visit"
+          onSkip={proceedToFinish}
+          disabled={busy}
+        />
+      )}
+
+      {/* STEP: Nurse follow-up (elderly review only) */}
+      {step === "follow_up" && (
+        <PromptCard
+          emoji="🧑‍⚕️"
+          badge="Before you finish"
+          title="Does this patient need a nurse follow-up visit?"
+          subtitle="Based on your diagnosis, request a nurse to visit this patient for follow-up care"
+          primaryLabel="Yes, request nurse follow-up"
+          primaryColor="#0D9488"
+          onPrimary={requestFollowUp}
           skipLabel="No, finish visit"
           onSkip={finishVisit}
           disabled={busy}

@@ -21,6 +21,7 @@ export type ServiceType =
   | "wound_care"
   | "elderly_review"
   | "nursing_care"
+  | "physiotherapy"
   | "custom_request";
 
 export type SubscriptionPlan = "basic" | "standard" | "premium" | "family";
@@ -128,6 +129,7 @@ export interface Booking {
   net_payout: number;
   payment_status: PaymentStatus;
   dispatch_attempts: number;
+  follow_up_of_booking_id: string | null;
   created_at: string;
   updated_at: string;
 }

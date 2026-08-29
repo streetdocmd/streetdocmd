@@ -66,6 +66,7 @@ export default async function ClinicalNotePage({ params }: { params: { bookingId
       provider={provider as any}
       patient={patient}
       previousNotes={previousNotes}
+      serviceType={booking.service_type}
     />
   );
 }

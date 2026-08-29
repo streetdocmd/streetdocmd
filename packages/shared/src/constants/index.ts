@@ -6,6 +6,7 @@ export const SERVICE_LABELS: Record<ServiceType, string> = {
   wound_care: "Wound Care",
   elderly_review: "Elderly Review",
   nursing_care: "Nursing Care",
+  physiotherapy: "Physiotherapy",
   custom_request: "Custom Request",
 };
 
@@ -15,6 +16,7 @@ export const SERVICE_PRICES: Record<ServiceType, number> = {
   wound_care: 6000,
   elderly_review: 10000,
   nursing_care: 12000,
+  physiotherapy: 7000, // placeholder — pending pricing sign-off
   custom_request: 8000,
 };
 
@@ -24,8 +26,28 @@ export const SERVICE_DESCRIPTIONS: Record<ServiceType, string> = {
   wound_care: "Professional cleaning, dressing, and management of wounds",
   elderly_review: "Comprehensive health assessment for elderly patients",
   nursing_care: "Professional nursing care and procedures at home",
+  physiotherapy: "Guided rehabilitation and mobility therapy at home",
   custom_request: "Describe your specific medical need",
 };
+
+// ─── Service -> specialty routing ───────────────────────────────────────────
+//
+// UI-facing mirror of service_allowed_specialties() in
+// supabase/migrations/023_service_specialty_dispatch.sql, which is the
+// actual dispatch-enforcement source of truth. Keep both in sync — this
+// copy is for display/copy purposes only (e.g. "Nurses only" badges), not
+// for client-side filtering logic that would need to be trusted server-side.
+export const SERVICE_TO_SPECIALTY: Partial<Record<ServiceType, readonly string[]>> = {
+  wound_care: ["Registered Nurse"],
+  nursing_care: ["Registered Nurse"],
+  general_consultation: ["Medical Doctor (General)", "Medical Doctor (Specialist)"],
+  elderly_review: ["Medical Doctor (General)", "Medical Doctor (Specialist)"],
+  physiotherapy: ["Physiotherapist"],
+};
+
+// Service created when a doctor requests a nurse follow-up after an
+// elderly_review visit (see create_elderly_follow_up_booking() RPC).
+export const ELDERLY_FOLLOW_UP_SERVICE: ServiceType = "nursing_care";
 
 export const PLATFORM_COMMISSION_RATE = 0.2; // 20%
 

@@ -31,13 +31,14 @@ const STEP_LABELS = [
 ];
 
 export default function ClinicalNoteClient({
-  noteId, bookingId, provider, patient, previousNotes,
+  noteId, bookingId, provider, patient, previousNotes, serviceType,
 }: {
   noteId: string;
   bookingId: string;
   provider: { id: string; name: string; credentials?: string; specialty?: string };
   patient: any;
   previousNotes: any[];
+  serviceType?: string;
 }) {
   const [step, setStep] = useState(1);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
@@ -147,7 +148,7 @@ export default function ClinicalNoteClient({
       case 10: return <Step10SystemicExamination value={noteData.systemic_examinations} onChange={v => updateField("systemic_examinations", v)} />;
       case 11: return <Step11DiagnosisSearch noteId={noteId} providerId={provider.id} patientId={patient?.id} value={diagnosesData} onChange={setDiagnosesData} />;
       case 12: return <Step12Interventions value={noteData.interventions} onChange={v => updateField("interventions", v)} />;
-      case 13: return <Step13Recommendations bookingId={bookingId} patientId={patient?.id ?? ""} providerId={provider.id} value={noteData.recommendations} onChange={v => updateField("recommendations", v)} />;
+      case 13: return <Step13Recommendations bookingId={bookingId} patientId={patient?.id ?? ""} providerId={provider.id} serviceType={serviceType} value={noteData.recommendations} onChange={v => updateField("recommendations", v)} />;
       case 14: return <Step14FollowUp noteId={noteId} patientId={patient?.id} value={{ date: noteData.follow_up_date, safeguarding: noteData.safeguarding_flag }} onChange={v => { updateField("follow_up_date", v.date); updateField("safeguarding_flag", v.safeguarding); }} />;
       case 15: return <SubmissionReview noteData={noteData} vitalsData={vitalsData} diagnosesData={diagnosesData} onSubmit={handleSubmit} submitting={submitting} submitError={submitError} onBack={() => setStep(14)} />;
     }

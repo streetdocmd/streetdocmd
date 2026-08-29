@@ -10,6 +10,7 @@ const SERVICES: ServiceType[] = [
   "wound_care",
   "elderly_review",
   "nursing_care",
+  "physiotherapy",
   "custom_request",
 ];
 
@@ -19,6 +20,7 @@ const SERVICE_ICONS: Record<ServiceType, string> = {
   wound_care: "🩹",
   elderly_review: "👴",
   nursing_care: "💉",
+  physiotherapy: "🏃",
   custom_request: "✏️",
 };
 

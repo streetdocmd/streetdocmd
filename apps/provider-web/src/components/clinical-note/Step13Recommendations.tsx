@@ -20,11 +20,12 @@ type Recommendations = {
 };
 
 export default function Step13Recommendations({
-  bookingId, patientId, providerId, value, onChange,
+  bookingId, patientId, providerId, serviceType, value, onChange,
 }: {
   bookingId: string;
   patientId: string;
   providerId: string;
+  serviceType?: string;
   value: Partial<Recommendations> | null;
   onChange: (v: Partial<Recommendations>) => void;
 }) {
@@ -44,6 +45,11 @@ export default function Step13Recommendations({
   const [drugs, setDrugs] = useState<Drug[]>([{ ...BLANK_DRUG }]);
   const [savingRx, setSavingRx] = useState(false);
   const [rxSaved, setRxSaved] = useState(false);
+
+  // Elderly-review nurse follow-up
+  const [requestingFollowUp, setRequestingFollowUp] = useState(false);
+  const [followUpRequested, setFollowUpRequested] = useState(false);
+  const [followUpError, setFollowUpError] = useState<string | null>(null);
 
   // Investigation inline form
   const [showInvForm, setShowInvForm] = useState(false);
@@ -157,6 +163,28 @@ export default function Step13Recommendations({
     setInvSearch("");
     const { data: d } = await supabase.from("investigation_orders").select("tests, status").eq("booking_id", bookingId);
     setInvestigations(d ?? []);
+  };
+
+  const requestNurseFollowUp = async () => {
+    setRequestingFollowUp(true);
+    setFollowUpError(null);
+    try {
+      const res = await fetch("/api/follow-up", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      });
+      if (res.ok) {
+        setFollowUpRequested(true);
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setFollowUpError(body.error ?? "Could not request follow-up. Please try again.");
+      }
+    } catch {
+      setFollowUpError("Network error. Please check your connection and try again.");
+    } finally {
+      setRequestingFollowUp(false);
+    }
   };
 
   const filteredCatalogue = catalogue.filter(t =>
@@ -334,6 +362,35 @@ export default function Step13Recommendations({
           </div>
         )}
       </div>
+
+      {/* Nurse follow-up (elderly review only) */}
+      {serviceType === "elderly_review" && (
+        <div className="card p-4 space-y-3">
+          <p className="text-sm font-semibold text-gray-700">Nurse Follow-up</p>
+          <p className="text-xs text-gray-500">
+            Based on this diagnosis, does this patient need a nurse to visit for follow-up care?
+          </p>
+
+          {followUpRequested ? (
+            <p className="text-xs text-green-600 font-medium">
+              ✓ Follow-up requested — the patient has been asked to confirm and pay to schedule it.
+            </p>
+          ) : (
+            <>
+              {followUpError && (
+                <p className="text-xs text-red-600">{followUpError}</p>
+              )}
+              <button
+                onClick={requestNurseFollowUp}
+                disabled={requestingFollowUp}
+                className="text-sm text-blue-600 hover:underline font-medium disabled:opacity-40"
+              >
+                {requestingFollowUp ? "Requesting…" : "+ Request Nurse Follow-up"}
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Referral */}
       <div className="card p-4 space-y-3">

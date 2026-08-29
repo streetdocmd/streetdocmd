@@ -13,6 +13,7 @@ const SERVICES: ServiceType[] = [
   "wound_care",
   "elderly_review",
   "nursing_care",
+  "physiotherapy",
 ];
 
 export default function HomeScreen() {
@@ -51,7 +52,7 @@ export default function HomeScreen() {
       router.push("/booking/custom-request");
       return;
     }
-    router.push({ pathname: "/booking/select-provider", params: { service } });
+    router.push({ pathname: "/booking/confirm", params: { service } });
   }
 
   return (

@@ -7,7 +7,7 @@ export type VerificationStatus = "pending" | "under_review" | "verified" | "reje
 export type BookingStatus = "pending" | "accepted" | "en_route" | "arrived" | "in_progress" | "completed" | "cancelled";
 export type PaymentMethod = "card" | "bank_transfer" | "ussd" | "subscription_credit";
 export type PaymentStatus = "pending" | "successful" | "failed" | "refunded";
-export type ServiceType = "general_consultation" | "wellness_check" | "wound_care" | "elderly_review" | "nursing_care" | "custom_request";
+export type ServiceType = "general_consultation" | "wellness_check" | "wound_care" | "elderly_review" | "nursing_care" | "physiotherapy" | "custom_request";
 export type SubscriptionPlan = "basic" | "standard" | "premium" | "family";
 export type SubscriptionStatus = "active" | "expired" | "cancelled" | "paused";
 
@@ -19,6 +19,7 @@ export const SERVICE_LABELS: Record<ServiceType, string> = {
   wound_care: "Wound Care",
   elderly_review: "Elderly Review",
   nursing_care: "Nursing Care",
+  physiotherapy: "Physiotherapy",
   custom_request: "Custom Request",
 };
 
@@ -28,6 +29,7 @@ export const SERVICE_PRICES: Record<ServiceType, number> = {
   wound_care: 6000,
   elderly_review: 10000,
   nursing_care: 12000,
+  physiotherapy: 7000, // placeholder — pending pricing sign-off
   custom_request: 8000,
 };
 
@@ -37,7 +39,19 @@ export const SERVICE_DESCRIPTIONS: Record<ServiceType, string> = {
   wound_care: "Professional cleaning, dressing, and management of wounds",
   elderly_review: "Comprehensive health assessment for elderly patients",
   nursing_care: "Professional nursing care and procedures at home",
+  physiotherapy: "Guided rehabilitation and mobility therapy at home",
   custom_request: "Describe your specific medical need",
+};
+
+// UI-facing mirror of service_allowed_specialties() in
+// supabase/migrations/023_service_specialty_dispatch.sql (the actual
+// dispatch-enforcement source of truth) — for display/copy purposes only.
+export const SERVICE_TO_SPECIALTY: Partial<Record<ServiceType, readonly string[]>> = {
+  wound_care: ["Registered Nurse"],
+  nursing_care: ["Registered Nurse"],
+  general_consultation: ["Medical Doctor (General)", "Medical Doctor (Specialist)"],
+  elderly_review: ["Medical Doctor (General)", "Medical Doctor (Specialist)"],
+  physiotherapy: ["Physiotherapist"],
 };
 
 export const PLATFORM_COMMISSION_RATE = 0.2;
