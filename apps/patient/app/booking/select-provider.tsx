@@ -10,7 +10,7 @@ import {
   formatNaira, getDistanceKm, getEtaMinutes
 } from "@streetdocmd/shared";
 
-type NearbyProvider = Provider & { distance_km: number; eta_minutes: number };
+type NearbyProvider = Provider & { distance_km: number; eta_minutes: number; ownPrice?: number };
 
 export default function SelectProviderScreen() {
   const { service, description } = useLocalSearchParams<{ service: ServiceType; description?: string }>();
@@ -44,15 +44,24 @@ export default function SelectProviderScreen() {
     }
 
     const providerIds = data.map((d: { provider_id: string }) => d.provider_id);
-    const { data: providerDetails } = await supabase
-      .from("providers")
-      .select("*")
-      .in("id", providerIds);
+    const [{ data: providerDetails }, { data: ownServices }] = await Promise.all([
+      supabase.from("providers").select("*").in("id", providerIds),
+      supabase
+        .from("provider_services")
+        .select("provider_id, price")
+        .in("provider_id", providerIds)
+        .eq("service_type", service)
+        .eq("active", true),
+    ]);
+
+    const ownPriceByProvider = Object.fromEntries(
+      (ownServices ?? []).map((s: { provider_id: string; price: number }) => [s.provider_id, s.price])
+    );
 
     const enriched = (providerDetails ?? []).map((p) => {
       const match = data.find((d: { provider_id: string }) => d.provider_id === p.id);
       const dist = match?.distance_km ?? getDistanceKm(lat, lng, p.lat, p.lng);
-      return { ...p, distance_km: dist, eta_minutes: getEtaMinutes(dist) };
+      return { ...p, distance_km: dist, eta_minutes: getEtaMinutes(dist), ownPrice: ownPriceByProvider[p.id] };
     });
 
     enriched.sort((a, b) => a.distance_km - b.distance_km);
@@ -64,7 +73,12 @@ export default function SelectProviderScreen() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const fee = SERVICE_PRICES[service];
+    // A provider can set their own price for a service type (see
+    // provider-web's Services page) — use that if they have one, otherwise
+    // fall back to the platform's standard price for the service. Already
+    // loaded per-provider in loadProviders() so the list and the actual
+    // charge always agree.
+    const fee = provider.ownPrice ?? SERVICE_PRICES[service];
     const commission = Math.round(fee * 0.2);
 
     const { data: booking, error } = await supabase
@@ -106,7 +120,7 @@ export default function SelectProviderScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{SERVICE_LABELS[service]}</Text>
-        <Text style={styles.price}>{formatNaira(SERVICE_PRICES[service])}</Text>
+        <Text style={styles.price}>from {formatNaira(SERVICE_PRICES[service])}</Text>
       </View>
 
       {loading ? (
@@ -142,6 +156,9 @@ export default function SelectProviderScreen() {
                     <Text style={styles.metaDot}>·</Text>
                     <Text style={styles.metaText}>~{p.eta_minutes} min</Text>
                   </View>
+                  {p.ownPrice != null && p.ownPrice !== SERVICE_PRICES[service] && (
+                    <Text style={styles.ownPrice}>{formatNaira(p.ownPrice)}</Text>
+                  )}
                 </View>
               </View>
               <TouchableOpacity style={styles.bookBtn} onPress={() => bookProvider(p)}>
@@ -180,6 +197,7 @@ const styles = StyleSheet.create({
   },
   avatarText: { color: "#fff", fontWeight: "bold", fontSize: 18 },
   info: { flex: 1 },
+  ownPrice: { fontSize: 13, fontWeight: "700", color: "#1E6FD9", marginTop: 3 },
   providerName: { fontSize: 15, fontWeight: "600", color: "#111827" },
   specialty: { fontSize: 12, color: "#6B7280", marginTop: 2 },
   meta: { flexDirection: "row", alignItems: "center", marginTop: 4, gap: 4 },

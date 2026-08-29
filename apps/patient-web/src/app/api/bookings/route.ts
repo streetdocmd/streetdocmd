@@ -15,6 +15,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // Always the platform standard price here, deliberately — unlike the
+    // mobile app's manual provider-select flow, this booking is created
+    // before any provider is known (provider_id is set later by
+    // accept_dispatch(), only after payment is confirmed), so there's no
+    // specific provider's own provider_services price to look up yet.
     const fee = SERVICE_PRICES[service_type as ServiceType];
     if (!fee) return NextResponse.json({ error: "Invalid service type" }, { status: 400 });
 

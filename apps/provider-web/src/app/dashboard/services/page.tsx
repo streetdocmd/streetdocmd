@@ -21,7 +21,7 @@ export default async function ServicesPage() {
 
   const { data: services } = await supabase
     .from("provider_services")
-    .select("id, name, description, price, duration_minutes, active, created_at")
+    .select("id, name, description, price, duration_minutes, active, service_type, created_at")
     .eq("provider_id", provider.id)
     .order("created_at", { ascending: false });
 

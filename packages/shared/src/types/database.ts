@@ -255,6 +255,9 @@ export interface ProviderService {
   description: string | null;
   price: number;
   duration_minutes: number | null;
+  // Which bookable service this listing's price applies to, if any — null
+  // means it's purely informational and doesn't override booking pricing.
+  service_type: ServiceType | null;
   active: boolean;
   created_at: string;
   updated_at: string;
