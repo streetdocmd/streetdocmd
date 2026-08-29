@@ -5,11 +5,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
-
-const SPECIALTIES = [
-  "General Practitioner", "Nurse", "Paediatrician",
-  "Gynaecologist", "Cardiologist", "Physiotherapist", "Other",
-];
+import { SPECIALTIES, getPractitionerType, getProfession } from "@streetdocmd/shared";
 
 export default function ProviderRegisterScreen() {
   const router = useRouter();
@@ -18,16 +14,26 @@ export default function ProviderRegisterScreen() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [specialty, setSpecialty] = useState("");
+  const [specialistField, setSpecialistField] = useState("");
   const [credentials, setCredentials] = useState("");
-  const [mdcnNumber, setMdcnNumber] = useState("");
-  const [nmcnNumber, setNmcnNumber] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
   const [yearsExp, setYearsExp] = useState("");
   const [ndpr, setNdpr] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const practitionerType = getPractitionerType(specialty);
+
   async function register() {
     if (!ndpr) {
       Alert.alert("Consent required", "Please accept the data privacy notice.");
+      return;
+    }
+    if (practitionerType && !licenseNumber.trim()) {
+      Alert.alert("Missing licence number", `Please enter your ${practitionerType.licenseLabel}.`);
+      return;
+    }
+    if (practitionerType?.requiresSpecialistField && !specialistField.trim()) {
+      Alert.alert("Missing specialist field", "Please enter your specialist field.");
       return;
     }
     setLoading(true);
@@ -41,9 +47,11 @@ export default function ProviderRegisterScreen() {
         name: name.trim(),
         phone: phone.trim(),
         specialty,
+        profession: getProfession(specialty),
+        specialist_field: practitionerType?.requiresSpecialistField ? specialistField.trim() : null,
         credentials: credentials.trim(),
-        mdcn_number: mdcnNumber.trim() || null,
-        nmcn_number: nmcnNumber.trim() || null,
+        license_body: practitionerType?.licenseBody ?? null,
+        license_number: practitionerType ? licenseNumber.trim() : null,
         years_experience: parseInt(yearsExp) || 0,
         verification_status: "pending",
       });
@@ -99,17 +107,25 @@ export default function ProviderRegisterScreen() {
             ))}
           </View>
 
+          {practitionerType?.requiresSpecialistField && (
+            <>
+              <Text style={styles.label}>Specialist field</Text>
+              <TextInput style={styles.input} value={specialistField} onChangeText={setSpecialistField}
+                placeholder="e.g. Cardiology, Paediatrics" />
+            </>
+          )}
+
           <Text style={styles.label}>Credentials (e.g. MBBS, RN, BNSc)</Text>
           <TextInput style={styles.input} value={credentials} onChangeText={setCredentials}
             placeholder="MBBS" autoCapitalize="characters" />
 
-          <Text style={styles.label}>MDCN Number (doctors)</Text>
-          <TextInput style={styles.input} value={mdcnNumber} onChangeText={setMdcnNumber}
-            placeholder="Optional" />
-
-          <Text style={styles.label}>NMCN Number (nurses)</Text>
-          <TextInput style={styles.input} value={nmcnNumber} onChangeText={setNmcnNumber}
-            placeholder="Optional" />
+          {practitionerType && (
+            <>
+              <Text style={styles.label}>{practitionerType.licenseLabel}</Text>
+              <TextInput style={styles.input} value={licenseNumber} onChangeText={setLicenseNumber}
+                placeholder={`e.g. ${practitionerType.licenseBody}/12345`} />
+            </>
+          )}
 
           <Text style={styles.label}>Years of experience</Text>
           <TextInput style={styles.input} value={yearsExp} onChangeText={setYearsExp}
