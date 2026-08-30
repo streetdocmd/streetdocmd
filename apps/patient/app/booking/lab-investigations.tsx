@@ -15,7 +15,7 @@ export default function LabInvestigationsChoiceScreen() {
       <TouchableOpacity
         style={s.card}
         activeOpacity={0.8}
-        onPress={() => router.push({ pathname: "/booking/select-provider", params: { service: "wellness_check" } })}
+        onPress={() => router.push({ pathname: "/booking/confirm", params: { service: "wellness_check" } })}
       >
         <Text style={s.cardIcon}>🌿</Text>
         <Text style={s.cardTitle}>Wellness Check Package</Text>

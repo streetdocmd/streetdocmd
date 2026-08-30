@@ -245,6 +245,7 @@ export interface Booking {
   net_payout: number;
   payment_status: PaymentStatus;
   dispatch_attempts: number;
+  follow_up_of_booking_id: string | null;
   created_at: string;
   updated_at: string;
 }

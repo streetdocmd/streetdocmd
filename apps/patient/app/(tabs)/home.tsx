@@ -57,7 +57,7 @@ export default function HomeScreen() {
       router.push("/booking/lab-investigations");
       return;
     }
-    router.push({ pathname: "/booking/select-provider", params: { service } });
+    router.push({ pathname: "/booking/confirm", params: { service } });
   }
 
   function serviceLabel(service: ServiceType): string {

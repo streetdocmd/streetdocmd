@@ -47,6 +47,15 @@ export const SERVICE_PROFESSION: Record<ServiceType, Profession> = {
   physiotherapy_session: "physiotherapist",
 };
 
+// Service created when a provider requests a nurse follow-up after an
+// elderly_review visit (see create_elderly_follow_up_booking() RPC,
+// migration 033). NOTE: elderly_review dispatches to nurses under
+// SERVICE_PROFESSION above (not doctors) — the "request follow-up" UI
+// this constant serves was written assuming elderly_review is a doctor
+// visit. Preserved as-is rather than guessing at a reclassification;
+// see the Pass 3 merge report for the product decision this needs.
+export const ELDERLY_FOLLOW_UP_SERVICE: ServiceType = "nursing_care";
+
 export const PLATFORM_COMMISSION_RATE = 0.2; // 20%
 
 export const PROVIDER_ACCEPTANCE_WINDOW_SECONDS = 120; // 2 minutes
