@@ -56,7 +56,7 @@ export const SERVICE_PROFESSION: Record<ServiceType, Profession> = {
   wellness_check: "doctor",
   custom_request: "doctor",
   wound_care: "nurse",
-  elderly_review: "nurse",
+  elderly_review: "doctor",
   nursing_care: "nurse",
   physiotherapy_assessment: "physiotherapist",
   physiotherapy_session: "physiotherapist",
