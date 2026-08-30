@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
+import { FOLLOW_UP_TYPES_BY_PROFESSION, FOLLOW_UP_TYPE_LABELS, type FollowUpType } from "@streetdocmd/shared";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -46,6 +47,9 @@ export default function PhysioEncounterClient({
   const [homeProgram, setHomeProgram] = useState("");
   const [nextSessionPlan, setNextSessionPlan] = useState("");
   const [followUpDate, setFollowUpDate] = useState("");
+  // Kept out of stateRef (spread directly into a physiotherapy_encounters
+  // UPDATE on every autosave) — follow_up_type isn't a column there.
+  const [followUpType, setFollowUpType] = useState<FollowUpType>("home_visit");
 
   const stateRef = useRef<any>({});
   stateRef.current = {
@@ -101,6 +105,7 @@ export default function PhysioEncounterClient({
           encounterId, bookingId,
           patientId: patient?.id, providerId: provider.id,
           encounterData: stateRef.current,
+          followUpType,
         }),
       });
       const json = await res.json();
@@ -214,6 +219,13 @@ export default function PhysioEncounterClient({
 
       <Section title="11. Next Session">
         <input type="date" className="input mb-2" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} />
+        {followUpDate && (
+          <select className="input mb-2" value={followUpType} onChange={e => setFollowUpType(e.target.value as FollowUpType)}>
+            {FOLLOW_UP_TYPES_BY_PROFESSION.physiotherapist.map(t => (
+              <option key={t} value={t}>{FOLLOW_UP_TYPE_LABELS[t]}</option>
+            ))}
+          </select>
+        )}
         <textarea className="input" rows={2} placeholder="Plan for the next session"
           value={nextSessionPlan} onChange={e => setNextSessionPlan(e.target.value)} />
       </Section>

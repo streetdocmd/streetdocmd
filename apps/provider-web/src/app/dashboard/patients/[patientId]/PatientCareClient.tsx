@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import {
   CARE_EPISODE_STATUS_LABELS, CARE_TASK_TYPE_LABELS, CARE_TASK_STATUS_LABELS,
-  PROFESSION_LABELS,
+  PROFESSION_LABELS, SERVICE_LABELS, FOLLOW_UP_TYPE_LABELS,
 } from "@streetdocmd/shared";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -20,11 +20,13 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function PatientCareClient({
   patient, currentProvider, episodes, activeEpisode, team, plan, tasks, timeline, contextBooking,
+  pendingFollowUp, lastEncounter, diagnoses, labs,
 }: {
   patient: any; currentProvider: { id: string; profession: string };
   episodes: any[]; activeEpisode: any; team: any[]; plan: any; tasks: any[];
   timeline: { at: string; label: string; icon: string }[];
   contextBooking: { id: string; care_episode_id: string | null } | null;
+  pendingFollowUp: any; lastEncounter: any; diagnoses: any[]; labs: any[];
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -57,6 +59,14 @@ export default function PatientCareClient({
             </button>
           )}
           <EpisodeHeader episode={activeEpisode} />
+          {pendingFollowUp && (
+            <FollowUpContextSection
+              followUp={pendingFollowUp}
+              lastEncounter={lastEncounter}
+              diagnoses={diagnoses}
+              labs={labs}
+            />
+          )}
           <CareTeamSection episodeId={activeEpisode.id} team={team} isOnTeam={isOnTeam} currentProvider={currentProvider} supabase={supabase} router={router} />
           <CarePlanSection episodeId={activeEpisode.id} plan={plan} providerId={currentProvider.id} canEdit={isOnTeam} supabase={supabase} router={router} />
           <CareTasksSection episodeId={activeEpisode.id} tasks={tasks} providerId={currentProvider.id} canEdit={isOnTeam} supabase={supabase} router={router} />
@@ -166,6 +176,82 @@ function EpisodeHeader({ episode }: { episode: any }) {
       <p className="text-xs text-gray-400 mt-2">
         Started {new Date(episode.start_date).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
       </p>
+    </div>
+  );
+}
+
+// "Before a provider starts a follow-up encounter, show..." — everything
+// they'd otherwise have to go dig up manually. Medications are
+// deliberately not shown here at all (not just gated by profession) —
+// prescriptions live behind their own doctor-only RLS policy and this
+// page reads with the service-role client, so surfacing them here would
+// require re-deriving that permission check rather than relying on it;
+// out of scope for Tier 1, noted as a limitation.
+function FollowUpContextSection({ followUp, lastEncounter, diagnoses, labs }: any) {
+  const booking = lastEncounter?.booking;
+  return (
+    <div className="card p-5 border-2 border-amber-200 bg-amber-50/40">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h3 className="text-sm font-semibold text-gray-900">Follow-up Context</h3>
+        <div className="flex items-center gap-2">
+          <span className="badge bg-gray-100 text-gray-600">
+            {(FOLLOW_UP_TYPE_LABELS as Record<string, string>)[followUp.follow_up_type] ?? followUp.follow_up_type}
+          </span>
+          <span className="badge bg-amber-100 text-amber-800">
+            Due {new Date(followUp.follow_up_date).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}
+          </span>
+        </div>
+      </div>
+
+      {followUp.reason && (
+        <div className="mb-3">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Follow-up Reason</p>
+          <p className="text-sm text-gray-700">{followUp.reason}</p>
+        </div>
+      )}
+
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Last Encounter</p>
+          {booking ? (
+            <p className="text-sm text-gray-700">
+              {(SERVICE_LABELS as Record<string, string>)[booking.service_type] ?? booking.service_type}
+              {booking.completed_at && ` · ${new Date(booking.completed_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}`}
+            </p>
+          ) : (
+            <p className="text-sm text-gray-400">No prior completed visit on record.</p>
+          )}
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Relevant Diagnoses</p>
+          {diagnoses.length > 0 ? (
+            <ul className="text-sm text-gray-700 space-y-0.5">
+              {diagnoses.map((d: any, i: number) => (
+                <li key={i}>{d.plain_language_diagnosis || d.clinical_description}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-400">None recorded.</p>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Relevant Labs</p>
+          {labs.length > 0 ? (
+            <ul className="text-sm text-gray-700 space-y-0.5">
+              {labs.map((l: any) => (
+                <li key={l.id}>
+                  {(l.tests as any[])?.map((t: any) => t.test_name).join(", ") || "Investigation"} — {l.status}
+                  {l.resulted_at && ` (resulted ${new Date(l.resulted_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" })})`}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-400">None ordered.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

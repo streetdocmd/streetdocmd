@@ -10,10 +10,12 @@ export default function BookProviderClient({
   service,
   description,
   careEpisodeId,
+  followUpId,
 }: {
   service: ServiceType;
   description?: string;
   careEpisodeId?: string;
+  followUpId?: string;
 }) {
   const router = useRouter();
   const [geoState, setGeoState] = useState<GeoState>("idle");
@@ -69,6 +71,7 @@ export default function BookProviderClient({
           patient_address: address,
           notes: description ?? null,
           care_episode_id: careEpisodeId ?? null,
+          follow_up_id: followUpId ?? null,
         }),
       });
 
@@ -104,8 +107,13 @@ export default function BookProviderClient({
             {description && (
               <p className="text-sm text-gray-500 mt-1 italic">"{description}"</p>
             )}
+            {followUpId && (
+              <p className="text-xs text-teal-700 mt-1">Follow-up pricing applies — discounted from the standard rate.</p>
+            )}
           </div>
-          <span className="text-lg font-bold text-blue-brand">{formatNaira(fee)}</span>
+          <span className={followUpId ? "text-sm text-gray-400 line-through" : "text-lg font-bold text-blue-brand"}>
+            {formatNaira(fee)}
+          </span>
         </div>
       </div>
 
@@ -171,6 +179,8 @@ export default function BookProviderClient({
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 mt-0.5" />
                 Finding your provider…
               </>
+            ) : followUpId ? (
+              "Book Follow-up"
             ) : (
               `Book Now · ${formatNaira(fee)}`
             )}

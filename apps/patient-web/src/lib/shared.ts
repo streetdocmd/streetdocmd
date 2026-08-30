@@ -13,6 +13,8 @@ export type ServiceType =
 export type SubscriptionPlan = "basic" | "standard" | "premium" | "family";
 export type SubscriptionStatus = "active" | "expired" | "cancelled" | "paused";
 export type Profession = "doctor" | "nurse" | "physiotherapist" | "lab_scientist";
+export type FollowUpType = "home_visit" | "virtual_consultation" | "lab_review" | "clinical_review";
+export type FollowUpStatus = "scheduled" | "booked" | "completed" | "missed" | "cancelled";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -94,6 +96,13 @@ export const CARE_TASK_TYPE_LABELS: Record<CareTaskType, string> = {
   wound_care: "Wound Care",
   follow_up: "Follow-up",
   other: "Other",
+};
+
+export const FOLLOW_UP_TYPE_LABELS: Record<FollowUpType, string> = {
+  home_visit: "Home Visit",
+  virtual_consultation: "Virtual Consultation",
+  lab_review: "Lab Review",
+  clinical_review: "Clinical Review",
 };
 
 export const PLATFORM_COMMISSION_RATE = 0.2;

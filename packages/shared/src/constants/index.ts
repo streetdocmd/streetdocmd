@@ -1,4 +1,4 @@
-import type { ServiceType, Profession, CareEpisodeStatus, CareTaskType, CareTaskStatus } from "../types/database";
+import type { ServiceType, Profession, CareEpisodeStatus, CareTaskType, CareTaskStatus, FollowUpType, FollowUpStatus } from "../types/database";
 
 export const SERVICE_LABELS: Record<ServiceType, string> = {
   general_consultation: "General Consultation",
@@ -248,4 +248,30 @@ export const CARE_TASK_STATUS_LABELS: Record<CareTaskStatus, string> = {
   in_progress: "In Progress",
   completed: "Completed",
   cancelled: "Cancelled",
+};
+
+// ─── Follow-ups (Pass 3) ─────────────────────────────────────────────────
+
+export const FOLLOW_UP_TYPE_LABELS: Record<FollowUpType, string> = {
+  home_visit: "Home Visit",
+  virtual_consultation: "Virtual Consultation",
+  lab_review: "Lab Review",
+  clinical_review: "Clinical Review",
+};
+
+export const FOLLOW_UP_STATUS_LABELS: Record<FollowUpStatus, string> = {
+  scheduled: "Scheduled",
+  booked: "Booked",
+  completed: "Completed",
+  missed: "Missed",
+  cancelled: "Cancelled",
+};
+
+// Which follow-up types are meaningful per profession — a physiotherapist
+// wouldn't set "Lab Review", for instance.
+export const FOLLOW_UP_TYPES_BY_PROFESSION: Record<Profession, FollowUpType[]> = {
+  doctor: ["clinical_review", "home_visit", "virtual_consultation", "lab_review"],
+  nurse: ["home_visit", "clinical_review", "virtual_consultation"],
+  physiotherapist: ["home_visit", "virtual_consultation"],
+  lab_scientist: ["lab_review"],
 };

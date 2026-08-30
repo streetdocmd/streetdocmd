@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
+import { createFollowUp, completeFollowUpForBooking } from "@/lib/follow-up";
 
 export async function POST(req: NextRequest) {
   const admin = createAdminSupabase();
-  const { noteId, bookingId, noteData, vitalsData, diagnosesData, patientId, providerId } = await req.json();
+  const { noteId, bookingId, noteData, vitalsData, diagnosesData, patientId, providerId, followUpType, followUpReason } = await req.json();
 
   if (!noteId) return NextResponse.json({ error: "missing noteId" }, { status: 400 });
 
@@ -102,6 +103,21 @@ export async function POST(req: NextRequest) {
     ]);
   }
 
+  // 5b. Create the follow-up record (attaches to / auto-creates the care
+  // episode) — see PASS 3: a follow-up date is no longer just a field on
+  // the note, it's its own record that "continue your care with Dr. X"
+  // and the provider's follow-up context view both read from.
+  if (noteData.follow_up_date && patientId && providerId && bookingId) {
+    await createFollowUp(admin, {
+      bookingId, patientId, providerId,
+      followUpDate: noteData.follow_up_date,
+      followUpType: followUpType ?? "clinical_review",
+      followUpReason: followUpReason ?? null,
+      sourceEncounterColumn: "clinical_note_id",
+      sourceEncounterId: noteId,
+    });
+  }
+
   // 6. Safeguarding alert
   if (noteData.safeguarding_flag && patientId) {
     await admin.from("safeguarding_alerts").insert({
@@ -132,6 +148,8 @@ export async function POST(req: NextRequest) {
       p_amount: completedBooking.net_payout,
     });
   }
+
+  if (!completeError) await completeFollowUpForBooking(admin, bookingId);
 
   // 8. Trigger visit summary generation (non-blocking)
   fetch(`${req.nextUrl.origin}/api/clinical-note/generate-summary`, {

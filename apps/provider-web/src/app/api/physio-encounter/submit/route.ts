@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
+import { createFollowUp, completeFollowUpForBooking } from "@/lib/follow-up";
 
 const VALID_COLUMNS = new Set([
   "referral_reason", "subjective_assessment", "pain_symptoms", "objective_assessment",
@@ -9,7 +10,7 @@ const VALID_COLUMNS = new Set([
 
 export async function POST(req: NextRequest) {
   const admin = createAdminSupabase();
-  const { encounterId, bookingId, encounterData, patientId, providerId } = await req.json();
+  const { encounterId, bookingId, encounterData, patientId, providerId, followUpType } = await req.json();
 
   if (!encounterId || !bookingId) {
     return NextResponse.json({ error: "missing encounterId or bookingId" }, { status: 400 });
@@ -48,6 +49,19 @@ export async function POST(req: NextRequest) {
     await admin.rpc("increment_wallet", {
       p_provider_id: completedBooking.provider_id,
       p_amount: completedBooking.net_payout,
+    });
+  }
+
+  if (!completeError) await completeFollowUpForBooking(admin, bookingId);
+
+  if (safeData.follow_up_date && patientId && providerId && bookingId) {
+    await createFollowUp(admin, {
+      bookingId, patientId, providerId,
+      followUpDate: safeData.follow_up_date as string,
+      followUpType: followUpType ?? "home_visit",
+      followUpReason: (safeData.next_session_plan as string) ?? null,
+      sourceEncounterColumn: "physiotherapy_encounter_id",
+      sourceEncounterId: encounterId,
     });
   }
 

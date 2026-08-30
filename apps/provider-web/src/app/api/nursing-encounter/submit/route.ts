@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
+import { createFollowUp, completeFollowUpForBooking } from "@/lib/follow-up";
 
 const VALID_COLUMNS = new Set([
   "visit_reason", "patient_assessment", "vitals", "nursing_assessment",
@@ -9,7 +10,7 @@ const VALID_COLUMNS = new Set([
 
 export async function POST(req: NextRequest) {
   const admin = createAdminSupabase();
-  const { encounterId, bookingId, encounterData, patientId, providerId } = await req.json();
+  const { encounterId, bookingId, encounterData, patientId, providerId, followUpType } = await req.json();
 
   if (!encounterId || !bookingId) {
     return NextResponse.json({ error: "missing encounterId or bookingId" }, { status: 400 });
@@ -33,6 +34,17 @@ export async function POST(req: NextRequest) {
     .eq("id", encounterId);
 
   if (encounterError) return NextResponse.json({ error: encounterError.message }, { status: 500 });
+
+  if (safeData.follow_up_date && patientId && providerId && bookingId) {
+    await createFollowUp(admin, {
+      bookingId, patientId, providerId,
+      followUpDate: safeData.follow_up_date as string,
+      followUpType: followUpType ?? "home_visit",
+      followUpReason: (safeData.follow_up_notes as string) ?? null,
+      sourceEncounterColumn: "nursing_encounter_id",
+      sourceEncounterId: encounterId,
+    });
+  }
 
   if ((encounterData as any)?.safeguarding_flag && patientId) {
     await admin.from("safeguarding_alerts").insert({
@@ -59,6 +71,8 @@ export async function POST(req: NextRequest) {
       p_amount: completedBooking.net_payout,
     });
   }
+
+  if (!completeError) await completeFollowUpForBooking(admin, bookingId);
 
   // Patient-facing visit summary — mirrors the doctor flow's generate-summary
   // step, kept inline since a nursing encounter has no PDF/prescription to

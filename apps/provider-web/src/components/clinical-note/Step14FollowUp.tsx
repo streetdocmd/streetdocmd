@@ -1,14 +1,17 @@
 "use client";
 import { useState } from "react";
+import { FOLLOW_UP_TYPES_BY_PROFESSION, FOLLOW_UP_TYPE_LABELS, type FollowUpType } from "@streetdocmd/shared";
 
 export default function Step14FollowUp({ noteId, patientId, value, onChange }: {
   noteId: string;
   patientId?: string;
-  value: { date: string | null; safeguarding: boolean };
-  onChange: (v: { date: string | null; safeguarding: boolean }) => void;
+  value: { date: string | null; safeguarding: boolean; type?: FollowUpType; reason?: string };
+  onChange: (v: { date: string | null; safeguarding: boolean; type?: FollowUpType; reason?: string }) => void;
 }) {
   const [date, setDate] = useState(value.date ?? "");
   const [safeguarding, setSafeguarding] = useState(value.safeguarding ?? false);
+  const [type, setType] = useState<FollowUpType>(value.type ?? "clinical_review");
+  const [reason, setReason] = useState(value.reason ?? "");
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -16,12 +19,22 @@ export default function Step14FollowUp({ noteId, patientId, value, onChange }: {
 
   const handleDate = (v: string) => {
     setDate(v);
-    onChange({ date: v || null, safeguarding });
+    onChange({ date: v || null, safeguarding, type, reason });
+  };
+
+  const handleType = (v: FollowUpType) => {
+    setType(v);
+    onChange({ date: date || null, safeguarding, type: v, reason });
+  };
+
+  const handleReason = (v: string) => {
+    setReason(v);
+    onChange({ date: date || null, safeguarding, type, reason: v });
   };
 
   const handleSafeguarding = (v: boolean) => {
     setSafeguarding(v);
-    onChange({ date: date || null, safeguarding: v });
+    onChange({ date: date || null, safeguarding: v, type, reason });
   };
 
   const formatDate = (d: string) =>
@@ -46,14 +59,38 @@ export default function Step14FollowUp({ noteId, patientId, value, onChange }: {
         />
 
         {date && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-1">
-            <p className="text-sm font-semibold text-green-800">Follow-up scheduled for {formatDate(date)}</p>
-            <p className="text-xs text-green-600">Your patient will receive:</p>
-            <ul className="text-xs text-green-600 ml-3 space-y-0.5">
-              <li>• A reminder notification the day before</li>
-              <li>• A reminder on the morning of their follow-up</li>
-            </ul>
-          </div>
+          <>
+            <div>
+              <label className="text-sm font-semibold text-gray-700 block mb-1">Follow-up type</label>
+              <select
+                value={type}
+                onChange={e => handleType(e.target.value as FollowUpType)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {FOLLOW_UP_TYPES_BY_PROFESSION.doctor.map(t => (
+                  <option key={t} value={t}>{FOLLOW_UP_TYPE_LABELS[t]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-gray-700 block mb-1">Reason for follow-up (optional)</label>
+              <input
+                type="text"
+                value={reason}
+                onChange={e => handleReason(e.target.value)}
+                placeholder="e.g. Reassess blood pressure control"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-1">
+              <p className="text-sm font-semibold text-green-800">Follow-up scheduled for {formatDate(date)}</p>
+              <p className="text-xs text-green-600">Your patient will receive:</p>
+              <ul className="text-xs text-green-600 ml-3 space-y-0.5">
+                <li>• A reminder notification the day before</li>
+                <li>• A reminder on the morning of their follow-up</li>
+              </ul>
+            </div>
+          </>
         )}
       </div>
 

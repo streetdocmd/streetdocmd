@@ -85,14 +85,39 @@ export interface CareTask {
   updated_at: string;
 }
 
+export type FollowUpType = "home_visit" | "virtual_consultation" | "lab_review" | "clinical_review";
+
+export type FollowUpStatus = "scheduled" | "booked" | "completed" | "missed" | "cancelled";
+
+export interface FollowUp {
+  id: string;
+  care_episode_id: string;
+  patient_id: string;
+  clinical_note_id: string | null;
+  nursing_encounter_id: string | null;
+  physiotherapy_encounter_id: string | null;
+  created_by: string;
+  reason: string | null;
+  follow_up_date: string;
+  follow_up_type: FollowUpType;
+  continuing_provider_id: string | null;
+  status: FollowUpStatus;
+  booking_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export type BookingStatus =
   | "pending"
+  | "pending_payment"
+  | "paid"
   | "accepted"
   | "en_route"
   | "arrived"
   | "in_progress"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "expired";
 
 export type PaymentMethod = "card" | "bank_transfer" | "ussd" | "subscription_credit";
 
@@ -202,6 +227,9 @@ export interface Booking {
   service_type: ServiceType;
   profession: Profession;
   care_episode_id: string | null;
+  is_follow_up: boolean;
+  follow_up_id: string | null;
+  preferred_provider_id: string | null;
   status: BookingStatus;
   patient_lat: number;
   patient_lng: number;

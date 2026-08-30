@@ -1,7 +1,18 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
-import { CARE_EPISODE_STATUS_LABELS, PROFESSION_LABELS, CARE_TASK_TYPE_LABELS } from "@/lib/shared";
+import { CARE_EPISODE_STATUS_LABELS, PROFESSION_LABELS, CARE_TASK_TYPE_LABELS, FOLLOW_UP_TYPE_LABELS } from "@/lib/shared";
+import type { Profession, ServiceType } from "@/lib/shared";
 import ContinueCareButton from "./ContinueCareButton";
+
+// A follow-up books via the same profession-based service types every
+// other visit does — see the matching map in api/bookings/route.ts.
+const DEFAULT_SERVICE_BY_PROFESSION: Record<Profession, ServiceType> = {
+  doctor: "general_consultation",
+  nurse: "nursing_care",
+  physiotherapist: "physiotherapy_session",
+  lab_scientist: "general_consultation",
+};
 
 const STATUS_STYLES: Record<string, string> = {
   active: "bg-blue-100 text-blue-700",
@@ -45,7 +56,7 @@ export default async function MyCarePage() {
     );
   }
 
-  const [{ data: team }, { data: plan }, { data: tasks }] = await Promise.all([
+  const [{ data: team }, { data: plan }, { data: tasks }, { data: pendingFollowUp }] = await Promise.all([
     supabase
       .from("care_team_members")
       .select("id, is_lead, provider:providers(id, name, profession, credentials, available)")
@@ -53,6 +64,18 @@ export default async function MyCarePage() {
       .eq("active", true),
     supabase.from("care_plans").select("*").eq("care_episode_id", activeEpisode.id).maybeSingle(),
     supabase.from("care_tasks").select("*").eq("care_episode_id", activeEpisode.id).order("due_date", { ascending: true, nullsFirst: false }),
+    supabase
+      .from("follow_ups")
+      // follow_ups has two FKs to providers (continuing_provider_id and
+      // created_by) — PostgREST can't infer which one "providers(...)"
+      // means without the explicit !constraint_name hint, and errors
+      // (silently, from this call site's point of view) without it.
+      .select("id, reason, follow_up_date, follow_up_type, continuing_provider:providers!follow_ups_continuing_provider_id_fkey(id, name, profession, available)")
+      .eq("care_episode_id", activeEpisode.id)
+      .eq("status", "scheduled")
+      .order("follow_up_date", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const teamList = (team ?? []) as any[];
@@ -60,6 +83,11 @@ export default async function MyCarePage() {
   const openTasks = (tasks ?? []).filter(t => t.status !== "completed" && t.status !== "cancelled");
   const nextTask = openTasks[0] ?? null;
   const progressIndex = PROGRESS_STEPS.indexOf(activeEpisode.status);
+  const followUp = pendingFollowUp as any;
+  const followUpProvider = followUp?.continuing_provider;
+  const followUpBookHref = followUp && followUpProvider
+    ? `/dashboard/book/${DEFAULT_SERVICE_BY_PROFESSION[followUpProvider.profession as Profession]}?follow_up_id=${followUp.id}`
+    : null;
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -138,12 +166,26 @@ export default async function MyCarePage() {
       {/* Next step / follow-up */}
       <div className="card p-5">
         <h3 className="text-sm font-semibold text-gray-900 mb-2">What's Next</h3>
-        {nextTask ? (
+        {followUp ? (
+          <div>
+            <p className="text-sm text-gray-700">
+              Follow-up with {followUpProvider?.name ?? "your care team"}
+              {followUp.follow_up_type && (
+                <span className="text-gray-400"> · {(FOLLOW_UP_TYPE_LABELS as Record<string, string>)[followUp.follow_up_type]}</span>
+              )}
+            </p>
+            <p className="text-sm font-semibold text-gray-900 mt-0.5">
+              {new Date(followUp.follow_up_date).toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+            </p>
+            {followUp.reason && <p className="text-xs text-gray-500 mt-1">{followUp.reason}</p>}
+            {followUpBookHref && (
+              <Link href={followUpBookHref} className="btn-primary inline-flex mt-4 text-sm">
+                Book Follow-up
+              </Link>
+            )}
+          </div>
+        ) : nextTask ? (
           <p className="text-sm text-gray-700">{nextTask.description}</p>
-        ) : plan?.follow_up_date ? (
-          <p className="text-sm text-gray-700">
-            Follow-up on {new Date(plan.follow_up_date).toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}
-          </p>
         ) : (
           <p className="text-sm text-gray-400">Nothing scheduled right now — your care team will let you know when there's a next step.</p>
         )}

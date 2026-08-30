@@ -62,6 +62,11 @@ export default function ClinicalNoteClient({
 
   const [vitalsData, setVitalsData] = useState<Record<string, any>>({});
   const [diagnosesData, setDiagnosesData] = useState<any[]>([]);
+  // Kept separate from noteData (which is spread directly into a
+  // clinical_notes UPDATE on every autosave) — follow_up_type/reason
+  // aren't clinical_notes columns, they belong to the follow_ups table.
+  const [followUpType, setFollowUpType] = useState<string | undefined>(undefined);
+  const [followUpReason, setFollowUpReason] = useState<string | undefined>(undefined);
 
   const noteDataRef = useRef(noteData);
   noteDataRef.current = noteData;
@@ -117,6 +122,8 @@ export default function ClinicalNoteClient({
           diagnosesData: diagnosesRef.current,
           patientId: patient?.id,
           providerId: provider.id,
+          followUpType,
+          followUpReason,
         }),
       });
       if (res.ok) {
@@ -148,7 +155,7 @@ export default function ClinicalNoteClient({
       case 11: return <Step11DiagnosisSearch noteId={noteId} providerId={provider.id} patientId={patient?.id} value={diagnosesData} onChange={setDiagnosesData} />;
       case 12: return <Step12Interventions value={noteData.interventions} onChange={v => updateField("interventions", v)} />;
       case 13: return <Step13Recommendations bookingId={bookingId} patientId={patient?.id ?? ""} providerId={provider.id} value={noteData.recommendations} onChange={v => updateField("recommendations", v)} />;
-      case 14: return <Step14FollowUp noteId={noteId} patientId={patient?.id} value={{ date: noteData.follow_up_date, safeguarding: noteData.safeguarding_flag }} onChange={v => { updateField("follow_up_date", v.date); updateField("safeguarding_flag", v.safeguarding); }} />;
+      case 14: return <Step14FollowUp noteId={noteId} patientId={patient?.id} value={{ date: noteData.follow_up_date, safeguarding: noteData.safeguarding_flag, type: followUpType as any, reason: followUpReason }} onChange={v => { updateField("follow_up_date", v.date); updateField("safeguarding_flag", v.safeguarding); setFollowUpType(v.type); setFollowUpReason(v.reason); }} />;
       case 15: return <SubmissionReview noteData={noteData} vitalsData={vitalsData} diagnosesData={diagnosesData} onSubmit={handleSubmit} submitting={submitting} submitError={submitError} onBack={() => setStep(14)} />;
     }
   };

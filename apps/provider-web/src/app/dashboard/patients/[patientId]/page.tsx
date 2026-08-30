@@ -73,13 +73,21 @@ export default async function PatientCarePage({
   let plan: any = null;
   let tasks: any[] = [];
   let recentBookings: any[] = [];
+  let pendingFollowUp: any = null;
+  let lastEncounter: any = null;
+  let diagnoses: any[] = [];
+  let labs: any[] = [];
 
   if (activeEpisode) {
-    const [{ data: teamRows }, { data: planRow }, { data: taskRows }, { data: bookingRows }] = await Promise.all([
+    const [{ data: teamRows }, { data: planRow }, { data: taskRows }, { data: bookingRows }, { data: followUpRows }] = await Promise.all([
       admin.from("care_team_members").select("id, provider_id, is_lead, active, joined_at").eq("care_episode_id", activeEpisode.id).eq("active", true),
       admin.from("care_plans").select("*").eq("care_episode_id", activeEpisode.id).maybeSingle(),
       admin.from("care_tasks").select("*").eq("care_episode_id", activeEpisode.id).order("due_date", { ascending: true, nullsFirst: false }),
       admin.from("bookings").select("id, service_type, profession, status, completed_at, created_at").eq("care_episode_id", activeEpisode.id).order("created_at", { ascending: false }),
+      // 'scheduled' = planned but not yet booked; 'booked' = the patient
+      // has booked it — the provider is now about to conduct exactly this
+      // encounter, which is precisely when this context matters most.
+      admin.from("follow_ups").select("id, reason, follow_up_date, follow_up_type, status").eq("care_episode_id", activeEpisode.id).in("status", ["scheduled", "booked"]).order("follow_up_date", { ascending: true }).limit(1),
     ]);
 
     const providerIds = (teamRows ?? []).map(t => t.provider_id);
@@ -93,6 +101,42 @@ export default async function PatientCarePage({
     plan = planRow;
     tasks = taskRows ?? [];
     recentBookings = bookingRows ?? [];
+    pendingFollowUp = followUpRows?.[0] ?? null;
+
+    // "Before a provider starts a follow-up encounter" context — last
+    // completed visit in this episode, its diagnoses (doctor visits
+    // only — clinical_note_diagnoses has no nurse/physio equivalent
+    // yet), and any resulted labs ordered within the episode.
+    const lastCompletedBooking = recentBookings.find(b => b.status === "completed");
+    if (lastCompletedBooking) {
+      const { data: note } = await admin
+        .from("clinical_notes")
+        .select("id, submitted_at")
+        .eq("booking_id", lastCompletedBooking.id)
+        .maybeSingle();
+      lastEncounter = { booking: lastCompletedBooking, clinicalNoteId: note?.id ?? null };
+
+      if (note?.id) {
+        const { data: diagRows } = await admin
+          .from("clinical_note_diagnoses")
+          .select("plain_language_diagnosis, clinical_description, diagnosis_type")
+          .eq("clinical_note_id", note.id);
+        diagnoses = diagRows ?? [];
+      }
+    }
+
+    // Labs ordered directly against the episode (patient-initiated
+    // requests) OR via one of the episode's own bookings (a doctor
+    // ordering labs during a visit doesn't separately tag care_episode_id
+    // — the booking link already implies it).
+    const bookingIds = recentBookings.map(b => b.id);
+    const { data: labRows } = await admin
+      .from("investigation_orders")
+      .select("id, tests, status, ordered_at, resulted_at")
+      .or(`care_episode_id.eq.${activeEpisode.id}${bookingIds.length ? `,booking_id.in.(${bookingIds.join(",")})` : ""}`)
+      .order("ordered_at", { ascending: false })
+      .limit(5);
+    labs = labRows ?? [];
   }
 
   // Timeline: merged from existing tables, not a duplicate event log — a
@@ -115,6 +159,16 @@ export default async function PatientCarePage({
       timeline.push({ at: t.created_at, label: `Task added: ${t.description}`, icon: "☑️" });
       if (t.completed_at) timeline.push({ at: t.completed_at, label: `Task completed: ${t.description}`, icon: "✔️" });
     }
+
+    const { data: allFollowUps } = await admin
+      .from("follow_ups")
+      .select("created_at, updated_at, status, follow_up_date")
+      .eq("care_episode_id", activeEpisode.id);
+    for (const f of allFollowUps ?? []) {
+      timeline.push({ at: f.created_at, label: `Follow-up scheduled for ${new Date(f.follow_up_date).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}`, icon: "📅" });
+      if (f.status === "completed") timeline.push({ at: f.updated_at, label: "Follow-up completed", icon: "✅" });
+    }
+
     timeline.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
   }
 
@@ -129,6 +183,10 @@ export default async function PatientCarePage({
       timeline={timeline}
       tasks={tasks}
       contextBooking={contextBooking}
+      pendingFollowUp={pendingFollowUp}
+      lastEncounter={lastEncounter}
+      diagnoses={diagnoses}
+      labs={labs}
     />
   );
 }

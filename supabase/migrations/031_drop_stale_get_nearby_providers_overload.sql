@@ -1,0 +1,21 @@
+-- ============================================================
+-- Migration 031: Drop a stale get_nearby_providers() overload
+--
+-- pg_proc showed TWO live versions of get_nearby_providers() after 030:
+--   1. (lat, lng, radius_km)                          -- the ORIGINAL
+--      pre-023 signature, never dropped when 023 added profession
+--      filtering — predates all of Pass 1/2/3, just never noticed until
+--      this migration's own overload check went looking.
+--   2. (lat, lng, radius_km, p_profession, p_preferred_provider_id)
+--      -- the current, fully-featured version from 030.
+--
+-- In practice nothing currently calls it with exactly 3 positional
+-- arguments (the dispatch trigger functions all pass profession; the
+-- mobile app's RPC call uses named parameters, which resolve by name and
+-- correctly pick the 5-arg version) — but leaving a filter-less,
+-- unfiltered-by-profession overload callable at all is a live hazard:
+-- any future 3-positional-arg call would silently bypass profession
+-- matching and continuity ordering entirely. Removing it.
+-- ============================================================
+
+DROP FUNCTION IF EXISTS get_nearby_providers(double precision, double precision, int);
