@@ -8,7 +8,7 @@ export default async function SelectProviderPage({
   searchParams,
 }: {
   params: { service: string };
-  searchParams: { description?: string };
+  searchParams: { description?: string; care_episode_id?: string };
 }) {
   const service = params.service as ServiceType;
   if (!SERVICE_LABELS[service]) redirect("/dashboard");
@@ -23,6 +23,7 @@ export default async function SelectProviderPage({
       <BookProviderClient
         service={service}
         description={searchParams.description}
+        careEpisodeId={searchParams.care_episode_id}
       />
     </div>
   );

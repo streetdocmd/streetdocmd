@@ -1,4 +1,4 @@
-import type { ServiceType, Profession } from "../types/database";
+import type { ServiceType, Profession, CareEpisodeStatus, CareTaskType, CareTaskStatus } from "../types/database";
 
 export const SERVICE_LABELS: Record<ServiceType, string> = {
   general_consultation: "General Consultation",
@@ -212,3 +212,40 @@ export function getEncounterRoute(profession: Profession, bookingId: string): st
     default: return `/dashboard/clinical-note/${bookingId}`;
   }
 }
+
+// ─── Care Episodes (Pass 2) ──────────────────────────────────────────────
+
+export const CARE_EPISODE_STATUS_LABELS: Record<CareEpisodeStatus, string> = {
+  active: "Active",
+  monitoring: "Monitoring",
+  follow_up_due: "Follow-up Due",
+  overdue: "Overdue",
+  referred: "Referred",
+  resolved: "Resolved",
+  closed: "Closed",
+  escalated: "Escalated",
+};
+
+// Auto-managed by the daily status-refresh job — a provider can still set
+// referred/resolved/closed/escalated explicitly, but the job never picks
+// those on its own and never reverts them.
+export const CARE_EPISODE_AUTO_STATUSES: CareEpisodeStatus[] = [
+  "active", "monitoring", "follow_up_due", "overdue",
+];
+
+export const CARE_TASK_TYPE_LABELS: Record<CareTaskType, string> = {
+  medication: "Medication",
+  lab: "Lab",
+  monitoring: "Monitoring",
+  physiotherapy: "Physiotherapy",
+  wound_care: "Wound Care",
+  follow_up: "Follow-up",
+  other: "Other",
+};
+
+export const CARE_TASK_STATUS_LABELS: Record<CareTaskStatus, string> = {
+  pending: "Pending",
+  in_progress: "In Progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};

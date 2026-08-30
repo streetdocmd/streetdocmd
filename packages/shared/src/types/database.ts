@@ -8,6 +8,83 @@ export type VerificationStatus = "pending" | "under_review" | "verified" | "reje
 // coarse category dispatch matching, permissions, and encounter routing use.
 export type Profession = "doctor" | "nurse" | "physiotherapist" | "lab_scientist";
 
+// ─── Care Episodes (Pass 2) ──────────────────────────────────────────────
+//
+// A care episode is opt-in coordination layered on top of the standalone
+// booking flow — most bookings have no episode at all. When one exists,
+// bookings.care_episode_id (and investigation_orders/prescription_orders
+// the same way) link back to it; medications/labs/referrals are never
+// duplicated into episode-specific tables, they're queried from their
+// existing tables filtered by episode.
+
+export type CareEpisodeStatus =
+  | "active" | "monitoring" | "follow_up_due" | "overdue"
+  | "referred" | "resolved" | "closed" | "escalated";
+
+export interface CareEpisode {
+  id: string;
+  patient_id: string;
+  title: string;
+  reason: string | null;
+  status: CareEpisodeStatus;
+  start_date: string;
+  end_date: string | null;
+  lead_provider_id: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CareTeamMember {
+  id: string;
+  care_episode_id: string;
+  provider_id: string;
+  is_lead: boolean;
+  active: boolean;
+  joined_at: string;
+  left_at: string | null;
+}
+
+export interface CarePlanGoal {
+  goal: string;
+  status: "active" | "achieved" | "dropped";
+}
+
+export interface CarePlan {
+  id: string;
+  care_episode_id: string;
+  goals: CarePlanGoal[] | null;
+  instructions: string | null;
+  notes: string | null;
+  follow_up_plan: string | null;
+  follow_up_date: string | null;
+  created_by: string;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CareTaskType =
+  | "medication" | "lab" | "monitoring" | "physiotherapy"
+  | "wound_care" | "follow_up" | "other";
+
+export type CareTaskStatus = "pending" | "in_progress" | "completed" | "cancelled";
+
+export interface CareTask {
+  id: string;
+  care_episode_id: string;
+  description: string;
+  task_type: CareTaskType;
+  due_date: string | null;
+  status: CareTaskStatus;
+  completed_at: string | null;
+  created_by: string;
+  assigned_to: string | null;
+  related_booking_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export type BookingStatus =
   | "pending"
   | "accepted"
@@ -124,6 +201,7 @@ export interface Booking {
   provider_id: string | null;
   service_type: ServiceType;
   profession: Profession;
+  care_episode_id: string | null;
   status: BookingStatus;
   patient_lat: number;
   patient_lng: number;

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, formatNaira } from "@streetdocmd/shared";
 import dynamic from "next/dynamic";
@@ -54,6 +55,14 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
           <p className="font-bold text-teal-brand">{formatNaira(booking.net_payout)}</p>
         </div>
       </div>
+
+      <Link
+        href={`/dashboard/patients/${booking.patient_id}?booking=${booking.id}`}
+        className="card p-3 flex items-center justify-between text-sm text-teal-700 hover:bg-teal-50/50 transition-colors"
+      >
+        <span>📋 View care context before you start</span>
+        <span>→</span>
+      </Link>
 
       {booking.patient_lat && booking.patient_lng && (
         <ProviderMap

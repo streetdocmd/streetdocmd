@@ -9,9 +9,11 @@ type GeoState = "idle" | "locating" | "ready" | "denied";
 export default function BookProviderClient({
   service,
   description,
+  careEpisodeId,
 }: {
   service: ServiceType;
   description?: string;
+  careEpisodeId?: string;
 }) {
   const router = useRouter();
   const [geoState, setGeoState] = useState<GeoState>("idle");
@@ -66,6 +68,7 @@ export default function BookProviderClient({
           patient_lng: coords.lng,
           patient_address: address,
           notes: description ?? null,
+          care_episode_id: careEpisodeId ?? null,
         }),
       });
 

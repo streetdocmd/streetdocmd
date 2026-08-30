@@ -9,10 +9,25 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { service_type, patient_lat, patient_lng, patient_address, notes } = await req.json();
+    const { service_type, patient_lat, patient_lng, patient_address, notes, care_episode_id } = await req.json();
 
     if (!service_type || patient_lat == null || patient_lng == null || !patient_address) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Optional link to an existing care episode (e.g. "book a follow-up"
+    // from the patient's My Care page) — only accepted if it's actually
+    // this patient's own episode, checked via their own RLS-scoped
+    // session rather than trusting the client-sent id outright.
+    let careEpisodeId: string | null = null;
+    if (care_episode_id) {
+      const { data: episode } = await supabase
+        .from("care_episodes")
+        .select("id")
+        .eq("id", care_episode_id)
+        .eq("patient_id", user.id)
+        .maybeSingle();
+      careEpisodeId = episode?.id ?? null;
     }
 
     // Always the platform standard price here, deliberately — unlike the
@@ -32,6 +47,7 @@ export async function POST(req: NextRequest) {
         patient_id: user.id,
         service_type,
         profession: SERVICE_PROFESSION[service_type as ServiceType],
+        care_episode_id: careEpisodeId,
         patient_lat,
         patient_lng,
         patient_address,

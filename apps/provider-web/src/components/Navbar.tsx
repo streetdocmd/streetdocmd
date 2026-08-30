@@ -7,6 +7,7 @@ import type { Profession } from "@streetdocmd/shared";
 const BASE_NAV = [
   { href: "/dashboard", label: "Home", icon: "🏠" },
   { href: "/dashboard/bookings", label: "Bookings", icon: "📋" },
+  { href: "/dashboard/patients", label: "Patients", icon: "🧑‍🤝‍🧑" },
 ];
 
 const SERVICES_NAV = { href: "/dashboard/services", label: "Services", icon: "🩺" };

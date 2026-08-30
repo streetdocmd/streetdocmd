@@ -67,6 +67,35 @@ export const PROFESSION_LABELS: Record<Profession, string> = {
   lab_scientist: "Medical Laboratory Scientist",
 };
 
+export type CareEpisodeStatus =
+  | "active" | "monitoring" | "follow_up_due" | "overdue"
+  | "referred" | "resolved" | "closed" | "escalated";
+
+export const CARE_EPISODE_STATUS_LABELS: Record<CareEpisodeStatus, string> = {
+  active: "Active",
+  monitoring: "Monitoring",
+  follow_up_due: "Follow-up Due",
+  overdue: "Overdue",
+  referred: "Referred",
+  resolved: "Resolved",
+  closed: "Closed",
+  escalated: "Escalated",
+};
+
+export type CareTaskType =
+  | "medication" | "lab" | "monitoring" | "physiotherapy"
+  | "wound_care" | "follow_up" | "other";
+
+export const CARE_TASK_TYPE_LABELS: Record<CareTaskType, string> = {
+  medication: "Medication",
+  lab: "Lab",
+  monitoring: "Monitoring",
+  physiotherapy: "Physiotherapy",
+  wound_care: "Wound Care",
+  follow_up: "Follow-up",
+  other: "Other",
+};
+
 export const PLATFORM_COMMISSION_RATE = 0.2;
 export const PROVIDER_ACCEPTANCE_WINDOW_SECONDS = 120;
 
