@@ -26,7 +26,7 @@ export default function TrackingScreen() {
   async function loadBooking() {
     const { data } = await supabase
       .from("bookings")
-      .select("*, providers(id, name, phone, specialty, rating, lat, lng)")
+      .select("*, providers!bookings_provider_id_fkey(id, name, phone, specialty, rating, lat, lng)")
       .eq("id", bookingId)
       .single();
 

@@ -16,7 +16,7 @@ export default function PaymentScreen() {
   useEffect(() => {
     supabase
       .from("bookings")
-      .select("*, providers(name, specialty)")
+      .select("*, providers!bookings_provider_id_fkey(name, specialty)")
       .eq("id", bookingId)
       .single()
       .then(({ data }) => {

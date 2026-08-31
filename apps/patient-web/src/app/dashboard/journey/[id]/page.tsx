@@ -279,7 +279,7 @@ export default async function CareJourneyPage({ params }: { params: { id: string
     .select(`
       id, status, service_type, created_at, accepted_at, arrived_at, completed_at,
       patient_address, patient_id,
-      providers(id, name, credentials, specialty),
+      providers!bookings_provider_id_fkey(id, name, credentials, specialty),
       visits(
         id, diagnosis, treatment, follow_up_plan, chief_complaint, created_at,
         prescriptions(id, drugs, pdf_url, created_at)

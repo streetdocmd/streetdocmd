@@ -10,7 +10,7 @@ export default async function PaymentPage({ params }: { params: { id: string } }
 
   const { data: booking } = await supabase
     .from("bookings")
-    .select("*, providers(name, specialty)")
+    .select("*, providers!bookings_provider_id_fkey(name, specialty)")
     .eq("id", params.id)
     .eq("patient_id", user.id)
     .single();

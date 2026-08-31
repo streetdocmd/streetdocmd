@@ -30,6 +30,19 @@ const STEP_LABELS = [
   "Recommendations", "Follow-up"
 ];
 
+// current_medications_note and allergies_note live in noteData (so
+// Step5/Step7 can use the same updateField pattern as every other step)
+// but aren't real clinical_notes columns — /api/clinical-note/submit
+// already strips them before its own update. Autosave needs the same
+// filter: without it, the moment a doctor fills in either field,
+// PostgREST rejects the whole update (unknown column), and every
+// autosave from that point on silently stops persisting anything.
+const VALID_NOTE_COLUMNS = new Set([
+  "people_in_attendance", "presenting_complaints", "chronic_issues",
+  "history", "social_history", "general_examination", "systemic_examinations",
+  "interventions", "recommendations", "follow_up_date", "safeguarding_flag",
+]);
+
 export default function ClinicalNoteClient({
   noteId, bookingId, provider, patient, previousNotes, serviceType,
 }: {
@@ -77,9 +90,12 @@ export default function ClinicalNoteClient({
   diagnosesRef.current = diagnosesData;
 
   const saveDraft = useCallback(async () => {
+    const safeNoteData = Object.fromEntries(
+      Object.entries(noteDataRef.current).filter(([k]) => VALID_NOTE_COLUMNS.has(k))
+    );
     const { error } = await supabase
       .from("clinical_notes")
-      .update({ ...noteDataRef.current, updated_at: new Date().toISOString() })
+      .update({ ...safeNoteData, updated_at: new Date().toISOString() })
       .eq("id", noteId);
     if (!error) {
       setSavedAt(new Date());

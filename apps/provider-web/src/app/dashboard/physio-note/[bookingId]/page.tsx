@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
 import PhysioEncounterClient from "./PhysioEncounterClient";
+import PhysioEncounterView from "./PhysioEncounterView";
 
 export default async function PhysioNotePage({ params }: { params: { bookingId: string } }) {
   const supabase = await createServerSupabase();
@@ -25,12 +26,20 @@ export default async function PhysioNotePage({ params }: { params: { bookingId: 
 
   if (!booking) redirect("/dashboard");
 
+  // See nursing-note/[bookingId]/page.tsx for why this looks up any
+  // existing encounter (not just status='draft') — the same "View Note
+  // always creates a blank duplicate" bug applied here too.
   const { data: existingEncounter } = await supabase
     .from("physiotherapy_encounters")
-    .select("id")
+    .select("*")
     .eq("booking_id", params.bookingId)
-    .eq("status", "draft")
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
+
+  if (existingEncounter?.status === "submitted") {
+    return <PhysioEncounterView encounter={existingEncounter} patient={booking.patient as any} />;
+  }
 
   let encounterId = existingEncounter?.id;
   if (!encounterId) {
