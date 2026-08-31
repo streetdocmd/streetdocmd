@@ -22,7 +22,7 @@ export default async function TrackingPage({ params }: { params: { id: string } 
 
   const { data: booking } = await supabase
     .from("bookings")
-    .select("*, providers(id, name, specialty, phone, rating, lat, lng)")
+    .select("*, providers!bookings_provider_id_fkey(id, name, specialty, phone, rating, lat, lng)")
     .eq("id", params.id)
     .eq("patient_id", user.id)
     .single();

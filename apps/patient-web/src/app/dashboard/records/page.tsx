@@ -9,7 +9,7 @@ export default async function RecordsPage() {
 
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("id, service_type, completed_at, providers(name)")
+    .select("id, service_type, completed_at, providers!bookings_provider_id_fkey(name)")
     .eq("patient_id", user.id)
     .eq("status", "completed")
     .order("completed_at", { ascending: false });

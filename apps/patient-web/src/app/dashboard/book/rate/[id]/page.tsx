@@ -15,7 +15,7 @@ export default async function RatePage({
 
   const { data: booking } = await supabase
     .from("bookings")
-    .select("id, provider_id, status, providers(name)")
+    .select("id, provider_id, status, providers!bookings_provider_id_fkey(name)")
     .eq("id", params.id)
     .eq("patient_id", user.id)
     .single();

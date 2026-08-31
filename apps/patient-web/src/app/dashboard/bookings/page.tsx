@@ -21,7 +21,7 @@ export default async function BookingsPage() {
 
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("*, providers(name, specialty), reviews(id)")
+    .select("*, providers!bookings_provider_id_fkey(name, specialty), reviews(id)")
     .eq("patient_id", user!.id)
     .order("created_at", { ascending: false });
 
