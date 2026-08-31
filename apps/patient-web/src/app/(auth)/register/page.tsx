@@ -2,11 +2,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
-  const [ndpr, setNdpr] = useState(false);
+  const [coreConsent, setCoreConsent] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -15,14 +17,14 @@ export default function RegisterPage() {
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
-    if (!ndpr) { setError("You must accept the data privacy consent to continue."); return; }
+    if (!coreConsent) { setError("You must accept the data privacy consent to continue."); return; }
     setError("");
     setLoading(true);
 
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, coreConsent }),
     });
 
     const json = await res.json();
@@ -71,14 +73,29 @@ export default function RegisterPage() {
               <input type="password" className="input" placeholder="At least 8 characters" value={form.password} onChange={set("password")} minLength={8} required />
             </div>
 
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" checked={ndpr} onChange={e => setNdpr(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-brand" />
-              <span className="text-sm text-gray-600">
-                I consent to StreetdocMD collecting and processing my health data as described in the{" "}
-                <span className="text-blue-brand underline cursor-pointer">Privacy Policy</span> (NDPR compliance).
-              </span>
-            </label>
+            <div className="flex items-start gap-3 rounded-xl border border-blue-mid bg-blue-light p-4">
+              <input
+                type="checkbox"
+                id="coreConsent"
+                checked={coreConsent}
+                onChange={e => setCoreConsent(e.target.checked)}
+                className="mt-0.5 h-[19px] w-[19px] shrink-0 cursor-pointer rounded border-gray-300 text-blue-brand"
+              />
+              <div>
+                <label htmlFor="coreConsent" className="cursor-pointer text-sm leading-relaxed text-gray-900">
+                  I understand and consent to StreetdocMD processing my health information to provide care, as described in the{" "}
+                  <button
+                    type="button"
+                    onClick={e => { e.preventDefault(); setPolicyOpen(true); }}
+                    className="font-semibold text-blue-brand underline decoration-transparent hover:decoration-blue-brand"
+                  >
+                    Privacy Policy
+                  </button>
+                  .
+                </label>
+                <p className="mt-1.5 text-[10.5px] font-semibold tracking-wide text-gray-400">REQUIRED TO CONTINUE</p>
+              </div>
+            </div>
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
@@ -86,7 +103,7 @@ export default function RegisterPage() {
               </div>
             )}
 
-            <button type="submit" disabled={loading || !ndpr} className="btn-primary w-full flex justify-center">
+            <button type="submit" disabled={loading || !coreConsent} className="btn-primary w-full flex justify-center">
               {loading ? "Creating account…" : "Create Account"}
             </button>
           </form>
@@ -97,6 +114,8 @@ export default function RegisterPage() {
           </p>
         </div>
       </div>
+
+      <PrivacyPolicyModal isOpen={policyOpen} onClose={() => setPolicyOpen(false)} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
+import PrivacyPolicyLink from "@/components/PrivacyPolicyLink";
 
 export default async function ProfilePage() {
   const supabase = await createServerSupabase();
@@ -37,7 +38,7 @@ export default async function ProfilePage() {
       </div>
 
       {p.emergency_contact_name && (
-        <div className="card p-6">
+        <div className="card p-6 mb-4">
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Emergency Contact</h2>
           <dl className="space-y-3">
             <Row label="Name" value={p.emergency_contact_name} />
@@ -46,6 +47,14 @@ export default async function ProfilePage() {
           </dl>
         </div>
       )}
+
+      <div className="card p-6">
+        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Legal</h2>
+        <div className="flex items-center justify-between py-1">
+          <span className="text-sm text-gray-700">Privacy Policy</span>
+          <PrivacyPolicyLink>View →</PrivacyPolicyLink>
+        </div>
+      </div>
     </div>
   );
 }
