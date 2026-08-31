@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
 import NursingEncounterClient from "./NursingEncounterClient";
+import NursingEncounterView from "./NursingEncounterView";
 
 export default async function NursingNotePage({ params }: { params: { bookingId: string } }) {
   const supabase = await createServerSupabase();
@@ -26,12 +27,21 @@ export default async function NursingNotePage({ params }: { params: { bookingId:
 
   if (!booking) redirect("/dashboard");
 
+  // Look up ANY existing encounter for this booking, regardless of status —
+  // not just 'draft'. Filtering to status='draft' alone meant a submitted
+  // encounter was never found again, so every "View Note" click created a
+  // brand-new blank row instead of showing what was actually submitted.
   const { data: existingEncounter } = await supabase
     .from("nursing_encounters")
-    .select("id")
+    .select("*")
     .eq("booking_id", params.bookingId)
-    .eq("status", "draft")
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
+
+  if (existingEncounter?.status === "submitted") {
+    return <NursingEncounterView encounter={existingEncounter} patient={booking.patient as any} />;
+  }
 
   let encounterId = existingEncounter?.id;
   if (!encounterId) {
