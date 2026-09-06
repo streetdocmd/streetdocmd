@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatNaira } from "@/lib/shared";
 import FamilyMemberPicker from "../[service]/FamilyMemberPicker";
+import SchedulePicker from "../[service]/SchedulePicker";
 
 interface WellnessPackage {
   id: string;
@@ -23,6 +24,8 @@ export default function WellnessPackagePicker({ packages }: { packages: Wellness
   const [address, setAddress] = useState("");
   const [booking, setBooking] = useState(false);
   const [error, setError] = useState("");
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null);
+  const [scheduleReady, setScheduleReady] = useState(true);
 
   const selectedPackage = packages.find(p => p.id === packageId) ?? null;
 
@@ -54,7 +57,7 @@ export default function WellnessPackagePicker({ packages }: { packages: Wellness
   }
 
   async function book() {
-    if (!coords || !packageId) return;
+    if (!coords || !packageId || !scheduleReady) return;
     setBooking(true);
     setError("");
 
@@ -69,6 +72,7 @@ export default function WellnessPackagePicker({ packages }: { packages: Wellness
           patient_lng: coords.lng,
           patient_address: address,
           family_member_id: familyMemberId,
+          scheduled_at: scheduledAt,
         }),
       });
 
@@ -124,6 +128,7 @@ export default function WellnessPackagePicker({ packages }: { packages: Wellness
       {selectedPackage && (
         <>
           <FamilyMemberPicker onChange={setFamilyMemberId} />
+          <SchedulePicker onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }} />
 
           {/* Location step */}
           {geoState === "idle" && (
@@ -179,7 +184,7 @@ export default function WellnessPackagePicker({ packages }: { packages: Wellness
 
               <button
                 onClick={book}
-                disabled={booking}
+                disabled={booking || !scheduleReady}
                 className="btn-primary w-full text-base py-3 flex justify-center"
               >
                 {booking ? (

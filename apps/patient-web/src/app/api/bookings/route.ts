@@ -1,6 +1,6 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
-import { SERVICE_PRICES, SERVICE_PROFESSION } from "@/lib/shared";
+import { SERVICE_PRICES, SERVICE_PROFESSION, SERVICE_DURATION_MINUTES } from "@/lib/shared";
 import type { ServiceType, Profession } from "@/lib/shared";
 
 // A follow-up books the same way any other visit does — same profession,
@@ -16,6 +16,14 @@ const FOLLOW_UP_SERVICE_TYPE: Record<Profession, ServiceType> = {
   lab_scientist: "general_consultation", // no self-registered lab_scientist booking path exists yet
 };
 
+// A "preferred provider" request is first contact, not a continuity
+// follow-up — a physiotherapist should be booked as an assessment here,
+// never a session (that only ever follows a completed assessment).
+const TARGETED_PROVIDER_SERVICE_TYPE: Record<Profession, ServiceType> = {
+  ...FOLLOW_UP_SERVICE_TYPE,
+  physiotherapist: "physiotherapy_assessment",
+};
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabase();
@@ -23,11 +31,22 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { patient_lat, patient_lng, patient_address, notes, care_episode_id, follow_up_id, family_member_id, wellness_package_id, targeted_provider_id } = body;
+    const { patient_lat, patient_lng, patient_address, notes, care_episode_id, follow_up_id, family_member_id, wellness_package_id, targeted_provider_id, scheduled_at } = body;
     let { service_type } = body;
 
     if (patient_lat == null || patient_lng == null || !patient_address) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // ASAP (the default) leaves this null, unchanged from before scheduling
+    // existed. A patient-picked slot must be a real, future timestamp.
+    let resolvedScheduledAt: string | null = null;
+    if (scheduled_at) {
+      const parsed = new Date(scheduled_at);
+      if (isNaN(parsed.getTime()) || parsed.getTime() <= Date.now()) {
+        return NextResponse.json({ error: "Invalid scheduled time" }, { status: 400 });
+      }
+      resolvedScheduledAt = parsed.toISOString();
     }
 
     const admin = createAdminSupabase();
@@ -112,7 +131,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "That provider is no longer available" }, { status: 400 });
       }
       resolvedTargetedProviderId = targetedProvider.id;
-      service_type = FOLLOW_UP_SERVICE_TYPE[targetedProvider.profession as Profession];
+      service_type = TARGETED_PROVIDER_SERVICE_TYPE[targetedProvider.profession as Profession];
     }
 
     if (!service_type || !SERVICE_PRICES[service_type as ServiceType]) {
@@ -166,6 +185,8 @@ export async function POST(req: NextRequest) {
         follow_up_id: resolvedFollowUpId,
         preferred_provider_id: preferredProviderId,
         targeted_provider_id: resolvedTargetedProviderId,
+        scheduled_at: resolvedScheduledAt,
+        duration_minutes: SERVICE_DURATION_MINUTES[service_type as ServiceType],
         patient_lat,
         patient_lng,
         patient_address,

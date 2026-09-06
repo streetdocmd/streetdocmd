@@ -14,8 +14,9 @@ const SERVICES: ServiceType[] = [
   "elderly_review",
   "nursing_care",
   "physiotherapy_assessment",
-  "physiotherapy_session",
 ];
+// physiotherapy_session is intentionally not a front-door option — it's
+// only ever a follow-up after a completed physiotherapy_assessment.
 
 export default function HomeScreen() {
   const router = useRouter();

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { supabase } from "../../lib/supabase";
 import FamilyMemberPicker from "../../components/FamilyMemberPicker";
-import { formatNaira, SERVICE_PROFESSION } from "@streetdocmd/shared";
+import SchedulePicker from "../../components/SchedulePicker";
+import { formatNaira, SERVICE_PROFESSION, SERVICE_DURATION_MINUTES } from "@streetdocmd/shared";
 
 interface WellnessPackage {
   id: string;
@@ -28,6 +29,8 @@ export default function WellnessPackagesScreen() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState("");
   const [booking, setBooking] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null);
+  const [scheduleReady, setScheduleReady] = useState(true);
 
   useEffect(() => {
     supabase
@@ -67,7 +70,7 @@ export default function WellnessPackagesScreen() {
   }
 
   async function bookNow() {
-    if (!coords || !packageId) return;
+    if (!coords || !packageId || !scheduleReady) return;
     setBooking(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setBooking(false); return; }
@@ -87,6 +90,8 @@ export default function WellnessPackagesScreen() {
         patient_lat: coords.lat,
         patient_lng: coords.lng,
         patient_address: address,
+        scheduled_at: scheduledAt,
+        duration_minutes: SERVICE_DURATION_MINUTES.wellness_check,
         fee: selectedPackage!.price,
         commission,
         net_payout: selectedPackage!.price - commission,
@@ -110,7 +115,7 @@ export default function WellnessPackagesScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
-      <View style={s.content}>
+      <ScrollView contentContainerStyle={s.content}>
         <Text style={s.title}>Wellness Check</Text>
         <Text style={s.subtitle}>Choose a package — a provider will be dispatched to collect your samples</Text>
 
@@ -139,6 +144,7 @@ export default function WellnessPackagesScreen() {
         {selectedPackage && (
           <>
             <FamilyMemberPicker onChange={setFamilyMemberId} />
+            <SchedulePicker onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }} />
 
             {geoState === "idle" && (
               <View style={s.locationCard}>
@@ -173,9 +179,9 @@ export default function WellnessPackagesScreen() {
                   <Text style={s.addressText} numberOfLines={2}>{address}</Text>
                 </View>
                 <TouchableOpacity
-                  style={[s.bookBtn, booking && { opacity: 0.6 }]}
+                  style={[s.bookBtn, (booking || !scheduleReady) && { opacity: 0.6 }]}
                   onPress={bookNow}
-                  disabled={booking}
+                  disabled={booking || !scheduleReady}
                 >
                   {booking ? <ActivityIndicator color="#fff" /> : (
                     <Text style={s.bookBtnText}>Book Now · {formatNaira(selectedPackage.price)}</Text>
@@ -185,7 +191,7 @@ export default function WellnessPackagesScreen() {
             )}
           </>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 }

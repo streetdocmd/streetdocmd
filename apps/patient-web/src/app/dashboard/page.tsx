@@ -11,10 +11,13 @@ const SERVICES: ServiceType[] = [
   "elderly_review",
   "nursing_care",
   "physiotherapy_assessment",
-  "physiotherapy_session",
   "custom_request",
 ];
 
+// physiotherapy_session is intentionally not a front-door option — it's
+// only ever a follow-up after a completed physiotherapy_assessment (see
+// ContinueCareButton), the same way a nurse follow-up only ever comes
+// from an elderly_review visit, not from browsing services fresh.
 const SERVICE_ICONS: Record<ServiceType, string> = {
   general_consultation: "🩺",
   wellness_check: "🔬",

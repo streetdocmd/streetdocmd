@@ -1,13 +1,14 @@
 import { useState } from "react";
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { supabase } from "../../lib/supabase";
 import FamilyMemberPicker from "../../components/FamilyMemberPicker";
+import SchedulePicker from "../../components/SchedulePicker";
 import {
-  ServiceType, SERVICE_LABELS, SERVICE_PRICES, SERVICE_PROFESSION,
+  ServiceType, SERVICE_LABELS, SERVICE_PRICES, SERVICE_PROFESSION, SERVICE_DURATION_MINUTES,
   formatNaira, calculateCommission, calculateNetPayout
 } from "@streetdocmd/shared";
 
@@ -21,6 +22,8 @@ export default function ConfirmBookingScreen() {
   const [address, setAddress] = useState("");
   const [booking, setBooking] = useState(false);
   const [familyMemberId, setFamilyMemberId] = useState<string | null>(null);
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null);
+  const [scheduleReady, setScheduleReady] = useState(true);
 
   const fee = SERVICE_PRICES[service];
 
@@ -52,7 +55,7 @@ export default function ConfirmBookingScreen() {
   }
 
   async function bookNow() {
-    if (!coords) return;
+    if (!coords || !scheduleReady) return;
     setBooking(true);
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -77,6 +80,8 @@ export default function ConfirmBookingScreen() {
         patient_lat: coords.lat,
         patient_lng: coords.lng,
         patient_address: address,
+        scheduled_at: scheduledAt,
+        duration_minutes: SERVICE_DURATION_MINUTES[service],
         fee,
         commission,
         net_payout: calculateNetPayout(fee),
@@ -106,8 +111,9 @@ export default function ConfirmBookingScreen() {
         <Text style={styles.price}>{formatNaira(fee)}</Text>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         <FamilyMemberPicker onChange={setFamilyMemberId} />
+        <SchedulePicker onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }} />
 
         {geoState === "idle" && (
           <View style={styles.card}>
@@ -151,14 +157,16 @@ export default function ConfirmBookingScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.bookBtn, booking && styles.btnDisabled]}
+              style={[styles.bookBtn, (booking || !scheduleReady) && styles.btnDisabled]}
               onPress={bookNow}
-              disabled={booking}
+              disabled={booking || !scheduleReady}
             >
               {booking ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.bookBtnText}>Book Now · {formatNaira(fee)}</Text>
+                <Text style={styles.bookBtnText}>
+                  {scheduledAt ? "Confirm Booking" : "Book Now"} · {formatNaira(fee)}
+                </Text>
               )}
             </TouchableOpacity>
             <Text style={styles.footnote}>
@@ -166,7 +174,7 @@ export default function ConfirmBookingScreen() {
             </Text>
           </>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 }

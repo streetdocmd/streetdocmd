@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { SERVICE_LABELS, SERVICE_PRICES, formatNaira } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
 import FamilyMemberPicker from "./FamilyMemberPicker";
+import SchedulePicker from "./SchedulePicker";
 
 type GeoState = "idle" | "locating" | "ready" | "denied";
 
@@ -25,6 +26,8 @@ export default function BookProviderClient({
   const [booking, setBooking] = useState(false);
   const [error, setError] = useState("");
   const [familyMemberId, setFamilyMemberId] = useState<string | null>(null);
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null);
+  const [scheduleReady, setScheduleReady] = useState(true);
 
   const fee = SERVICE_PRICES[service];
 
@@ -58,7 +61,7 @@ export default function BookProviderClient({
   }
 
   async function book() {
-    if (!coords) return;
+    if (!coords || !scheduleReady) return;
     setBooking(true);
     setError("");
 
@@ -75,6 +78,7 @@ export default function BookProviderClient({
           care_episode_id: careEpisodeId ?? null,
           follow_up_id: followUpId ?? null,
           family_member_id: familyMemberId,
+          scheduled_at: scheduledAt,
         }),
       });
 
@@ -122,6 +126,9 @@ export default function BookProviderClient({
 
       {/* Who is this for */}
       {!followUpId && <FamilyMemberPicker onChange={setFamilyMemberId} />}
+
+      {/* When */}
+      {!followUpId && <SchedulePicker onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }} />}
 
       {/* Location step */}
       {geoState === "idle" && (
@@ -177,16 +184,18 @@ export default function BookProviderClient({
 
           <button
             onClick={book}
-            disabled={booking}
+            disabled={booking || !scheduleReady}
             className="btn-primary w-full text-base py-3 flex justify-center"
           >
             {booking ? (
               <>
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 mt-0.5" />
-                Finding your provider…
+                {scheduledAt ? "Confirming your slot…" : "Finding your provider…"}
               </>
             ) : followUpId ? (
               "Book Follow-up"
+            ) : scheduledAt ? (
+              `Confirm Booking · ${formatNaira(fee)}`
             ) : (
               `Book Now · ${formatNaira(fee)}`
             )}

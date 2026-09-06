@@ -40,6 +40,20 @@ export const SERVICE_PRICES: Record<ServiceType, number> = {
   physiotherapy_session: 20000,
 };
 
+// Used to size a booking's slot on the provider calendar and to check for
+// scheduling conflicts server-side — a rough estimate per service, not a
+// hard clinical duration.
+export const SERVICE_DURATION_MINUTES: Record<ServiceType, number> = {
+  general_consultation: 45,
+  wellness_check: 30,
+  wound_care: 30,
+  elderly_review: 60,
+  nursing_care: 30,
+  custom_request: 45,
+  physiotherapy_assessment: 60,
+  physiotherapy_session: 45,
+};
+
 export const SERVICE_DESCRIPTIONS: Record<ServiceType, string> = {
   general_consultation: "A doctor visits to assess your symptoms and provide treatment",
   wellness_check: "Annual check-up investigations — blood tests, urinalysis, and routine screening panels",

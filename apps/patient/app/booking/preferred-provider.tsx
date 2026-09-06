@@ -1,21 +1,22 @@
 import { useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Image
+  ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Image, ScrollView
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Location from "expo-location";
 import { supabase } from "../../lib/supabase";
 import FamilyMemberPicker from "../../components/FamilyMemberPicker";
-import { SERVICE_PRICES, ServiceType } from "@streetdocmd/shared";
+import SchedulePicker from "../../components/SchedulePicker";
+import { SERVICE_PRICES, SERVICE_DURATION_MINUTES, ServiceType } from "@streetdocmd/shared";
 
-// Same "profession -> a representative bookable service_type" mapping the
-// web app's follow-up/preferred-provider paths use — a preferred-provider
-// request books whatever service that provider's profession offers.
+// A preferred-provider request is first contact, not a continuity
+// follow-up — a physiotherapist is booked as an assessment here, never a
+// session (that only ever follows a completed assessment).
 const PROFESSION_SERVICE_TYPE: Record<string, ServiceType> = {
   doctor: "general_consultation",
   nurse: "nursing_care",
-  physiotherapist: "physiotherapy_session",
+  physiotherapist: "physiotherapy_assessment",
   lab_scientist: "general_consultation",
 };
 
@@ -43,6 +44,8 @@ export default function PreferredProviderScreen() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState("");
   const [booking, setBooking] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null);
+  const [scheduleReady, setScheduleReady] = useState(true);
 
   async function lookupCode() {
     if (!code.trim()) return;
@@ -93,7 +96,7 @@ export default function PreferredProviderScreen() {
   }
 
   async function confirmNewBooking() {
-    if (!provider || !coords) return;
+    if (!provider || !coords || !scheduleReady) return;
     setBooking(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setBooking(false); return; }
@@ -113,6 +116,8 @@ export default function PreferredProviderScreen() {
         patient_lat: coords.lat,
         patient_lng: coords.lng,
         patient_address: address,
+        scheduled_at: scheduledAt,
+        duration_minutes: SERVICE_DURATION_MINUTES[serviceType],
         fee,
         commission,
         net_payout: fee - commission,
@@ -134,7 +139,7 @@ export default function PreferredProviderScreen() {
         <Text style={s.subtitle}>Enter the code your provider shared with you</Text>
       </View>
 
-      <View style={s.content}>
+      <ScrollView contentContainerStyle={s.content}>
         {!provider ? (
           <View style={s.card}>
             <Text style={s.label}>Provider code</Text>
@@ -184,6 +189,7 @@ export default function PreferredProviderScreen() {
             ) : (
               <>
                 <FamilyMemberPicker onChange={setFamilyMemberId} />
+                <SchedulePicker onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }} />
 
                 {geoState === "idle" && (
                   <View style={s.card}>
@@ -215,9 +221,9 @@ export default function PreferredProviderScreen() {
                       <Text style={s.addressText} numberOfLines={2}>{address}</Text>
                     </View>
                     <TouchableOpacity
-                      style={[s.bookBtn, booking && s.btnDisabled]}
+                      style={[s.bookBtn, (booking || !scheduleReady) && s.btnDisabled]}
                       onPress={confirmNewBooking}
-                      disabled={booking}
+                      disabled={booking || !scheduleReady}
                     >
                       {booking ? <ActivityIndicator color="#fff" /> : (
                         <Text style={s.bookBtnText}>Book with {provider.name}</Text>
@@ -229,7 +235,7 @@ export default function PreferredProviderScreen() {
             )}
           </>
         )}
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

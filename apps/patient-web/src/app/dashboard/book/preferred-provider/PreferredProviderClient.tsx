@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import FamilyMemberPicker from "../[service]/FamilyMemberPicker";
+import SchedulePicker from "../[service]/SchedulePicker";
 
 interface ProviderInfo {
   id: string;
@@ -28,6 +29,8 @@ export default function PreferredProviderClient({ retargetBookingId }: { retarge
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState("");
   const [booking, setBooking] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null);
+  const [scheduleReady, setScheduleReady] = useState(true);
 
   async function lookupCode(e: React.FormEvent) {
     e.preventDefault();
@@ -85,7 +88,7 @@ export default function PreferredProviderClient({ retargetBookingId }: { retarge
   }
 
   async function confirmNewBooking() {
-    if (!provider || !coords) return;
+    if (!provider || !coords || !scheduleReady) return;
     setBooking(true);
     setError("");
     try {
@@ -98,6 +101,7 @@ export default function PreferredProviderClient({ retargetBookingId }: { retarge
           patient_lng: coords.lng,
           patient_address: address,
           family_member_id: familyMemberId,
+          scheduled_at: scheduledAt,
         }),
       });
       const json = await res.json();
@@ -160,6 +164,7 @@ export default function PreferredProviderClient({ retargetBookingId }: { retarge
           ) : (
             <>
               <FamilyMemberPicker onChange={setFamilyMemberId} />
+              <SchedulePicker onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }} />
 
               {geoState === "idle" && (
                 <div className="card p-6 text-center">
@@ -194,7 +199,7 @@ export default function PreferredProviderClient({ retargetBookingId }: { retarge
                     </div>
                     <button onClick={getLocation} className="text-xs text-blue-brand hover:underline shrink-0">Update</button>
                   </div>
-                  <button onClick={confirmNewBooking} disabled={booking} className="btn-primary w-full text-base py-3">
+                  <button onClick={confirmNewBooking} disabled={booking || !scheduleReady} className="btn-primary w-full text-base py-3">
                     {booking ? "Sending request…" : `Book Appointment with ${provider.name}`}
                   </button>
                   <p className="text-xs text-center text-gray-400">
