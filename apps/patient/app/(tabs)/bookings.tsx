@@ -9,6 +9,7 @@ import { formatNaira, SERVICE_LABELS, BOOKING_STATUS_LABELS } from "@streetdocmd
 
 const STATUS_COLORS: Record<string, string> = {
   pending_payment: "#FFEDD5",
+  provider_declined: "#FEE2E2",
   pending: "#FEF3C7",
   accepted: "#DBEAFE",
   en_route: "#EDE9FE",
@@ -19,6 +20,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 const STATUS_TEXT: Record<string, string> = {
   pending_payment: "#9A3412",
+  provider_declined: "#991B1B",
   pending: "#92400E", accepted: "#1E40AF", en_route: "#5B21B6",
   arrived: "#3730A3", in_progress: "#92400E", completed: "#065F46", cancelled: "#991B1B",
 };
@@ -74,6 +76,12 @@ export default function BookingsScreen() {
         },
       ]
     );
+  }
+
+  async function searchNearest(bookingId: string) {
+    const { error } = await supabase.rpc("retry_dispatch_broad", { p_booking_id: bookingId });
+    if (error) Alert.alert("Error", error.message);
+    else loadBookings(true);
   }
 
   function handleTap(b: any) {
@@ -132,6 +140,9 @@ export default function BookingsScreen() {
             {b.follow_up_of_booking_id && (
               <Text style={styles.followUpNote}>Recommended by your provider as a follow-up visit</Text>
             )}
+            {b.status === "provider_declined" && (
+              <Text style={styles.declinedNote}>The provider you requested wasn't able to accept this booking.</Text>
+            )}
 
             <View style={styles.cardBottom}>
               <Text style={styles.fee}>{formatNaira(b.fee)}</Text>
@@ -187,6 +198,20 @@ export default function BookingsScreen() {
             {b.status === "completed" && isRated && (
               <Text style={styles.ratedTag}>✓ Rated</Text>
             )}
+
+            {b.status === "provider_declined" && (
+              <View style={styles.declinedActions}>
+                <TouchableOpacity
+                  style={styles.chooseAnotherBtn}
+                  onPress={() => router.push({ pathname: "/booking/preferred-provider", params: { retarget: b.id } })}
+                >
+                  <Text style={styles.chooseAnotherBtnText}>Choose another provider</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.searchNearestBtn} onPress={() => searchNearest(b.id)}>
+                  <Text style={styles.searchNearestBtnText}>Search nearest available</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </TouchableOpacity>
         );
       }}
@@ -211,6 +236,12 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 11, fontWeight: "600" },
   provider: { fontSize: 13, color: "#6B7280", marginBottom: 10 },
   followUpNote: { fontSize: 12, color: "#1E6FD9", marginBottom: 10, marginTop: -6 },
+  declinedNote: { fontSize: 12, color: "#DC2626", marginBottom: 10, marginTop: -6 },
+  declinedActions: { marginTop: 10, gap: 8 },
+  chooseAnotherBtn: { backgroundColor: "#1E6FD9", borderRadius: 8, paddingVertical: 9, alignItems: "center" },
+  chooseAnotherBtnText: { color: "#fff", fontWeight: "600", fontSize: 13 },
+  searchNearestBtn: { borderWidth: 1, borderColor: "#E5E7EB", borderRadius: 8, paddingVertical: 9, alignItems: "center" },
+  searchNearestBtnText: { color: "#6B7280", fontWeight: "600", fontSize: 13 },
   cardBottom: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
   fee: { fontSize: 14, fontWeight: "700", color: "#1E6FD9" },
   date: { fontSize: 12, color: "#9CA3AF" },

@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { patient_lat, patient_lng, patient_address, notes, care_episode_id, follow_up_id, family_member_id, wellness_package_id } = body;
+    const { patient_lat, patient_lng, patient_address, notes, care_episode_id, follow_up_id, family_member_id, wellness_package_id, targeted_provider_id } = body;
     let { service_type } = body;
 
     if (patient_lat == null || patient_lng == null || !patient_address) {
@@ -96,6 +96,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // "Have a preferred provider?" — a patient targeting one specific
+    // provider by their referral code. Service type and profession are
+    // derived from that provider's actual profession, never trusted from
+    // the client, same as the follow_up_id path above.
+    let resolvedTargetedProviderId: string | null = null;
+    if (targeted_provider_id && !isFollowUp) {
+      const { data: targetedProvider } = await admin
+        .from("providers")
+        .select("id, profession")
+        .eq("id", targeted_provider_id)
+        .eq("verification_status", "verified")
+        .maybeSingle();
+      if (!targetedProvider) {
+        return NextResponse.json({ error: "That provider is no longer available" }, { status: 400 });
+      }
+      resolvedTargetedProviderId = targetedProvider.id;
+      service_type = FOLLOW_UP_SERVICE_TYPE[targetedProvider.profession as Profession];
+    }
+
     if (!service_type || !SERVICE_PRICES[service_type as ServiceType]) {
       return NextResponse.json({ error: "Invalid service type" }, { status: 400 });
     }
@@ -146,6 +165,7 @@ export async function POST(req: NextRequest) {
         is_follow_up: isFollowUp,
         follow_up_id: resolvedFollowUpId,
         preferred_provider_id: preferredProviderId,
+        targeted_provider_id: resolvedTargetedProviderId,
         patient_lat,
         patient_lng,
         patient_address,

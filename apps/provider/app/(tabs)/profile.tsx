@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, Switch, ActivityIndicator
+  TextInput, Alert, Switch, ActivityIndicator, Share
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
@@ -22,7 +22,7 @@ export default function ProfileScreen() {
     if (!user) return;
     const { data: prov } = await supabase
       .from("providers")
-      .select("id, name, phone, specialty, credentials, verification_status, available, bank_name, bank_account_number, bank_account_name, rating, total_visits")
+      .select("id, name, phone, specialty, credentials, verification_status, available, bank_name, bank_account_number, bank_account_name, rating, total_visits, referral_code")
       .eq("user_id", user.id)
       .single();
     if (prov) {
@@ -50,6 +50,14 @@ export default function ProfileScreen() {
     setSaving(false);
     if (error) Alert.alert("Error", "Could not save bank details.");
     else Alert.alert("Saved", "Bank details updated.");
+  }
+
+  async function shareCode() {
+    try {
+      await Share.share({ message: `Book me directly on StreetdocMD with my code: ${provider.referral_code}` });
+    } catch {
+      // user dismissed the share sheet — nothing to do
+    }
   }
 
   async function logout() {
@@ -89,6 +97,20 @@ export default function ProfileScreen() {
           <Text style={styles.statLabel}>Rating</Text>
         </View>
       </View>
+
+      {/* Referral code */}
+      {provider?.referral_code && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Your Patient Code</Text>
+          <Text style={styles.sectionSub}>Share this so patients can book directly with you</Text>
+          <View style={styles.row}>
+            <Text style={styles.codeText}>{provider.referral_code}</Text>
+            <TouchableOpacity style={styles.shareBtn} onPress={shareCode}>
+              <Text style={styles.shareBtnText}>Share</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {/* Availability */}
       <View style={styles.section}>
@@ -181,6 +203,9 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "#E5E7EB", gap: 10,
   },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  codeText: { fontSize: 22, fontWeight: "700", color: "#111827", letterSpacing: 3 },
+  shareBtn: { backgroundColor: "#059669", borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
+  shareBtnText: { color: "#fff", fontWeight: "600", fontSize: 13 },
   sectionTitle: { fontSize: 14, fontWeight: "600", color: "#111827" },
   sectionSub: { fontSize: 12, color: "#9CA3AF" },
   input: {

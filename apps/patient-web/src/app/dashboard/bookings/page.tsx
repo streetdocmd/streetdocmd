@@ -2,9 +2,11 @@
 import { createServerSupabase } from "@/lib/supabase-server";
 import { formatNaira, SERVICE_LABELS, BOOKING_STATUS_LABELS } from "@/lib/shared";
 import CancelButton from "./CancelButton";
+import ProviderDeclinedActions from "./ProviderDeclinedActions";
 
 const STATUS_COLORS: Record<string, string> = {
   pending_payment: "bg-orange-100 text-orange-800",
+  provider_declined: "bg-red-100 text-red-800",
   pending: "bg-amber-100 text-amber-800",
   accepted: "bg-blue-100 text-blue-800",
   en_route: "bg-violet-100 text-violet-800",
@@ -63,6 +65,11 @@ export default async function BookingsPage() {
                     {b.follow_up_of_booking_id && (
                       <p className="text-xs text-blue-brand mt-1">Recommended by your provider as a follow-up visit</p>
                     )}
+                    {b.status === "provider_declined" && (
+                      <p className="text-xs text-red-600 mt-1">
+                        The provider you requested wasn't able to accept this booking.
+                      </p>
+                    )}
                     <div className="flex items-center gap-4 mt-2">
                       <span className="text-blue-brand font-bold text-sm">{formatNaira(b.fee)}</span>
                       <span className="text-gray-400 text-xs">
@@ -98,6 +105,7 @@ export default async function BookingsPage() {
                     {b.status === "pending" && <CancelButton bookingId={b.id} />}
                   </div>
                 </div>
+                {b.status === "provider_declined" && <ProviderDeclinedActions bookingId={b.id} />}
               </div>
             );
           })}

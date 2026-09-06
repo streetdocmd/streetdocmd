@@ -66,6 +66,20 @@ export default async function DashboardHome() {
         })}
       </div>
 
+      <Link
+        href="/dashboard/book/preferred-provider"
+        className="card p-5 flex items-center gap-4 hover:shadow-card-md hover:border-blue-mid transition-all group mb-10"
+      >
+        <div className="text-3xl">🔑</div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-gray-900 group-hover:text-blue-brand transition-colors">
+            Have a Preferred Provider?
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">Enter their code to book directly with them</p>
+        </div>
+        <span className="text-gray-300 group-hover:text-blue-brand transition-colors">→</span>
+      </Link>
+
       <EmergencyButton />
     </div>
   );

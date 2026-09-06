@@ -3,6 +3,7 @@ import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server
 import { SERVICE_LABELS, BOOKING_STATUS_LABELS, formatNaira } from "@streetdocmd/shared";
 import DispatchCard from "./DispatchCard";
 import AvailabilityToggle from "./AvailabilityToggle";
+import ReferralCodeCard from "./ReferralCodeCard";
 import RealtimeDispatch from "./RealtimeDispatch";
 import LocationBroadcaster from "@/components/LocationBroadcaster";
 
@@ -18,7 +19,7 @@ export default async function DashboardPage({
 
   const { data: provider } = await supabase
     .from("providers")
-    .select("id, available, rating, total_visits, wallet_balance")
+    .select("id, available, rating, total_visits, wallet_balance, referral_code")
     .eq("user_id", user!.id)
     .single();
 
@@ -73,6 +74,8 @@ export default async function DashboardPage({
           <p className="text-xs text-gray-400 mt-0.5">Wallet</p>
         </div>
       </div>
+
+      {provider.referral_code && <ReferralCodeCard code={provider.referral_code} />}
 
       {/* Availability toggle + location broadcaster */}
       <AvailabilityToggle providerId={provider.id} initialAvailable={provider.available} />

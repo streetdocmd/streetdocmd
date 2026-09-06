@@ -6,6 +6,8 @@ const supabase = createClient(
 );
 
 const TERMII_API_KEY = Deno.env.get("TERMII_API_KEY") ?? "";
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
+const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") ?? "hello@streetdocmd.com";
 const BATCH_SIZE = 50;
 
 async function sendSMS(to: string, message: string): Promise<boolean> {
@@ -28,19 +30,39 @@ async function sendSMS(to: string, message: string): Promise<boolean> {
   }
 }
 
-Deno.serve(async (_req) => {
-  if (!TERMII_API_KEY) {
-    return new Response(JSON.stringify({ error: "TERMII_API_KEY not configured" }), { status: 500 });
+async function sendEmail(to: string, subject: string, message: string): Promise<boolean> {
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: RESEND_FROM_EMAIL,
+        to,
+        subject,
+        html: `<p>${message}</p>`,
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
   }
+}
 
+Deno.serve(async (_req) => {
   const now = new Date().toISOString();
 
-  // Fetch due notifications that haven't been sent yet
+  // Fetch due notifications that haven't been sent yet — either a patient
+  // SMS (the original path) or a provider email (preferred-provider
+  // requests, migration 037).
   const { data: queue, error } = await supabase
     .from("notifications_queue")
     .select(`
-      id, message, type, patient_id,
-      users!patient_id(phone)
+      id, message, subject, type, channel, patient_id, provider_id,
+      users!patient_id(phone),
+      providers!provider_id(users!user_id(email))
     `)
     .eq("sent", false)
     .lte("send_at", now)
@@ -58,11 +80,34 @@ Deno.serve(async (_req) => {
 
   const results = await Promise.allSettled(
     rows.map(async (row) => {
+      if (row.channel === "email") {
+        const email = ((row.providers as any)?.users as any)?.email;
+        if (!RESEND_API_KEY || !email) {
+          // Not configured / no email on file — mark sent so it doesn't retry forever
+          await supabase.from("notifications_queue").update({
+            sent: true, sent_at: now,
+            error: !RESEND_API_KEY ? "resend_not_configured" : "no_email",
+          }).eq("id", row.id);
+          return { id: row.id, sent: false, reason: "email_unavailable" };
+        }
+
+        const ok = await sendEmail(email, row.subject ?? "StreetdocMD notification", row.message);
+        await supabase.from("notifications_queue").update({
+          sent: ok,
+          sent_at: ok ? now : null,
+          error: ok ? null : "email_failed",
+        }).eq("id", row.id);
+        return { id: row.id, sent: ok };
+      }
+
+      // Default path: patient SMS (unchanged from before channel existed)
       const phone = (row.users as any)?.phone;
-      if (!phone) {
-        // No phone — mark as sent (no-op) so it doesn't retry forever
-        await supabase.from("notifications_queue").update({ sent: true, sent_at: now }).eq("id", row.id);
-        return { id: row.id, sent: false, reason: "no_phone" };
+      if (!TERMII_API_KEY || !phone) {
+        await supabase.from("notifications_queue").update({
+          sent: true, sent_at: now,
+          error: !TERMII_API_KEY ? "termii_not_configured" : "no_phone",
+        }).eq("id", row.id);
+        return { id: row.id, sent: false, reason: "sms_unavailable" };
       }
 
       const ok = await sendSMS(phone, row.message);

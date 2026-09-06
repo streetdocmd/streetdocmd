@@ -102,6 +102,18 @@ export default function HomeScreen() {
       </View>
 
       <TouchableOpacity
+        style={styles.preferredCard}
+        onPress={() => router.push("/booking/preferred-provider")}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.preferredIcon}>🔑</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.preferredTitle}>Have a Preferred Provider?</Text>
+          <Text style={styles.preferredSub}>Enter their code to book directly with them</Text>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity
         style={styles.panicButton}
         onPress={() =>
           Alert.alert(
@@ -160,8 +172,15 @@ const styles = StyleSheet.create({
   cardCustom: { width: "100%", backgroundColor: "#EFF6FF", borderColor: "#BFDBFE" },
   cardTitle: { fontSize: 13, fontWeight: "600", color: "#111827", lineHeight: 18 },
   cardPrice: { fontSize: 12, color: "#1E6FD9", marginTop: 6, fontWeight: "500" },
+  preferredCard: {
+    marginTop: 20, backgroundColor: "#fff", borderWidth: 1, borderColor: "#E5E7EB",
+    borderRadius: 12, padding: 16, flexDirection: "row", alignItems: "center", gap: 12,
+  },
+  preferredIcon: { fontSize: 24 },
+  preferredTitle: { fontSize: 14, fontWeight: "600", color: "#111827" },
+  preferredSub: { fontSize: 12, color: "#6B7280", marginTop: 2 },
   panicButton: {
-    marginTop: 28, backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA",
+    marginTop: 12, backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA",
     borderRadius: 12, padding: 16, alignItems: "center",
   },
   panicText: { color: "#DC2626", fontWeight: "600", fontSize: 14 },

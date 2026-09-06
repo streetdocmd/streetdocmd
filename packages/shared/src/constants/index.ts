@@ -58,6 +58,7 @@ export const PROVIDER_ACCEPTANCE_WINDOW_SECONDS = 120; // 2 minutes
 
 export const BOOKING_STATUS_LABELS = {
   pending_payment: "Awaiting Payment",
+  provider_declined: "Provider Unavailable",
   pending: "Finding Provider",
   accepted: "Provider Assigned",
   en_route: "Provider En Route",
