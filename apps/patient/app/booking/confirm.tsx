@@ -5,6 +5,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { supabase } from "../../lib/supabase";
+import FamilyMemberPicker from "../../components/FamilyMemberPicker";
 import {
   ServiceType, SERVICE_LABELS, SERVICE_PRICES, SERVICE_PROFESSION,
   formatNaira, calculateCommission, calculateNetPayout
@@ -19,6 +20,7 @@ export default function ConfirmBookingScreen() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState("");
   const [booking, setBooking] = useState(false);
+  const [familyMemberId, setFamilyMemberId] = useState<string | null>(null);
 
   const fee = SERVICE_PRICES[service];
 
@@ -65,6 +67,7 @@ export default function ConfirmBookingScreen() {
       .from("bookings")
       .insert({
         patient_id: user.id,
+        family_member_id: familyMemberId,
         service_type: service,
         // Without this, every mobile booking silently defaults to
         // profession='doctor' at the database level regardless of the
@@ -104,6 +107,8 @@ export default function ConfirmBookingScreen() {
       </View>
 
       <View style={styles.content}>
+        <FamilyMemberPicker onChange={setFamilyMemberId} />
+
         {geoState === "idle" && (
           <View style={styles.card}>
             <Text style={styles.cardEmoji}>📍</Text>

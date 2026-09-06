@@ -8,6 +8,7 @@ import { supabase } from "../../lib/supabase";
 import { formatNaira, SERVICE_LABELS, BOOKING_STATUS_LABELS } from "@streetdocmd/shared";
 
 const STATUS_COLORS: Record<string, string> = {
+  pending_payment: "#FFEDD5",
   pending: "#FEF3C7",
   accepted: "#DBEAFE",
   en_route: "#EDE9FE",
@@ -17,6 +18,7 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: "#FEE2E2",
 };
 const STATUS_TEXT: Record<string, string> = {
+  pending_payment: "#9A3412",
   pending: "#92400E", accepted: "#1E40AF", en_route: "#5B21B6",
   arrived: "#3730A3", in_progress: "#92400E", completed: "#065F46", cancelled: "#991B1B",
 };
@@ -42,7 +44,7 @@ export default function BookingsScreen() {
 
     const { data } = await supabase
       .from("bookings")
-      .select("*, providers!bookings_provider_id_fkey(name, specialty), reviews(id)")
+      .select("*, providers!bookings_provider_id_fkey(name, specialty), reviews(id), family_members(name, relationship)")
       .eq("patient_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -124,6 +126,12 @@ export default function BookingsScreen() {
             {b.providers && (
               <Text style={styles.provider}>{b.providers.name} · {b.providers.specialty}</Text>
             )}
+            {b.family_members && (
+              <Text style={styles.provider}>For {b.family_members.name} ({b.family_members.relationship})</Text>
+            )}
+            {b.follow_up_of_booking_id && (
+              <Text style={styles.followUpNote}>Recommended by your provider as a follow-up visit</Text>
+            )}
 
             <View style={styles.cardBottom}>
               <Text style={styles.fee}>{formatNaira(b.fee)}</Text>
@@ -131,6 +139,17 @@ export default function BookingsScreen() {
                 {new Date(b.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
               </Text>
             </View>
+
+            {b.status === "pending_payment" && (
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={styles.payBtn}
+                  onPress={() => router.push({ pathname: "/booking/payment", params: { bookingId: b.id } })}
+                >
+                  <Text style={styles.payBtnText}>Pay Now →</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             {isActive && (
               <View style={styles.actionRow}>
@@ -191,6 +210,7 @@ const styles = StyleSheet.create({
   badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
   badgeText: { fontSize: 11, fontWeight: "600" },
   provider: { fontSize: 13, color: "#6B7280", marginBottom: 10 },
+  followUpNote: { fontSize: 12, color: "#1E6FD9", marginBottom: 10, marginTop: -6 },
   cardBottom: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
   fee: { fontSize: 14, fontWeight: "700", color: "#1E6FD9" },
   date: { fontSize: 12, color: "#9CA3AF" },
@@ -200,6 +220,8 @@ const styles = StyleSheet.create({
     borderRadius: 8, paddingVertical: 9, alignItems: "center",
   },
   trackBtnText: { color: "#1E6FD9", fontWeight: "600", fontSize: 13 },
+  payBtn: { backgroundColor: "#1E6FD9", borderRadius: 8, paddingVertical: 9, alignItems: "center" },
+  payBtnText: { color: "#fff", fontWeight: "600", fontSize: 13 },
   cancelBtn: {
     backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA",
     borderRadius: 8, paddingVertical: 9, alignItems: "center",

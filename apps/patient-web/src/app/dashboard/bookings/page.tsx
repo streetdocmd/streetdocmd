@@ -4,6 +4,7 @@ import { formatNaira, SERVICE_LABELS, BOOKING_STATUS_LABELS } from "@/lib/shared
 import CancelButton from "./CancelButton";
 
 const STATUS_COLORS: Record<string, string> = {
+  pending_payment: "bg-orange-100 text-orange-800",
   pending: "bg-amber-100 text-amber-800",
   accepted: "bg-blue-100 text-blue-800",
   en_route: "bg-violet-100 text-violet-800",
@@ -21,7 +22,7 @@ export default async function BookingsPage() {
 
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("*, providers!bookings_provider_id_fkey(name, specialty), reviews(id)")
+    .select("*, providers!bookings_provider_id_fkey(name, specialty), reviews(id), family_members(name, relationship)")
     .eq("patient_id", user!.id)
     .order("created_at", { ascending: false });
 
@@ -56,6 +57,12 @@ export default async function BookingsPage() {
                     {b.providers && (
                       <p className="text-sm text-gray-500 mt-0.5">{b.providers.name} · {b.providers.specialty}</p>
                     )}
+                    {b.family_members && (
+                      <p className="text-xs text-gray-400 mt-0.5">For {b.family_members.name} ({b.family_members.relationship})</p>
+                    )}
+                    {b.follow_up_of_booking_id && (
+                      <p className="text-xs text-blue-brand mt-1">Recommended by your provider as a follow-up visit</p>
+                    )}
                     <div className="flex items-center gap-4 mt-2">
                       <span className="text-blue-brand font-bold text-sm">{formatNaira(b.fee)}</span>
                       <span className="text-gray-400 text-xs">
@@ -65,6 +72,11 @@ export default async function BookingsPage() {
                   </div>
 
                   <div className="flex flex-col gap-2 items-end shrink-0">
+                    {b.status === "pending_payment" && (
+                      <Link href={`/dashboard/book/payment/${b.id}`} className="btn-primary text-xs px-3 py-1.5 whitespace-nowrap">
+                        Pay Now →
+                      </Link>
+                    )}
                     {isActive && (
                       <Link href={`/dashboard/book/tracking/${b.id}`} className="btn-primary text-xs px-3 py-1.5">
                         Track →

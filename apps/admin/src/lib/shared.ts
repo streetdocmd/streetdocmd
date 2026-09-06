@@ -60,6 +60,7 @@ export const PLATFORM_COMMISSION_RATE = 0.2;
 export const PROVIDER_ACCEPTANCE_WINDOW_SECONDS = 120;
 
 export const BOOKING_STATUS_LABELS = {
+  pending_payment: "Awaiting Payment",
   pending: "Finding Provider",
   accepted: "Provider Assigned",
   en_route: "Provider En Route",

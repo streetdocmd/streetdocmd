@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { patient_lat, patient_lng, patient_address, notes, care_episode_id, follow_up_id } = body;
+    const { patient_lat, patient_lng, patient_address, notes, care_episode_id, follow_up_id, family_member_id } = body;
     let { service_type } = body;
 
     if (patient_lat == null || patient_lng == null || !patient_address) {
@@ -31,6 +31,22 @@ export async function POST(req: NextRequest) {
     }
 
     const admin = createAdminSupabase();
+
+    // Optional "request care for someone else" — only accepted if the
+    // family member actually belongs to this patient's own account.
+    let familyMemberId: string | null = null;
+    if (family_member_id) {
+      const { data: familyMember } = await supabase
+        .from("family_members")
+        .select("id")
+        .eq("id", family_member_id)
+        .eq("account_holder_id", user.id)
+        .maybeSingle();
+      familyMemberId = familyMember?.id ?? null;
+      if (!familyMemberId) {
+        return NextResponse.json({ error: "Invalid family member" }, { status: 400 });
+      }
+    }
 
     // Optional link to an existing care episode (e.g. "book a follow-up"
     // from the patient's My Care page) — only accepted if it's actually
@@ -103,6 +119,7 @@ export async function POST(req: NextRequest) {
       .from("bookings")
       .insert({
         patient_id: user.id,
+        family_member_id: familyMemberId,
         service_type,
         profession: SERVICE_PROFESSION[service_type as ServiceType],
         care_episode_id: careEpisodeId,

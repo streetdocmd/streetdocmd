@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SERVICE_LABELS, SERVICE_PRICES, formatNaira } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
+import FamilyMemberPicker from "./FamilyMemberPicker";
 
 type GeoState = "idle" | "locating" | "ready" | "denied";
 
@@ -23,6 +24,7 @@ export default function BookProviderClient({
   const [address, setAddress] = useState("");
   const [booking, setBooking] = useState(false);
   const [error, setError] = useState("");
+  const [familyMemberId, setFamilyMemberId] = useState<string | null>(null);
 
   const fee = SERVICE_PRICES[service];
 
@@ -72,6 +74,7 @@ export default function BookProviderClient({
           notes: description ?? null,
           care_episode_id: careEpisodeId ?? null,
           follow_up_id: followUpId ?? null,
+          family_member_id: familyMemberId,
         }),
       });
 
@@ -116,6 +119,9 @@ export default function BookProviderClient({
           </span>
         </div>
       </div>
+
+      {/* Who is this for */}
+      {!followUpId && <FamilyMemberPicker onChange={setFamilyMemberId} />}
 
       {/* Location step */}
       {geoState === "idle" && (

@@ -6,18 +6,17 @@ import {
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 
-export default function LoginScreen() {
+export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function login() {
+  async function sendCode() {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
     setLoading(false);
-    if (error) { Alert.alert("Login failed", error.message); return; }
-    router.replace("/(tabs)/home");
+    if (error) { Alert.alert("Something went wrong", error.message); return; }
+    router.push({ pathname: "/(auth)/reset-password", params: { email: email.trim() } });
   }
 
   return (
@@ -27,7 +26,7 @@ export default function LoginScreen() {
     >
       <View style={styles.card}>
         <Text style={styles.logo}>StreetdocMD</Text>
-        <Text style={styles.tagline}>Care. Anywhere. Anytime.</Text>
+        <Text style={styles.tagline}>Reset your password</Text>
 
         <Text style={styles.label}>Email address</Text>
         <TextInput
@@ -39,32 +38,20 @@ export default function LoginScreen() {
           autoCapitalize="none"
           autoCorrect={false}
         />
-
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Password"
-          secureTextEntry
-        />
-
-        <TouchableOpacity onPress={() => router.push("/(auth)/forgot-password")} style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-        </TouchableOpacity>
+        <Text style={styles.hint}>
+          We'll email you a code to reset your password.
+        </Text>
 
         <TouchableOpacity
-          style={[styles.btn, (loading || !email || !password) && styles.btnDisabled]}
-          onPress={login}
-          disabled={loading || !email || !password}
+          style={[styles.btn, (loading || !email) && styles.btnDisabled]}
+          onPress={sendCode}
+          disabled={loading || !email}
         >
-          <Text style={styles.btnText}>{loading ? "Signing in..." : "Sign In"}</Text>
+          <Text style={styles.btnText}>{loading ? "Sending..." : "Send code"}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/(auth)/register")} style={styles.register}>
-          <Text style={styles.registerText}>
-            New here? <Text style={styles.registerLink}>Create an account</Text>
-          </Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.register}>
+          <Text style={styles.registerText}>Back to sign in</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -79,14 +66,12 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, color: "#444", marginBottom: 6, fontWeight: "500" },
   input: {
     borderWidth: 1, borderColor: "#ddd", borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 16,
+    paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 8,
   },
-  forgotPassword: { alignSelf: "flex-end", marginTop: -10, marginBottom: 16 },
-  forgotPasswordText: { fontSize: 13, color: "#1E6FD9", fontWeight: "600" },
+  hint: { fontSize: 12, color: "#888", marginBottom: 20 },
   btn: { backgroundColor: "#1E6FD9", borderRadius: 10, paddingVertical: 14, alignItems: "center", marginTop: 4 },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
   register: { marginTop: 20, alignItems: "center" },
   registerText: { fontSize: 14, color: "#6B7280" },
-  registerLink: { color: "#1E6FD9", fontWeight: "600" },
 });
