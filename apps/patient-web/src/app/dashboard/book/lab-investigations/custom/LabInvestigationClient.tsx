@@ -20,10 +20,8 @@ interface SelectedTest {
 }
 
 export default function LabInvestigationClient({
-  labPartnerId, labName, catalogue,
+  catalogue,
 }: {
-  labPartnerId: string;
-  labName: string;
   catalogue: CatalogueItem[];
 }) {
   const router = useRouter();
@@ -62,7 +60,6 @@ export default function LabInvestigationClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          labPartnerId,
           catalogueIds: selected.map(t => t.catalogue_id),
           clinicalNotes: notes.trim() || null,
         }),
@@ -84,7 +81,7 @@ export default function LabInvestigationClient({
     <div className="max-w-2xl mx-auto space-y-5">
       <div>
         <h1 className="text-xl font-bold text-gray-900">Choose Specific Tests</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Lab: {labName}</p>
+        <p className="text-sm text-gray-500 mt-0.5">Search and select exactly the investigations you need</p>
       </div>
 
       <div className="card p-5 space-y-3">

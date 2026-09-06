@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
-import { formatNaira, SERVICE_PRICES } from "@/lib/shared";
+import { formatNaira } from "@/lib/shared";
 
 const STATUS_LABELS: Record<string, string> = {
   ordered: "Order Placed",
@@ -24,6 +24,14 @@ export default async function LabInvestigationsPage() {
     .order("ordered_at", { ascending: false })
     .limit(10);
 
+  const { data: cheapestPackage } = await supabase
+    .from("wellness_packages")
+    .select("price")
+    .eq("active", true)
+    .order("price", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
@@ -34,13 +42,15 @@ export default async function LabInvestigationsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Link href="/dashboard/book/wellness_check" className="card p-5 hover:shadow-card-md hover:border-blue-mid transition-all group">
+        <Link href="/dashboard/book/wellness" className="card p-5 hover:shadow-card-md hover:border-blue-mid transition-all group">
           <div className="text-3xl mb-3">🌿</div>
           <h3 className="font-semibold text-gray-900 group-hover:text-blue-brand transition-colors">Wellness Check Package</h3>
           <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-            A curated panel of routine screening tests — blood tests, urinalysis, and more.
+            Choose a tiered package — routine screening bundled at a fixed price.
           </p>
-          <p className="text-sm font-semibold text-blue-brand mt-3">{formatNaira(SERVICE_PRICES.wellness_check)}</p>
+          <p className="text-sm font-semibold text-blue-brand mt-3">
+            {cheapestPackage ? `From ${formatNaira(cheapestPackage.price)}` : "View packages"}
+          </p>
         </Link>
 
         <Link href="/dashboard/book/lab-investigations/custom" className="card p-5 hover:shadow-card-md hover:border-blue-mid transition-all group">

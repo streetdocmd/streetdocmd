@@ -1,9 +1,23 @@
+import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { SERVICE_PRICES, formatNaira } from "@streetdocmd/shared";
+import { supabase } from "../../lib/supabase";
+import { formatNaira } from "@streetdocmd/shared";
 
 export default function LabInvestigationsChoiceScreen() {
   const router = useRouter();
+  const [cheapestPrice, setCheapestPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("wellness_packages")
+      .select("price")
+      .eq("active", true)
+      .order("price", { ascending: true })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => setCheapestPrice(data?.price ?? null));
+  }, []);
 
   return (
     <View style={s.container}>
@@ -15,12 +29,12 @@ export default function LabInvestigationsChoiceScreen() {
       <TouchableOpacity
         style={s.card}
         activeOpacity={0.8}
-        onPress={() => router.push({ pathname: "/booking/confirm", params: { service: "wellness_check" } })}
+        onPress={() => router.push("/booking/wellness-packages")}
       >
         <Text style={s.cardIcon}>🌿</Text>
         <Text style={s.cardTitle}>Wellness Check Package</Text>
-        <Text style={s.cardDesc}>A curated panel of routine screening tests — blood tests, urinalysis, and more.</Text>
-        <Text style={s.cardPrice}>{formatNaira(SERVICE_PRICES.wellness_check)}</Text>
+        <Text style={s.cardDesc}>Choose a tiered package — routine screening bundled at a fixed price.</Text>
+        <Text style={s.cardPrice}>{cheapestPrice != null ? `From ${formatNaira(cheapestPrice)}` : "View packages"}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity

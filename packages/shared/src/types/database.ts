@@ -230,6 +230,7 @@ export interface Booking {
   is_follow_up: boolean;
   follow_up_id: string | null;
   preferred_provider_id: string | null;
+  wellness_package_id: string | null;
   status: BookingStatus;
   patient_lat: number;
   patient_lng: number;

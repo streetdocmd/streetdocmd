@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { patient_lat, patient_lng, patient_address, notes, care_episode_id, follow_up_id, family_member_id } = body;
+    const { patient_lat, patient_lng, patient_address, notes, care_episode_id, follow_up_id, family_member_id, wellness_package_id } = body;
     let { service_type } = body;
 
     if (patient_lat == null || patient_lng == null || !patient_address) {
@@ -100,7 +100,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid service type" }, { status: 400 });
     }
 
-    const standardFee = SERVICE_PRICES[service_type as ServiceType];
+    let standardFee = SERVICE_PRICES[service_type as ServiceType];
+
+    // Wellness Check is priced by the tier the patient chose, not the flat
+    // SERVICE_PRICES lookup every other service uses — the fee is never
+    // trusted from the client, only the package price looked up here.
+    let resolvedWellnessPackageId: string | null = null;
+    if (service_type === "wellness_check") {
+      if (!wellness_package_id) {
+        return NextResponse.json({ error: "Missing wellness_package_id" }, { status: 400 });
+      }
+      const { data: pkg } = await admin
+        .from("wellness_packages")
+        .select("id, price")
+        .eq("id", wellness_package_id)
+        .eq("active", true)
+        .maybeSingle();
+      if (!pkg) return NextResponse.json({ error: "Invalid or inactive wellness package" }, { status: 400 });
+      resolvedWellnessPackageId = pkg.id;
+      standardFee = pkg.price;
+    }
 
     let fee = standardFee;
     if (isFollowUp) {
@@ -120,6 +139,7 @@ export async function POST(req: NextRequest) {
       .insert({
         patient_id: user.id,
         family_member_id: familyMemberId,
+        wellness_package_id: resolvedWellnessPackageId,
         service_type,
         profession: SERVICE_PROFESSION[service_type as ServiceType],
         care_episode_id: careEpisodeId,

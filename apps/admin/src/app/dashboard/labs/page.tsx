@@ -5,7 +5,7 @@ import LabsClient from "./LabsClient";
 export default async function LabsPage() {
   const admin = createAdminSupabase();
 
-  const [{ data: orders }, { data: partners }, { data: staffRows }] = await Promise.all([
+  const [{ data: orders }, { data: partners }, { data: staffRows }, { data: wellnessPackages }, { data: catalogue }] = await Promise.all([
     admin
       .from("investigation_orders")
       .select(`
@@ -24,6 +24,15 @@ export default async function LabsPage() {
       .from("lab_staff")
       .select("id, user_id, lab_partner_id, users(name, email, phone)")
       .order("created_at", { ascending: false }),
+    admin
+      .from("wellness_packages")
+      .select("id, name, price, description, included_tests, sort_order, active")
+      .order("sort_order"),
+    admin
+      .from("investigation_catalogue")
+      .select("id, test_name, test_code, price, turnaround_hours, sample_type, active")
+      .eq("scope", "platform")
+      .order("test_name"),
   ]);
 
   // Revenue report: 15% commission on all resulted orders
@@ -39,6 +48,8 @@ export default async function LabsPage() {
       orders={(orders ?? []) as any}
       partners={(partners ?? []) as any}
       staff={(staffRows ?? []) as any}
+      wellnessPackages={(wellnessPackages ?? []) as any}
+      catalogue={(catalogue ?? []) as any}
       stats={{ totalOrders: (orders ?? []).length, resulted: resultedOrders.length, commission }}
     />
   );

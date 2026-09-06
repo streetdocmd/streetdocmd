@@ -19,12 +19,14 @@ const STATUS_COLOR: Record<string, string> = {
   resulted:                   "bg-green-100 text-green-700",
 };
 
-type Tab = "orders" | "partners" | "staff";
+type Tab = "orders" | "partners" | "staff" | "wellness" | "catalogue";
 
-export default function LabsClient({ orders, partners, staff, stats }: {
+export default function LabsClient({ orders, partners, staff, wellnessPackages, catalogue, stats }: {
   orders: any[];
   partners: any[];
   staff: any[];
+  wellnessPackages: any[];
+  catalogue: any[];
   stats: { totalOrders: number; resulted: number; commission: number };
 }) {
   const [tab, setTab] = useState<Tab>("orders");
@@ -43,15 +45,16 @@ export default function LabsClient({ orders, partners, staff, stats }: {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200">
-        {(["orders", "partners", "staff"] as Tab[]).map(t => (
+        {(["orders", "partners", "staff", "wellness", "catalogue"] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               tab === t ? "border-teal-600 text-teal-600" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
-            {t === "orders" ? "Orders" : t === "partners" ? "Lab Partners" : "Staff"}
+            {t === "orders" ? "Orders" : t === "partners" ? "Lab Partners" : t === "staff" ? "Staff"
+              : t === "wellness" ? "Wellness Packages" : "Test Catalogue"}
           </button>
         ))}
       </div>
@@ -65,6 +68,8 @@ export default function LabsClient({ orders, partners, staff, stats }: {
         />
       )}
       {tab === "staff"    && <StaffPanel staff={staff} partners={partners} />}
+      {tab === "wellness"  && <WellnessPackagesPanel packages={wellnessPackages} />}
+      {tab === "catalogue" && <CataloguePanel tests={catalogue} />}
     </div>
   );
 }
@@ -336,6 +341,199 @@ function StaffPanel({ staff, partners }: { staff: any[]; partners: any[] }) {
                   </tr>
                 );
               })}
+            </tbody>
+          </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WellnessPackagesPanel({ packages }: { packages: any[] }) {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: "", price: "", description: "", sort_order: "", tests: "" });
+  const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState<string | null>(null);
+
+  function setF(k: keyof typeof form, v: string) { setForm(f => ({ ...f, [k]: v })); }
+
+  async function addPackage(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    const included_tests = form.tests.split(",").map(t => t.trim()).filter(Boolean).map(test_name => ({ test_name }));
+    await fetch("/api/labs/wellness-packages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...form, included_tests }),
+    });
+    setSaving(false);
+    setShowForm(false);
+    window.location.reload();
+  }
+
+  async function toggleActive(id: string, current: boolean) {
+    setToggling(id);
+    await fetch(`/api/labs/wellness-packages/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active: !current }),
+    });
+    setToggling(null);
+    window.location.reload();
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700">
+          {showForm ? "Cancel" : "+ Add Package"}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={addPackage} className="card p-5 space-y-4">
+          <p className="font-semibold text-gray-900">New Wellness Package</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label className="label">Name *</label><input className="input" required value={form.name} onChange={e => setF("name", e.target.value)} placeholder="e.g. Gold" /></div>
+            <div><label className="label">Price (₦) *</label><input className="input" type="number" required value={form.price} onChange={e => setF("price", e.target.value)} /></div>
+            <div className="col-span-2"><label className="label">Description</label><input className="input" value={form.description} onChange={e => setF("description", e.target.value)} /></div>
+            <div className="col-span-2">
+              <label className="label">Included tests (comma-separated)</label>
+              <input className="input" value={form.tests} onChange={e => setF("tests", e.target.value)} placeholder="Full Blood Count, Fasting Blood Sugar, Urinalysis" />
+            </div>
+            <div><label className="label">Sort order</label><input className="input" type="number" value={form.sort_order} onChange={e => setF("sort_order", e.target.value)} /></div>
+          </div>
+          <button type="submit" disabled={saving} className="px-6 py-2.5 bg-teal-600 text-white rounded-lg font-semibold text-sm disabled:opacity-50">
+            {saving ? "Saving…" : "Add Package"}
+          </button>
+        </form>
+      )}
+
+      {packages.length === 0 ? (
+        <div className="card p-10 text-center text-gray-400">No wellness packages added yet.</div>
+      ) : (
+        <div className="space-y-3">
+          {packages.map(p => (
+            <div key={p.id} className="card p-4 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-900">{p.name} — {formatNaira(p.price)}</p>
+                {p.description && <p className="text-sm text-gray-500">{p.description}</p>}
+                <p className="text-xs text-gray-400 mt-1">
+                  {(p.included_tests as any[])?.map(t => t.test_name).join(", ")}
+                </p>
+              </div>
+              <button
+                onClick={() => toggleActive(p.id, p.active)}
+                disabled={toggling === p.id}
+                className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors shrink-0 ${
+                  p.active
+                    ? "bg-green-100 text-green-700 hover:bg-red-50 hover:text-red-600"
+                    : "bg-gray-100 text-gray-500 hover:bg-green-50 hover:text-green-700"
+                }`}
+              >
+                {toggling === p.id ? "…" : p.active ? "Active" : "Inactive"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CataloguePanel({ tests }: { tests: any[] }) {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ test_name: "", test_code: "", price: "", turnaround_hours: "", sample_type: "" });
+  const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState<string | null>(null);
+
+  function setF(k: keyof typeof form, v: string) { setForm(f => ({ ...f, [k]: v })); }
+
+  async function addTest(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    await fetch("/api/labs/catalogue", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    setSaving(false);
+    setShowForm(false);
+    window.location.reload();
+  }
+
+  async function toggleActive(id: string, current: boolean) {
+    setToggling(id);
+    await fetch(`/api/labs/catalogue/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active: !current }),
+    });
+    setToggling(null);
+    window.location.reload();
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700">
+          {showForm ? "Cancel" : "+ Add Test"}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={addTest} className="card p-5 space-y-4">
+          <p className="font-semibold text-gray-900">New Platform Test</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label className="label">Test name *</label><input className="input" required value={form.test_name} onChange={e => setF("test_name", e.target.value)} /></div>
+            <div><label className="label">Test code</label><input className="input" value={form.test_code} onChange={e => setF("test_code", e.target.value)} /></div>
+            <div><label className="label">Price (₦) *</label><input className="input" type="number" required value={form.price} onChange={e => setF("price", e.target.value)} /></div>
+            <div><label className="label">Turnaround (hours)</label><input className="input" type="number" value={form.turnaround_hours} onChange={e => setF("turnaround_hours", e.target.value)} /></div>
+            <div><label className="label">Sample type</label><input className="input" value={form.sample_type} onChange={e => setF("sample_type", e.target.value)} placeholder="Blood, Urine…" /></div>
+          </div>
+          <button type="submit" disabled={saving} className="px-6 py-2.5 bg-teal-600 text-white rounded-lg font-semibold text-sm disabled:opacity-50">
+            {saving ? "Saving…" : "Add Test"}
+          </button>
+        </form>
+      )}
+
+      {tests.length === 0 ? (
+        <div className="card p-10 text-center text-gray-400">No platform tests added yet.</div>
+      ) : (
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                {["Test", "Code", "Price", "TAT", "Sample", "Status"].map(h => (
+                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {tests.map(t => (
+                <tr key={t.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-medium text-gray-900">{t.test_name}</td>
+                  <td className="px-4 py-3 text-gray-500">{t.test_code ?? "—"}</td>
+                  <td className="px-4 py-3 text-gray-900">{formatNaira(t.price)}</td>
+                  <td className="px-4 py-3 text-gray-500">{t.turnaround_hours ? `${t.turnaround_hours}h` : "—"}</td>
+                  <td className="px-4 py-3 text-gray-500">{t.sample_type ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => toggleActive(t.id, t.active)}
+                      disabled={toggling === t.id}
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors ${
+                        t.active
+                          ? "bg-green-100 text-green-700 hover:bg-red-50 hover:text-red-600"
+                          : "bg-gray-100 text-gray-500 hover:bg-green-50 hover:text-green-700"
+                      }`}
+                    >
+                      {toggling === t.id ? "…" : t.active ? "Active" : "Inactive"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
           </div>

@@ -25,8 +25,6 @@ interface SelectedTest {
 export default function LabInvestigationsCustomScreen() {
   const router = useRouter();
   const [catalogue, setCatalogue] = useState<CatalogueItem[]>([]);
-  const [labPartnerId, setLabPartnerId] = useState<string | null>(null);
-  const [labName, setLabName] = useState("");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<SelectedTest[]>([]);
   const [notes, setNotes] = useState("");
@@ -38,21 +36,10 @@ export default function LabInvestigationsCustomScreen() {
   }, []);
 
   async function load() {
-    const { data: lab } = await supabase
-      .from("lab_partners")
-      .select("id, name")
-      .eq("active", true)
-      .limit(1)
-      .single();
-
-    if (!lab) { setLoading(false); return; }
-    setLabPartnerId(lab.id);
-    setLabName(lab.name);
-
     const { data: tests } = await supabase
       .from("investigation_catalogue")
       .select("id, test_name, test_code, price, turnaround_hours, sample_type")
-      .eq("lab_partner_id", lab.id)
+      .eq("scope", "platform")
       .eq("active", true)
       .order("test_name");
 
@@ -75,7 +62,7 @@ export default function LabInvestigationsCustomScreen() {
   const total = selected.reduce((sum, t) => sum + t.price, 0);
 
   async function submit() {
-    if (!labPartnerId || selected.length === 0) {
+    if (selected.length === 0) {
       Alert.alert("Select at least one test");
       return;
     }
@@ -84,10 +71,25 @@ export default function LabInvestigationsCustomScreen() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSubmitting(false); return; }
 
+    // The catalogue is platform-wide (not tied to any one partner) —
+    // resolve which lab partner actually fulfills this order here.
+    const { data: labPartner } = await supabase
+      .from("lab_partners")
+      .select("id")
+      .eq("active", true)
+      .limit(1)
+      .single();
+
+    if (!labPartner) {
+      setSubmitting(false);
+      Alert.alert("No lab partner available", "Please check back shortly.");
+      return;
+    }
+
     const { error } = await supabase.from("investigation_orders").insert({
       patient_id: user.id,
       provider_id: null,
-      lab_partner_id: labPartnerId,
+      lab_partner_id: labPartner.id,
       tests: selected,
       clinical_notes: notes.trim() || null,
       status: "ordered",
@@ -103,7 +105,7 @@ export default function LabInvestigationsCustomScreen() {
 
     Alert.alert(
       "Request Sent",
-      `${selected.length} test(s) requested from ${labName}. Track progress in the Investigations tab.`,
+      `${selected.length} test(s) requested. Track progress in the Investigations tab.`,
       [{ text: "Done", onPress: () => router.replace("/(tabs)/investigations") }]
     );
   }
@@ -112,19 +114,9 @@ export default function LabInvestigationsCustomScreen() {
     return <View style={s.center}><ActivityIndicator size="large" color="#1E6FD9" /></View>;
   }
 
-  if (!labPartnerId) {
-    return (
-      <View style={s.center}>
-        <Text style={s.emptyTitle}>No lab partner available</Text>
-        <Text style={s.emptyText}>Please check back shortly.</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
       <ScrollView contentContainerStyle={s.content}>
-        <Text style={s.partnerLabel}>Lab: {labName}</Text>
 
         <View style={s.searchBox}>
           <TextInput
