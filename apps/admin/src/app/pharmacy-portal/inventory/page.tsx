@@ -9,6 +9,11 @@ const BLANK_FORM = {
   price: "", stock_quantity: "", prescription_required: false,
 };
 
+interface LibraryItem {
+  id: string; name: string; generic_name: string | null;
+  formulation: string | null; strength: string | null;
+}
+
 export default function InventoryPage() {
   const [loading, setLoading]         = useState(true);
   const [partnerId, setPartnerId]     = useState<string | null>(null);
@@ -21,6 +26,8 @@ export default function InventoryPage() {
   const [editingId, setEditingId]     = useState<string | null>(null);
   const [editValues, setEditValues]   = useState<{ price: string; stock_quantity: string }>({ price: "", stock_quantity: "" });
   const [savingRow, setSavingRow]     = useState<string | null>(null);
+  const [library, setLibrary]         = useState<LibraryItem[]>([]);
+  const [librarySearch, setLibrarySearch] = useState("");
 
   useEffect(() => { init(); }, []);
 
@@ -37,7 +44,31 @@ export default function InventoryPage() {
     }
     setPartnerId(pid);
     await loadDrugs(pid);
+
+    const { data: lib } = await supabase
+      .from("medication_library")
+      .select("id, name, generic_name, formulation, strength")
+      .order("name");
+    setLibrary(lib ?? []);
   }
+
+  function pickFromLibrary(item: LibraryItem) {
+    setForm(f => ({
+      ...f,
+      drug_name: item.name,
+      generic_name: item.generic_name ?? "",
+      formulation: item.formulation ?? f.formulation,
+      strength: item.strength ?? "",
+    }));
+    setLibrarySearch("");
+  }
+
+  const libraryMatches = librarySearch.trim()
+    ? library.filter(item =>
+        item.name.toLowerCase().includes(librarySearch.toLowerCase()) ||
+        (item.generic_name ?? "").toLowerCase().includes(librarySearch.toLowerCase())
+      ).slice(0, 8)
+    : [];
 
   async function loadDrugs(pid: string | null) {
     const supabase = createClient();
@@ -143,6 +174,33 @@ export default function InventoryPage() {
       {showForm && (
         <form onSubmit={addDrug} className="card p-5 space-y-4">
           <p className="font-semibold text-gray-900">New Drug</p>
+
+          <div className="relative">
+            <label className="label">Search medication library (optional — fills fields below)</label>
+            <input
+              className="input"
+              placeholder="Start typing a drug name…"
+              value={librarySearch}
+              onChange={e => setLibrarySearch(e.target.value)}
+            />
+            {libraryMatches.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                {libraryMatches.map(item => (
+                  <button
+                    type="button"
+                    key={item.id}
+                    onClick={() => pickFromLibrary(item)}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                  >
+                    <span className="font-medium text-gray-900">{item.name}</span>
+                    {item.strength && <span className="text-gray-400"> · {item.strength}</span>}
+                    {item.generic_name && <span className="text-gray-400 text-xs block">{item.generic_name}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className="label">Drug name *</label><input className="input" required value={form.drug_name} onChange={e => setForm(f => ({ ...f, drug_name: e.target.value }))} /></div>
             <div><label className="label">Generic name</label><input className="input" value={form.generic_name} onChange={e => setForm(f => ({ ...f, generic_name: e.target.value }))} /></div>

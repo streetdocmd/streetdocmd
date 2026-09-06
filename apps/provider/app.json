@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "StreetdocMD Provider",
+    "slug": "streetdocmd-provider",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "android": {
+      "package": "com.streetdocmd.provider",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-location",
+      "expo-notifications",
+      "expo-document-picker"
+    ],
+    "scheme": "streetdocmdprovider"
+  }
+}

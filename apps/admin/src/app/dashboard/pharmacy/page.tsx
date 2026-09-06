@@ -5,7 +5,7 @@ import PharmacyClient from "./PharmacyClient";
 export default async function PharmacyPage() {
   const admin = createAdminSupabase();
 
-  const [{ data: orders }, { data: partners }, { data: staffRows }, { data: drugs }] = await Promise.all([
+  const [{ data: orders }, { data: partners }, { data: staffRows }, { data: drugs }, { data: medicationLibrary }] = await Promise.all([
     admin
       .from("prescription_orders")
       .select(`
@@ -29,6 +29,11 @@ export default async function PharmacyPage() {
       .from("drug_catalogue")
       .select("id, pharmacy_partner_id, drug_name, generic_name, formulation, strength, price, stock_quantity, prescription_required, active, updated_at, pharmacy_partners(name)")
       .order("drug_name"),
+    admin
+      .from("medication_library")
+      .select("id, name, generic_name, formulation, strength")
+      .eq("active", true)
+      .order("name"),
   ]);
 
   const totalCommission = (orders ?? []).reduce((sum, o) => sum + (o.commission_amount ?? 0), 0);
@@ -42,6 +47,7 @@ export default async function PharmacyPage() {
       partners={partners ?? []}
       staff={(staffRows ?? []) as any}
       drugs={(drugs ?? []) as any}
+      medicationLibrary={(medicationLibrary ?? []) as any}
       stats={{ totalCommission, totalRevenue, deliveredCount, flaggedCount }}
     />
   );

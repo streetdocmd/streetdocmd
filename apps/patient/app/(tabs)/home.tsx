@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Linking
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
@@ -113,45 +113,6 @@ export default function HomeScreen() {
           <Text style={styles.preferredSub}>Enter their code to book directly with them</Text>
         </View>
       </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.panicButton}
-        onPress={() =>
-          Alert.alert(
-            "🚨 Medical Emergency?",
-            "This will immediately alert our emergency response team and share your location.",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Send SOS Now",
-                style: "destructive",
-                onPress: async () => {
-                  try {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (!user) return;
-                    let lat: number | undefined, lng: number | undefined;
-                    try {
-                      const loc = await Location.getCurrentPositionAsync({});
-                      lat = loc.coords.latitude;
-                      lng = loc.coords.longitude;
-                    } catch {}
-                    await supabase.from("emergencies").insert({
-                      patient_id: user.id,
-                      lat: lat ?? null,
-                      lng: lng ?? null,
-                    });
-                    Alert.alert("SOS Sent", "Our emergency response team has been alerted and will call you shortly.");
-                  } catch {
-                    Alert.alert("Error", "Could not send SOS. Please call +2348000000000 directly.");
-                  }
-                },
-              },
-            ]
-          )
-        }
-      >
-        <Text style={styles.panicText}>🚨 Medical Emergency — SOS</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -180,9 +141,4 @@ const styles = StyleSheet.create({
   preferredIcon: { fontSize: 24 },
   preferredTitle: { fontSize: 14, fontWeight: "600", color: "#111827" },
   preferredSub: { fontSize: 12, color: "#6B7280", marginTop: 2 },
-  panicButton: {
-    marginTop: 12, backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA",
-    borderRadius: 12, padding: 16, alignItems: "center",
-  },
-  panicText: { color: "#DC2626", fontWeight: "600", fontSize: 14 },
 });

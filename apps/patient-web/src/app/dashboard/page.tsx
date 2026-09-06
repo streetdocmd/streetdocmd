@@ -2,7 +2,6 @@
 import { createServerSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, SERVICE_DESCRIPTIONS } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
-import EmergencyButton from "@/components/EmergencyButton";
 
 const SERVICES: ServiceType[] = [
   "general_consultation",
@@ -82,8 +81,6 @@ export default async function DashboardHome() {
         </div>
         <span className="text-gray-300 group-hover:text-blue-brand transition-colors">→</span>
       </Link>
-
-      <EmergencyButton />
     </div>
   );
 }

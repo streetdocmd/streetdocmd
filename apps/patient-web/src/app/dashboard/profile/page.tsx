@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
 import PrivacyPolicyLink from "@/components/PrivacyPolicyLink";
+import FamilyMembersSection from "./FamilyMembersSection";
 
 export default async function ProfilePage() {
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   const { data: p } = await supabase.from("users").select("*").eq("id", user!.id).single();
+  const { data: familyMembers } = await supabase
+    .from("family_members")
+    .select("id, name, relationship")
+    .order("created_at", { ascending: true });
 
   if (!p) return null;
 
@@ -36,6 +41,8 @@ export default async function ProfilePage() {
           <Row label="Current Medications" value={p.current_medications?.join(", ") || "None recorded"} />
         </dl>
       </div>
+
+      <FamilyMembersSection initialMembers={familyMembers ?? []} />
 
       {p.emergency_contact_name && (
         <div className="card p-6 mb-4">

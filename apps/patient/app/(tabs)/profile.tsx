@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
+import FamilyMembersManager from "../../components/FamilyMembersManager";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [familyMembers, setFamilyMembers] = useState<{ id: string; name: string; relationship: string }[]>([]);
 
   useEffect(() => {
     loadProfile();
@@ -16,6 +18,11 @@ export default function ProfileScreen() {
     if (!authUser) return;
     const { data } = await supabase.from("users").select("*").eq("id", authUser.id).single();
     setUser(data);
+    const { data: family } = await supabase
+      .from("family_members")
+      .select("id, name, relationship")
+      .order("created_at", { ascending: true });
+    setFamilyMembers(family ?? []);
   }
 
   async function signOut() {
@@ -62,6 +69,8 @@ export default function ProfileScreen() {
           value={user.current_medications?.join(", ") || "None recorded"}
         />
       </View>
+
+      <FamilyMembersManager initialMembers={familyMembers} />
 
       {user.emergency_contact_name && (
         <View style={styles.section}>

@@ -25,12 +25,14 @@ export default function PharmacyClient({
   partners,
   staff,
   drugs,
+  medicationLibrary,
   stats,
 }: {
   orders: any[];
   partners: any[];
   staff: any[];
   drugs: any[];
+  medicationLibrary: any[];
   stats: { totalCommission: number; totalRevenue: number; deliveredCount: number; flaggedCount: number };
 }) {
   const [tab, setTab]             = useState<"orders" | "partners" | "staff" | "inventory">("orders");
@@ -160,7 +162,7 @@ export default function PharmacyClient({
       {tab === "staff" && <PharmacyStaffPanel staff={staff} partners={partnerList} />}
 
       {/* Inventory tab */}
-      {tab === "inventory" && <AdminInventoryPanel drugs={drugs} partners={partnerList} />}
+      {tab === "inventory" && <AdminInventoryPanel drugs={drugs} partners={partnerList} medicationLibrary={medicationLibrary} />}
 
       {/* Partners tab */}
       {tab === "partners" && (
@@ -333,7 +335,7 @@ const BLANK_DRUG_FORM = {
   strength: "", price: "", stock_quantity: "", prescription_required: false,
 };
 
-function AdminInventoryPanel({ drugs, partners }: { drugs: any[]; partners: any[] }) {
+function AdminInventoryPanel({ drugs, partners, medicationLibrary }: { drugs: any[]; partners: any[]; medicationLibrary: any[] }) {
   const [drugList, setDrugList]       = useState(drugs);
   const [partnerFilter, setPartnerFilter] = useState("all");
   const [search, setSearch]           = useState("");
@@ -343,6 +345,24 @@ function AdminInventoryPanel({ drugs, partners }: { drugs: any[]; partners: any[
   const [editingId, setEditingId]     = useState<string | null>(null);
   const [editValues, setEditValues]   = useState({ price: "", stock_quantity: "" });
   const [savingRow, setSavingRow]     = useState<string | null>(null);
+  const [librarySearch, setLibrarySearch] = useState("");
+
+  function pickFromLibrary(item: any) {
+    setForm(f => ({
+      ...f,
+      drug_name: item.name,
+      generic_name: item.generic_name ?? "",
+      strength: item.strength ?? "",
+    }));
+    setLibrarySearch("");
+  }
+
+  const libraryMatches = librarySearch.trim()
+    ? medicationLibrary.filter(item =>
+        item.name.toLowerCase().includes(librarySearch.toLowerCase()) ||
+        (item.generic_name ?? "").toLowerCase().includes(librarySearch.toLowerCase())
+      ).slice(0, 8)
+    : [];
 
   async function addDrug(e: React.FormEvent) {
     e.preventDefault();
@@ -413,6 +433,33 @@ function AdminInventoryPanel({ drugs, partners }: { drugs: any[]; partners: any[
       {showForm && (
         <form onSubmit={addDrug} className="card p-5 space-y-4">
           <p className="font-semibold text-gray-900">New Drug</p>
+
+          <div className="relative">
+            <label className="label">Search medication library (optional — fills fields below)</label>
+            <input
+              className="input"
+              placeholder="Start typing a drug name…"
+              value={librarySearch}
+              onChange={e => setLibrarySearch(e.target.value)}
+            />
+            {libraryMatches.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                {libraryMatches.map(item => (
+                  <button
+                    type="button"
+                    key={item.id}
+                    onClick={() => pickFromLibrary(item)}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                  >
+                    <span className="font-medium text-gray-900">{item.name}</span>
+                    {item.strength && <span className="text-gray-400"> · {item.strength}</span>}
+                    {item.generic_name && <span className="text-gray-400 text-xs block">{item.generic_name}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="label">Pharmacy *</label>

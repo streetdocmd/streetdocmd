@@ -14,14 +14,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const body = await req.json();
-  const { status, drugPrices, outOfStock, riderName, riderPhone, eta } = body;
+  const { status, drugPrices, outOfStock, catalogueLinks, riderName, riderPhone, eta } = body;
 
   const admin = createAdminSupabase();
 
   // Fetch current order
   const { data: order } = await admin
     .from("prescription_orders")
-    .select("id, drugs, status, payment_status, patient_id, provider_id")
+    .select("id, drugs, status, payment_status, patient_id, provider_id, pharmacy_partner_id")
     .eq("id", params.id)
     .single();
 
@@ -43,15 +43,56 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   // status becomes pending_payment; the webhook moves it to confirmed once the
   // patient actually pays.
   if (status === "pending_payment" && drugPrices) {
+    // Only trust a catalogue_id if it actually belongs to this order's own
+    // fulfilling pharmacy — the client only ever sees its own catalogue in
+    // the dropdown, but this request could still be tampered with, and
+    // this route runs on the service-role client (bypasses RLS).
+    const linkedIds = Object.values(catalogueLinks ?? {}) as string[];
+    let validCatalogueIds = new Set<string>();
+    if (linkedIds.length > 0) {
+      const { data: ownCatalogue } = await admin
+        .from("drug_catalogue")
+        .select("id")
+        .eq("pharmacy_partner_id", order.pharmacy_partner_id)
+        .in("id", linkedIds);
+      validCatalogueIds = new Set((ownCatalogue ?? []).map(c => c.id));
+    }
+
     const updatedDrugs = (order.drugs as any[]).map((drug: any, i: number) => {
       if ((outOfStock as number[] ?? []).includes(i)) return { ...drug, out_of_stock: true, price: 0 };
-      return { ...drug, price: drugPrices[i] ?? 0 };
+      const linkedId = (catalogueLinks ?? {})[i];
+      return {
+        ...drug,
+        price: drugPrices[i] ?? 0,
+        catalogue_id: linkedId && validCatalogueIds.has(linkedId) ? linkedId : (drug.catalogue_id ?? null),
+      };
     });
     const total = updatedDrugs.reduce((sum: number, d: any) => sum + (d.price ?? 0), 0);
     const commission = Math.round(total * 0.08);
     updates.drugs           = updatedDrugs;
     updates.total_amount    = total;
     updates.commission_amount = commission;
+  }
+
+  // Dispensing is the point stock is physically pulled — the only point
+  // payment is guaranteed to have cleared (checked above) and the only
+  // manual step in the flow that represents committing inventory.
+  if (status === "dispensing") {
+    for (const drug of (order.drugs as any[]) ?? []) {
+      if (!drug.catalogue_id || drug.out_of_stock) continue;
+      const { data: item } = await admin
+        .from("drug_catalogue")
+        .select("stock_quantity")
+        .eq("id", drug.catalogue_id)
+        .single();
+      if (!item) continue;
+      const newStock = Math.max(0, item.stock_quantity - (drug.quantity ?? 1));
+      await admin.from("drug_catalogue").update({
+        stock_quantity: newStock,
+        in_stock: newStock > 0,
+        updated_at: new Date().toISOString(),
+      }).eq("id", drug.catalogue_id);
+    }
   }
 
   const { error } = await admin.from("prescription_orders").update(updates).eq("id", params.id);

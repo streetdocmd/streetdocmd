@@ -20,13 +20,14 @@ const STATUS_COLOR: Record<string, string> = {
   delivered:       "bg-green-100 text-green-700",
 };
 
-export default function PharmacyOrderActions({ order }: { order: any }) {
+export default function PharmacyOrderActions({ order, catalogue }: { order: any; catalogue: any[] }) {
   const router = useRouter();
   const currentIdx = STATUS_FLOW.findIndex(s => s.value === order.status);
   const nextStep   = STATUS_FLOW[currentIdx + 1];
 
   const [advancing, setAdvancing]       = useState(false);
   const [prices, setPrices]             = useState<Record<number, number>>({});
+  const [catalogueLinks, setCatalogueLinks] = useState<Record<number, string>>({});
   const [riderName, setRiderName]       = useState("");
   const [riderPhone, setRiderPhone]     = useState("");
   const [eta, setEta]                   = useState("");
@@ -43,6 +44,13 @@ export default function PharmacyOrderActions({ order }: { order: any }) {
   }
   function toggleOOS(idx: number) {
     setOutOfStock(prev => prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]);
+  }
+  function linkCatalogue(idx: number, catalogueId: string) {
+    setCatalogueLinks(prev => ({ ...prev, [idx]: catalogueId }));
+    // Convenience: prefill the price field from the linked stock item's
+    // price — staff can still override it before advancing the order.
+    const item = catalogue.find(c => c.id === catalogueId);
+    if (item) setPrices(p => ({ ...p, [idx]: item.price }));
   }
 
   async function advanceStatus() {
@@ -66,8 +74,9 @@ export default function PharmacyOrderActions({ order }: { order: any }) {
 
     // On "pending_payment" — set prices (hands the order off to the patient to pay)
     if (nextStep.value === "pending_payment") {
-      body.drugPrices   = prices;
-      body.outOfStock   = outOfStock;
+      body.drugPrices     = prices;
+      body.outOfStock     = outOfStock;
+      body.catalogueLinks = catalogueLinks;
     }
 
     const res = await fetch(`/api/pharmacy-portal/orders/${order.id}/status`, {
@@ -154,30 +163,49 @@ export default function PharmacyOrderActions({ order }: { order: any }) {
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Medications</p>
         <div className="divide-y divide-gray-100">
           {drugs.map((d: any, i: number) => (
-            <div key={i} className="py-3 flex items-center gap-3">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">{d.drug_name}{d.strength ? ` ${d.strength}` : ""}</p>
-                {d.frequency && <p className="text-xs text-gray-500">{d.frequency}{d.duration ? ` · ${d.duration}` : ""}</p>}
+            <div key={i} className="py-3">
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">{d.drug_name}{d.strength ? ` ${d.strength}` : ""}</p>
+                  {d.frequency && <p className="text-xs text-gray-500">{d.frequency}{d.duration ? ` · ${d.duration}` : ""}</p>}
+                </div>
+                {order.status === "sent" && (
+                  <label className="flex items-center gap-1 text-xs text-red-500 cursor-pointer">
+                    <input type="checkbox" checked={outOfStock.includes(i)} onChange={() => toggleOOS(i)} />
+                    Out of stock
+                  </label>
+                )}
+                {order.status === "sent" && !outOfStock.includes(i) && (
+                  <input
+                    type="number" min="0" placeholder="Price (₦)"
+                    className="w-28 input text-sm"
+                    value={prices[i] ?? ""}
+                    onChange={e => updatePrice(i, e.target.value)}
+                  />
+                )}
+                {order.status !== "sent" && d.price != null && d.price > 0 && (
+                  <span className="text-sm font-medium text-gray-700">₦{Number(d.price).toLocaleString()}</span>
+                )}
+                {outOfStock.includes(i) && (
+                  <span className="text-xs text-red-500 font-semibold">Out of stock</span>
+                )}
               </div>
-              {order.status === "sent" && (
-                <label className="flex items-center gap-1 text-xs text-red-500 cursor-pointer">
-                  <input type="checkbox" checked={outOfStock.includes(i)} onChange={() => toggleOOS(i)} />
-                  Out of stock
-                </label>
-              )}
               {order.status === "sent" && !outOfStock.includes(i) && (
-                <input
-                  type="number" min="0" placeholder="Price (₦)"
-                  className="w-28 input text-sm"
-                  value={prices[i] ?? ""}
-                  onChange={e => updatePrice(i, e.target.value)}
-                />
+                <select
+                  className="input text-xs mt-2 w-full"
+                  value={catalogueLinks[i] ?? d.catalogue_id ?? ""}
+                  onChange={e => linkCatalogue(i, e.target.value)}
+                >
+                  <option value="">Link to my inventory (optional — deducts stock on dispense)</option>
+                  {catalogue.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.drug_name}{c.strength ? ` ${c.strength}` : ""} — {c.stock_quantity} in stock
+                    </option>
+                  ))}
+                </select>
               )}
-              {order.status !== "sent" && d.price != null && d.price > 0 && (
-                <span className="text-sm font-medium text-gray-700">₦{Number(d.price).toLocaleString()}</span>
-              )}
-              {outOfStock.includes(i) && (
-                <span className="text-xs text-red-500 font-semibold">Out of stock</span>
+              {d.catalogue_id && order.status !== "sent" && (
+                <p className="text-xs text-gray-400 mt-1">Linked to inventory · stock deducted on dispense</p>
               )}
             </div>
           ))}
