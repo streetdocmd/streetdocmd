@@ -54,14 +54,14 @@ async function sendEmail(to: string, subject: string, message: string): Promise<
 Deno.serve(async (_req) => {
   const now = new Date().toISOString();
 
-  // Fetch due notifications that haven't been sent yet — either a patient
-  // SMS (the original path) or a provider email (preferred-provider
-  // requests, migration 037).
+  // Fetch due notifications that haven't been sent yet — a patient SMS
+  // (the original path), a provider email (preferred-provider requests,
+  // migration 037), or a patient email (follow-up reminders, migration 041).
   const { data: queue, error } = await supabase
     .from("notifications_queue")
     .select(`
       id, message, subject, type, channel, patient_id, provider_id,
-      users!patient_id(phone),
+      users!patient_id(phone, email),
       providers!provider_id(users!user_id(email))
     `)
     .eq("sent", false)
@@ -81,7 +81,7 @@ Deno.serve(async (_req) => {
   const results = await Promise.allSettled(
     rows.map(async (row) => {
       if (row.channel === "email") {
-        const email = ((row.providers as any)?.users as any)?.email;
+        const email = ((row.providers as any)?.users as any)?.email ?? (row.users as any)?.email;
         if (!RESEND_API_KEY || !email) {
           // Not configured / no email on file — mark sent so it doesn't retry forever
           await supabase.from("notifications_queue").update({

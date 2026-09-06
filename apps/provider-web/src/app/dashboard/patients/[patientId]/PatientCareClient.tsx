@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import {
@@ -20,13 +20,14 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function PatientCareClient({
   patient, currentProvider, episodes, activeEpisode, team, plan, tasks, timeline, contextBooking,
-  pendingFollowUp, lastEncounter, diagnoses, labs,
+  pendingFollowUp, lastEncounter, diagnoses, labs, chatMessages,
 }: {
   patient: any; currentProvider: { id: string; profession: string };
   episodes: any[]; activeEpisode: any; team: any[]; plan: any; tasks: any[];
   timeline: { at: string; label: string; icon: string }[];
   contextBooking: { id: string; care_episode_id: string | null } | null;
   pendingFollowUp: any; lastEncounter: any; diagnoses: any[]; labs: any[];
+  chatMessages: any[];
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -68,6 +69,9 @@ export default function PatientCareClient({
             />
           )}
           <CareTeamSection episodeId={activeEpisode.id} team={team} isOnTeam={isOnTeam} currentProvider={currentProvider} supabase={supabase} router={router} />
+          {isOnTeam && (
+            <CareTeamChatSection episodeId={activeEpisode.id} initialMessages={chatMessages} team={team} currentProvider={currentProvider} supabase={supabase} />
+          )}
           <CarePlanSection episodeId={activeEpisode.id} plan={plan} providerId={currentProvider.id} canEdit={isOnTeam} supabase={supabase} router={router} />
           <CareTasksSection episodeId={activeEpisode.id} tasks={tasks} providerId={currentProvider.id} canEdit={isOnTeam} supabase={supabase} router={router} />
           <TimelineSection timeline={timeline} />
@@ -322,6 +326,91 @@ function CareTeamSection({ episodeId, team, isOnTeam, currentProvider, supabase,
         </form>
       )}
       {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+    </div>
+  );
+}
+
+function CareTeamChatSection({ episodeId, initialMessages, team, currentProvider, supabase }: any) {
+  const [messages, setMessages] = useState<any[]>(initialMessages ?? []);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const providerName = (providerId: string) =>
+    team.find((t: any) => t.provider_id === providerId)?.provider?.name ?? "Provider";
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`care-team-chat-${episodeId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "care_team_messages", filter: `care_episode_id=eq.${episodeId}` },
+        (payload: any) => setMessages((prev) => [...prev, payload.new])
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [episodeId, supabase]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length]);
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    if (!text.trim()) return;
+    setSending(true);
+    const { error } = await supabase.from("care_team_messages").insert({
+      care_episode_id: episodeId,
+      provider_id: currentProvider.id,
+      message: text.trim(),
+    });
+    setSending(false);
+    if (!error) setText("");
+  }
+
+  return (
+    <div className="card p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <h3 className="text-sm font-semibold text-gray-900">Care Team Updates</h3>
+        <span className="inline-flex items-center gap-1 text-xs text-teal-brand">
+          <span className="w-1.5 h-1.5 bg-teal-brand rounded-full animate-pulse" />
+          Live
+        </span>
+      </div>
+      <p className="text-xs text-gray-400 mb-3">Visible only to providers on this care team — not shown to the patient.</p>
+
+      <div className="max-h-72 overflow-y-auto space-y-3 mb-3 pr-1">
+        {messages.length === 0 && (
+          <p className="text-sm text-gray-400">No updates yet. Drop a note for the rest of the team.</p>
+        )}
+        {messages.map((m) => {
+          const mine = m.provider_id === currentProvider.id;
+          return (
+            <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
+              <div className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${mine ? "bg-teal-brand text-white" : "bg-gray-100 text-gray-800"}`}>
+                {m.message}
+              </div>
+              <span className="text-[11px] text-gray-400 mt-0.5">
+                {mine ? "You" : providerName(m.provider_id)} · {new Date(m.created_at).toLocaleString("en-NG", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+              </span>
+            </div>
+          );
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      <form onSubmit={send} className="flex gap-2">
+        <input
+          className="input flex-1"
+          placeholder="Post an update for the care team…"
+          value={text}
+          onChange={e => setText(e.target.value)}
+        />
+        <button type="submit" disabled={sending || !text.trim()} className="btn-teal px-4 text-sm shrink-0">
+          {sending ? "…" : "Send"}
+        </button>
+      </form>
     </div>
   );
 }

@@ -72,6 +72,7 @@ export default async function PatientCarePage({
   let team: any[] = [];
   let plan: any = null;
   let tasks: any[] = [];
+  let chatMessages: any[] = [];
   let recentBookings: any[] = [];
   let pendingFollowUp: any = null;
   let lastEncounter: any = null;
@@ -79,7 +80,7 @@ export default async function PatientCarePage({
   let labs: any[] = [];
 
   if (activeEpisode) {
-    const [{ data: teamRows }, { data: planRow }, { data: taskRows }, { data: bookingRows }, { data: followUpRows }] = await Promise.all([
+    const [{ data: teamRows }, { data: planRow }, { data: taskRows }, { data: bookingRows }, { data: followUpRows }, { data: chatRows }] = await Promise.all([
       admin.from("care_team_members").select("id, provider_id, is_lead, active, joined_at").eq("care_episode_id", activeEpisode.id).eq("active", true),
       admin.from("care_plans").select("*").eq("care_episode_id", activeEpisode.id).maybeSingle(),
       admin.from("care_tasks").select("*").eq("care_episode_id", activeEpisode.id).order("due_date", { ascending: true, nullsFirst: false }),
@@ -88,6 +89,7 @@ export default async function PatientCarePage({
       // has booked it — the provider is now about to conduct exactly this
       // encounter, which is precisely when this context matters most.
       admin.from("follow_ups").select("id, reason, follow_up_date, follow_up_type, status").eq("care_episode_id", activeEpisode.id).in("status", ["scheduled", "booked"]).order("follow_up_date", { ascending: true }).limit(1),
+      admin.from("care_team_messages").select("id, provider_id, message, created_at").eq("care_episode_id", activeEpisode.id).order("created_at", { ascending: true }).limit(200),
     ]);
 
     const providerIds = (teamRows ?? []).map(t => t.provider_id);
@@ -102,6 +104,7 @@ export default async function PatientCarePage({
     tasks = taskRows ?? [];
     recentBookings = bookingRows ?? [];
     pendingFollowUp = followUpRows?.[0] ?? null;
+    chatMessages = (chatRows ?? []).map(m => ({ ...m, provider: providersById[m.provider_id] }));
 
     // "Before a provider starts a follow-up encounter" context — last
     // completed visit in this episode, its diagnoses (doctor visits
@@ -187,6 +190,7 @@ export default async function PatientCarePage({
       lastEncounter={lastEncounter}
       diagnoses={diagnoses}
       labs={labs}
+      chatMessages={chatMessages}
     />
   );
 }
