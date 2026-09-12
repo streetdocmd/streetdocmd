@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import FamilyMemberPicker from "../[service]/FamilyMemberPicker";
 import SchedulePicker from "../[service]/SchedulePicker";
+import LocationPicker from "@/components/LocationPicker";
 
 interface ProviderInfo {
   id: string;
@@ -16,8 +17,6 @@ interface ProviderInfo {
   total_visits: number;
 }
 
-type GeoState = "idle" | "locating" | "ready" | "denied";
-
 export default function PreferredProviderClient({ retargetBookingId }: { retargetBookingId: string | null }) {
   const router = useRouter();
   const [code, setCode] = useState("");
@@ -25,7 +24,6 @@ export default function PreferredProviderClient({ retargetBookingId }: { retarge
   const [provider, setProvider] = useState<ProviderInfo | null>(null);
   const [error, setError] = useState("");
   const [familyMemberId, setFamilyMemberId] = useState<string | null>(null);
-  const [geoState, setGeoState] = useState<GeoState>("idle");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState("");
   const [booking, setBooking] = useState(false);
@@ -61,30 +59,6 @@ export default function PreferredProviderClient({ retargetBookingId }: { retarge
     setBooking(false);
     if (error) { setError(error.message); return; }
     router.push("/dashboard/bookings");
-  }
-
-  function getLocation() {
-    if (!navigator.geolocation) { setGeoState("denied"); return; }
-    setGeoState("locating");
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        setCoords({ lat, lng });
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-            { headers: { "Accept-Language": "en" } }
-          );
-          const data = await res.json();
-          setAddress(data.display_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
-        } catch {
-          setAddress(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
-        }
-        setGeoState("ready");
-      },
-      () => setGeoState("denied"),
-      { enableHighAccuracy: true, timeout: 10_000 }
-    );
   }
 
   async function confirmNewBooking() {
@@ -166,39 +140,13 @@ export default function PreferredProviderClient({ retargetBookingId }: { retarge
               <FamilyMemberPicker onChange={setFamilyMemberId} />
               <SchedulePicker onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }} />
 
-              {geoState === "idle" && (
-                <div className="card p-6 text-center">
-                  <p className="text-4xl mb-3">📍</p>
-                  <p className="font-semibold text-gray-900 mb-1">Share your location</p>
-                  <p className="text-sm text-gray-500 mb-5">We'll send this to your provider.</p>
-                  <button onClick={getLocation} className="btn-primary w-full">Allow location access</button>
-                </div>
-              )}
+              <LocationPicker
+                onReady={(c, a) => { setCoords(c); setAddress(a); }}
+                onReset={() => { setCoords(null); setAddress(""); }}
+              />
 
-              {geoState === "locating" && (
-                <div className="card p-6 text-center">
-                  <div className="w-10 h-10 border-4 border-blue-brand border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium">Getting your location…</p>
-                </div>
-              )}
-
-              {geoState === "denied" && (
-                <div className="card p-6 text-center border border-red-200 bg-red-50">
-                  <p className="text-red-700 font-medium mb-2">Location access denied</p>
-                  <button onClick={getLocation} className="btn-primary w-full">Try again</button>
-                </div>
-              )}
-
-              {geoState === "ready" && coords && (
+              {coords && (
                 <div className="space-y-4">
-                  <div className="card p-4 flex items-start gap-3">
-                    <span className="text-xl mt-0.5">📍</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-400 mb-0.5">Your location</p>
-                      <p className="text-sm text-gray-700 leading-snug line-clamp-2">{address}</p>
-                    </div>
-                    <button onClick={getLocation} className="text-xs text-blue-brand hover:underline shrink-0">Update</button>
-                  </div>
                   <button onClick={confirmNewBooking} disabled={booking || !scheduleReady} className="btn-primary w-full text-base py-3">
                     {booking ? "Sending request…" : `Book Appointment with ${provider.name}`}
                   </button>
