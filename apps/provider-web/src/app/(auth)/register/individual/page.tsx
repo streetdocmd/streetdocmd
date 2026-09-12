@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SPECIALTIES, getPractitionerType } from "@streetdocmd/shared";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function RegisterIndividualPage() {
   const router = useRouter();
@@ -89,7 +90,7 @@ export default function RegisterIndividualPage() {
             </div>
             <div className="col-span-2">
               <label className="label">Password</label>
-              <input type="password" className="input" placeholder="Min. 8 characters" value={form.password} onChange={e => set("password", e.target.value)} required minLength={8} />
+              <PasswordInput placeholder="Min. 8 characters" value={form.password} onChange={e => set("password", e.target.value)} required minLength={8} />
             </div>
             <div className="col-span-2">
               <label className="label">Specialty</label>

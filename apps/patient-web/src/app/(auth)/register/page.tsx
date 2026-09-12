@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function RegisterPage() {
             </div>
             <div>
               <label className="label">Password</label>
-              <input type="password" className="input" placeholder="At least 8 characters" value={form.password} onChange={set("password")} minLength={8} required />
+              <PasswordInput placeholder="At least 8 characters" value={form.password} onChange={set("password")} minLength={8} required />
             </div>
 
             <div className="flex items-start gap-3 rounded-xl border border-blue-mid bg-blue-light p-4">

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 export default function LabPortalLoginPage() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function LabPortalLoginPage() {
           </div>
           <div>
             <label className="label">Password</label>
-            <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+            <PasswordInput value={password} onChange={e => setPassword(e.target.value)} required />
           </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <button type="submit" disabled={loading} className="w-full py-3 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 disabled:opacity-50">

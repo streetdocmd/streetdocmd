@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 export default function PharmacyLoginPage() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function PharmacyLoginPage() {
         </div>
         <form onSubmit={login} className="space-y-4">
           <div><label className="label">Email</label><input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
-          <div><label className="label">Password</label><input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} required /></div>
+          <div><label className="label">Password</label><PasswordInput value={password} onChange={e => setPassword(e.target.value)} required /></div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <button type="submit" disabled={loading} className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50">
             {loading ? "Signing in…" : "Sign In"}

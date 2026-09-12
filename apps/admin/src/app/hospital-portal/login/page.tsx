@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 export default function HospitalPortalLoginPage() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function HospitalPortalLoginPage() {
           </div>
           <div>
             <label className="label">Password</label>
-            <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" />
+            <PasswordInput value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" />
           </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <button type="submit" disabled={loading}
