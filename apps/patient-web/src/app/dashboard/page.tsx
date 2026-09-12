@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import { Stethoscope, FlaskConical, Bandage, HeartHandshake, Syringe, Dumbbell, Footprints, PenLine, KeyRound, ArrowRight, type LucideIcon } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, SERVICE_DESCRIPTIONS } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
@@ -17,15 +18,15 @@ const SERVICES: ServiceType[] = [
 // only ever a follow-up after a completed physiotherapy_assessment (see
 // ContinueCareButton), the same way a nurse follow-up only ever comes
 // from an elderly_review visit, not from browsing services fresh.
-const SERVICE_ICONS: Record<ServiceType, string> = {
-  general_consultation: "🩺",
-  wellness_check: "🔬",
-  wound_care: "🩹",
-  elderly_review: "👴",
-  nursing_care: "💉",
-  physiotherapy_assessment: "🧑‍⚕️",
-  physiotherapy_session: "🏃",
-  custom_request: "✏️",
+const SERVICE_ICONS: Record<ServiceType, LucideIcon> = {
+  general_consultation: Stethoscope,
+  wellness_check: FlaskConical,
+  wound_care: Bandage,
+  elderly_review: HeartHandshake,
+  nursing_care: Syringe,
+  physiotherapy_assessment: Dumbbell,
+  physiotherapy_session: Footprints,
+  custom_request: PenLine,
 };
 
 export default async function DashboardHome() {
@@ -52,13 +53,17 @@ export default async function DashboardHome() {
             ? "Book a curated wellness package, or choose the specific tests you need"
             : SERVICE_DESCRIPTIONS[service];
 
+          const Icon = SERVICE_ICONS[service];
+
           return (
             <Link
               key={service}
               href={href}
               className="card p-5 hover:shadow-card-md hover:border-blue-mid transition-all group"
             >
-              <div className="text-3xl mb-3">{SERVICE_ICONS[service]}</div>
+              <div className="w-11 h-11 rounded-xl bg-blue-light flex items-center justify-center mb-3">
+                <Icon size={22} strokeWidth={2} className="text-blue-brand" />
+              </div>
               <h3 className="font-semibold text-gray-900 group-hover:text-blue-brand transition-colors">
                 {label}
               </h3>
@@ -72,14 +77,16 @@ export default async function DashboardHome() {
         href="/dashboard/book/preferred-provider"
         className="card p-5 flex items-center gap-4 hover:shadow-card-md hover:border-blue-mid transition-all group mb-10"
       >
-        <div className="text-3xl">🔑</div>
+        <div className="w-11 h-11 rounded-xl bg-blue-light flex items-center justify-center shrink-0">
+          <KeyRound size={22} strokeWidth={2} className="text-blue-brand" />
+        </div>
         <div className="flex-1">
           <h3 className="font-semibold text-gray-900 group-hover:text-blue-brand transition-colors">
             Have a Preferred Provider?
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">Enter their code to book directly with them</p>
         </div>
-        <span className="text-gray-300 group-hover:text-blue-brand transition-colors">→</span>
+        <ArrowRight size={18} className="text-gray-300 group-hover:text-blue-brand group-hover:translate-x-0.5 transition-all shrink-0" />
       </Link>
     </div>
   );
