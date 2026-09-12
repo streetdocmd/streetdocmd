@@ -5,10 +5,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { Stethoscope, HeartPulse, CalendarCheck, FileText, User, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
+// Book Care (the primary action) is deliberately centered in this order —
+// both the desktop nav and mobile tab bar share it, so the layout below
+// (grid-cols-5) puts it in the middle slot on both.
 const NAV = [
-  { href: "/dashboard", label: "Book Care", icon: Stethoscope },
   { href: "/dashboard/my-care", label: "My Care", icon: HeartPulse },
   { href: "/dashboard/bookings", label: "My Bookings", icon: CalendarCheck },
+  { href: "/dashboard", label: "Book Care", icon: Stethoscope },
   { href: "/dashboard/records", label: "Records", icon: FileText },
   { href: "/dashboard/profile", label: "Profile", icon: User },
 ];
@@ -69,37 +72,40 @@ export default function Navbar({ userName }: { userName: string }) {
         </div>
       </header>
 
-      {/* Mobile bottom tab bar — active tab lifts into a floating bubble */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-navy-700 border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
-        <div className="grid grid-cols-5">
-          {NAV.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className="relative flex flex-col items-center justify-end gap-1 h-16 pb-2 text-[11px] font-medium"
-              >
-                <span
-                  className={`absolute left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-blue-brand ring-4 ring-navy-700 shadow-lg shadow-black/30 transition-all duration-300 ease-out ${
-                    active ? "-top-5 w-12 h-12 opacity-100 scale-100" : "-top-1 w-12 h-12 opacity-0 scale-50 pointer-events-none"
-                  }`}
+      {/* Mobile bottom tab bar — floating white pill, active tab lifts into
+          a brand-blue circular bubble that overlaps the top edge */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pointer-events-none">
+        <nav className="pointer-events-auto bg-white rounded-2xl shadow-lg shadow-black/10 border border-gray-100">
+          <div className="grid grid-cols-5">
+            {NAV.map(({ href, label, icon: Icon }) => {
+              const active = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className="relative flex flex-col items-center justify-end gap-1 h-16 pb-2 text-[11px] font-medium"
                 >
-                  <Icon size={21} strokeWidth={2.25} className="text-white" />
-                </span>
-                <Icon
-                  size={20}
-                  strokeWidth={2}
-                  className={`transition-opacity duration-200 ${active ? "opacity-0" : "opacity-100 text-blue-200"}`}
-                />
-                <span className={`transition-colors duration-200 ${active ? "text-white font-semibold" : "text-blue-200"}`}>
-                  {label === "My Bookings" ? "Bookings" : label}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+                  <span
+                    className={`absolute left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-blue-brand ring-4 ring-white shadow-lg shadow-blue-brand/40 transition-all duration-300 ease-out ${
+                      active ? "-top-6 w-12 h-12 opacity-100 scale-100" : "-top-2 w-12 h-12 opacity-0 scale-50 pointer-events-none"
+                    }`}
+                  >
+                    <Icon size={21} strokeWidth={2.25} className="text-white" />
+                  </span>
+                  <Icon
+                    size={19}
+                    strokeWidth={1.75}
+                    className={`transition-opacity duration-200 ${active ? "opacity-0" : "opacity-100 text-gray-400"}`}
+                  />
+                  <span className={`transition-colors duration-200 ${active ? "text-gray-900 font-semibold" : "text-gray-500"}`}>
+                    {label === "My Bookings" ? "Bookings" : label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
     </>
   );
 }
