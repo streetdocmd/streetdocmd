@@ -17,7 +17,7 @@ export default function ReferralCodeCard({ code }: { code: string }) {
   return (
     <div className="card p-4 flex items-center justify-between gap-3">
       <div>
-        <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">Your patient code</p>
+        <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">Your provider code</p>
         <p className="text-2xl font-bold text-gray-900 tracking-widest mt-0.5">{code}</p>
         <p className="text-xs text-gray-400 mt-1">Share this so patients can book directly with you</p>
       </div>
