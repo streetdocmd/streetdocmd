@@ -1,4 +1,5 @@
-﻿import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
+﻿import { Inbox } from "lucide-react";
+import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS } from "@/lib/shared";
 import RecordCard from "./RecordCard";
 
@@ -90,11 +91,16 @@ export default async function RecordsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Medical Records</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Medical Records</h1>
+        <p className="text-gray-500 mt-1">A summary of your past visits, diagnoses, and prescriptions.</p>
+      </div>
 
       {enriched.length === 0 ? (
         <div className="card p-12 text-center">
-          <p className="text-4xl mb-4">�</p>
+          <div className="w-14 h-14 rounded-full bg-blue-light flex items-center justify-center mx-auto mb-4">
+            <Inbox size={26} className="text-blue-brand" />
+          </div>
           <p className="font-semibold text-gray-700 text-lg">No records yet</p>
           <p className="text-gray-400 text-sm mt-1">
             Your visit records will appear here after completed visits.

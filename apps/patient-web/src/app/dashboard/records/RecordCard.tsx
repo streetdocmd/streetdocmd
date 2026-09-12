@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { FileText, ChevronDown, ChevronUp, AlertTriangle, FlaskConical, Download, ClipboardList } from "lucide-react";
 
 export default function RecordCard({ booking, serviceLabel }: { booking: any; serviceLabel: string }) {
   const [open, setOpen] = useState(false);
@@ -19,19 +20,24 @@ export default function RecordCard({ booking, serviceLabel }: { booking: any; se
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
       >
-        <div className="flex-1 min-w-0 pr-3">
-          <p className="font-semibold text-gray-900">{serviceLabel}</p>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {booking.providers?.name} ·{" "}
-            {booking.completed_at
-              ? new Date(booking.completed_at).toLocaleDateString("en-NG", {
-                  day: "numeric", month: "long", year: "numeric",
-                })
-              : "Date unknown"}
-          </p>
-          {!open && previewDiagnosis && (
-            <p className="text-sm text-teal-700 font-medium mt-1 truncate">{previewDiagnosis}</p>
-          )}
+        <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
+          <div className="w-10 h-10 rounded-lg bg-blue-light flex items-center justify-center shrink-0">
+            <ClipboardList size={18} className="text-blue-brand" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-gray-900">{serviceLabel}</p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {booking.providers?.name} ·{" "}
+              {booking.completed_at
+                ? new Date(booking.completed_at).toLocaleDateString("en-NG", {
+                    day: "numeric", month: "long", year: "numeric",
+                  })
+                : "Date unknown"}
+            </p>
+            {!open && previewDiagnosis && (
+              <p className="text-sm text-teal-700 font-medium mt-1 truncate">{previewDiagnosis}</p>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {pdfUrl && !open && (
@@ -40,12 +46,12 @@ export default function RecordCard({ booking, serviceLabel }: { booking: any; se
               target="_blank"
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
-              className="text-xs bg-teal-50 text-teal-700 border border-teal-200 rounded-full px-2.5 py-0.5 font-medium hover:bg-teal-100 transition-colors"
+              className="inline-flex items-center gap-1 text-xs bg-teal-50 text-teal-700 border border-teal-200 rounded-full px-2.5 py-0.5 font-medium hover:bg-teal-100 transition-colors"
             >
-              📄 Rx
+              <FileText size={12} /> Rx
             </a>
           )}
-          <span className="text-gray-400 text-sm">{open ? "▲" : "▼"}</span>
+          {open ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
         </div>
       </button>
 
@@ -103,7 +109,9 @@ function SummaryView({ summary, pdfUrl }: { summary: any; pdfUrl?: string | null
           <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Important Readings</p>
           {abnormal.map((v: any, i: number) => (
             <div key={i}>
-              <p className="text-sm font-medium text-amber-800">⚠ {v.vital}: {v.value}</p>
+              <p className="text-sm font-medium text-amber-800 inline-flex items-center gap-1.5">
+                <AlertTriangle size={14} /> {v.vital}: {v.value}
+              </p>
               {v.message && <p className="text-xs text-amber-700 mt-0.5 ml-4">{v.message}</p>}
             </div>
           ))}
@@ -134,8 +142,8 @@ function SummaryView({ summary, pdfUrl }: { summary: any; pdfUrl?: string | null
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Tests Ordered</p>
           <div className="space-y-1">
             {investigations.map((inv: any, i: number) => (
-              <p key={i} className="text-sm text-gray-700">
-                🔬 {inv.test_name}
+              <p key={i} className="text-sm text-gray-700 inline-flex items-center gap-1.5">
+                <FlaskConical size={14} className="text-gray-400" /> {inv.test_name}
                 {inv.expected_timeline && <span className="text-gray-400"> · {inv.expected_timeline}</span>}
               </p>
             ))}
@@ -161,7 +169,7 @@ function SummaryView({ summary, pdfUrl }: { summary: any; pdfUrl?: string | null
       {pdfUrl && (
         <a href={pdfUrl} target="_blank" rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-sm text-blue-700 border border-blue-200 bg-blue-50 rounded-lg px-4 py-2 hover:bg-blue-100 transition-colors font-medium">
-          📄 Download Prescription PDF
+          <Download size={15} /> Download Prescription PDF
         </a>
       )}
     </div>
@@ -197,7 +205,7 @@ function LegacyView({ visit, pdfUrl }: { visit: any; pdfUrl?: string | null }) {
       {pdfUrl && (
         <a href={pdfUrl} target="_blank" rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-sm text-blue-700 border border-blue-200 bg-blue-50 rounded-lg px-4 py-2 hover:bg-blue-100 transition-colors font-medium">
-          📄 Download Prescription PDF
+          <Download size={15} /> Download Prescription PDF
         </a>
       )}
     </div>
