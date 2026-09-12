@@ -69,7 +69,7 @@ export default function Navbar({ userName }: { userName: string }) {
         </div>
       </header>
 
-      {/* Mobile bottom tab bar */}
+      {/* Mobile bottom tab bar — active tab lifts into a floating bubble */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-navy-700 border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
         <div className="grid grid-cols-5">
           {NAV.map(({ href, label, icon: Icon }) => {
@@ -78,12 +78,23 @@ export default function Navbar({ userName }: { userName: string }) {
               <Link
                 key={href}
                 href={href}
-                className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-                  active ? "text-white" : "text-blue-200"
-                }`}
+                className="relative flex flex-col items-center justify-end gap-1 h-16 pb-2 text-[11px] font-medium"
               >
-                <Icon size={20} strokeWidth={active ? 2.5 : 2} />
-                {label === "My Bookings" ? "Bookings" : label}
+                <span
+                  className={`absolute left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full bg-blue-brand ring-4 ring-navy-700 shadow-lg shadow-black/30 transition-all duration-300 ease-out ${
+                    active ? "-top-5 w-12 h-12 opacity-100 scale-100" : "-top-1 w-12 h-12 opacity-0 scale-50 pointer-events-none"
+                  }`}
+                >
+                  <Icon size={21} strokeWidth={2.25} className="text-white" />
+                </span>
+                <Icon
+                  size={20}
+                  strokeWidth={2}
+                  className={`transition-opacity duration-200 ${active ? "opacity-0" : "opacity-100 text-blue-200"}`}
+                />
+                <span className={`transition-colors duration-200 ${active ? "text-white font-semibold" : "text-blue-200"}`}>
+                  {label === "My Bookings" ? "Bookings" : label}
+                </span>
               </Link>
             );
           })}

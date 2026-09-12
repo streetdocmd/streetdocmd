@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { HeartHandshake } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { CARE_EPISODE_STATUS_LABELS, PROFESSION_LABELS, CARE_TASK_TYPE_LABELS, FOLLOW_UP_TYPE_LABELS } from "@/lib/shared";
 import type { Profession, ServiceType } from "@/lib/shared";
@@ -45,7 +46,9 @@ export default async function MyCarePage() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">My Care</h1>
         <div className="card p-12 text-center">
-          <p className="text-4xl mb-3">🌿</p>
+          <div className="w-14 h-14 rounded-full bg-blue-light flex items-center justify-center mx-auto mb-4">
+            <HeartHandshake size={26} className="text-blue-brand" />
+          </div>
           <p className="font-semibold text-gray-700">No active care episode</p>
           <p className="text-sm text-gray-400 mt-1">
             You don't have any ongoing coordinated care right now — your visits so far have each stood on their own.
