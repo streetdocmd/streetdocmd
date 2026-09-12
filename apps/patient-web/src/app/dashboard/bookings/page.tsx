@@ -1,19 +1,25 @@
 ﻿import Link from "next/link";
+import { ClipboardList, Star, CheckCircle2, ArrowRight } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { formatNaira, SERVICE_LABELS, BOOKING_STATUS_LABELS } from "@/lib/shared";
 import CancelButton from "./CancelButton";
 import ProviderDeclinedActions from "./ProviderDeclinedActions";
 
+// Deliberately few, consistent hues rather than one per status: anything
+// still progressing toward the visit reads as "in progress" (blue) with
+// the exact stage conveyed by the label text, not a rainbow of colors.
 const STATUS_COLORS: Record<string, string> = {
-  pending_payment: "bg-orange-100 text-orange-800",
-  provider_declined: "bg-red-100 text-red-800",
-  pending: "bg-amber-100 text-amber-800",
+  pending_payment: "bg-amber-100 text-amber-800",
+  paid: "bg-blue-100 text-blue-800",
+  pending: "bg-blue-100 text-blue-800",
   accepted: "bg-blue-100 text-blue-800",
-  en_route: "bg-violet-100 text-violet-800",
-  arrived: "bg-indigo-100 text-indigo-800",
-  in_progress: "bg-amber-100 text-amber-800",
+  en_route: "bg-blue-100 text-blue-800",
+  arrived: "bg-blue-100 text-blue-800",
+  in_progress: "bg-blue-100 text-blue-800",
   completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
+  cancelled: "bg-gray-100 text-gray-600",
+  expired: "bg-gray-100 text-gray-600",
+  provider_declined: "bg-red-100 text-red-800",
 };
 
 const ACTIVE = ["accepted", "en_route", "arrived", "in_progress"];
@@ -36,7 +42,9 @@ export default async function BookingsPage() {
 
       {list.length === 0 ? (
         <div className="card p-12 text-center">
-          <p className="text-4xl mb-4">📋</p>
+          <div className="w-14 h-14 rounded-full bg-blue-light flex items-center justify-center mx-auto mb-4">
+            <ClipboardList size={26} className="text-blue-brand" />
+          </div>
           <p className="font-semibold text-gray-700 text-lg">No bookings yet</p>
           <p className="text-gray-400 text-sm mt-1">Your booking history will appear here.</p>
           <Link href="/dashboard" className="btn-primary inline-flex mt-4">Book a Service</Link>
@@ -80,27 +88,29 @@ export default async function BookingsPage() {
 
                   <div className="flex flex-col gap-2 items-end shrink-0">
                     {b.status === "pending_payment" && (
-                      <Link href={`/dashboard/book/payment/${b.id}`} className="btn-primary text-xs px-3 py-1.5 whitespace-nowrap">
-                        Pay Now →
+                      <Link href={`/dashboard/book/payment/${b.id}`} className="btn-primary text-xs px-3 py-1.5 whitespace-nowrap inline-flex items-center gap-1">
+                        Pay Now <ArrowRight size={13} />
                       </Link>
                     )}
                     {isActive && (
-                      <Link href={`/dashboard/book/tracking/${b.id}`} className="btn-primary text-xs px-3 py-1.5">
-                        Track →
+                      <Link href={`/dashboard/book/tracking/${b.id}`} className="btn-primary text-xs px-3 py-1.5 inline-flex items-center gap-1">
+                        Track <ArrowRight size={13} />
                       </Link>
                     )}
                     {b.status === "completed" && (
-                      <Link href={`/dashboard/journey/${b.id}`} className="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-green-700 transition-colors whitespace-nowrap">
-                        Care Journey →
+                      <Link href={`/dashboard/journey/${b.id}`} className="btn-success text-xs px-3 py-1.5 whitespace-nowrap inline-flex items-center gap-1">
+                        Care Journey <ArrowRight size={13} />
                       </Link>
                     )}
                     {b.status === "completed" && !isRated && (
-                      <Link href={`/dashboard/book/rate/${b.id}?providerId=${b.provider_id}`} className="bg-navy-700 text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-navy-800 transition-colors">
-                        Rate Visit ★
+                      <Link href={`/dashboard/book/rate/${b.id}?providerId=${b.provider_id}`} className="btn-secondary text-xs px-3 py-1.5 inline-flex items-center gap-1 whitespace-nowrap">
+                        <Star size={13} /> Rate Visit
                       </Link>
                     )}
                     {b.status === "completed" && isRated && (
-                      <span className="text-xs text-green-600 font-medium">✓ Rated</span>
+                      <span className="text-xs text-green-600 font-medium inline-flex items-center gap-1">
+                        <CheckCircle2 size={13} /> Rated
+                      </span>
                     )}
                     {b.status === "pending" && <CancelButton bookingId={b.id} />}
                   </div>
