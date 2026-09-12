@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import type { Profession } from "@streetdocmd/shared";
@@ -38,6 +39,9 @@ export default function Navbar({ providerName, profession }: { providerName: str
     <header className="bg-navy-800 text-white shadow-lg">
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex items-center justify-center shrink-0">
+            <Image src="/mark.jpg" alt="StreetdocMD" width={32} height={32} className="object-contain" />
+          </div>
           <span className="font-bold text-lg tracking-tight">StreetdocMD</span>
           <span className="text-navy-100 text-xs hidden sm:block">Provider</span>
         </div>

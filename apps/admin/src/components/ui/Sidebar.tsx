@@ -113,7 +113,7 @@ export default function Sidebar() {
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden">
               <Image
-                src="/logo.jpeg"
+                src="/mark.jpg"
                 alt="StreetdocMD"
                 width={28}
                 height={28}

@@ -37,7 +37,7 @@ export default function LoginPage() {
 
         <div className="relative z-10 text-center">
           <div className="w-24 h-24 bg-white rounded-2xl mx-auto flex items-center justify-center mb-8 shadow-card-md overflow-hidden">
-            <Image src="/logo.jpeg" alt="StreetdocMD" width={72} height={72} className="object-contain"
+            <Image src="/mark.jpg" alt="StreetdocMD" width={72} height={72} className="object-contain"
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
           </div>
           <h1 className="text-4xl font-bold text-white mb-3">StreetdocMD</h1>
@@ -67,7 +67,7 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
             <div className="w-10 h-10 bg-navy-700 rounded-xl flex items-center justify-center overflow-hidden">
-              <Image src="/logo.jpeg" alt="StreetdocMD" width={32} height={32} className="object-contain"
+              <Image src="/mark.jpg" alt="StreetdocMD" width={32} height={32} className="object-contain"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             </div>
             <span className="text-xl font-bold text-navy-700">StreetdocMD</span>
