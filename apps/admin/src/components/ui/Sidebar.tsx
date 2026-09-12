@@ -111,19 +111,16 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden">
+            <div>
               <Image
-                src="/mark.jpg"
+                src="/logo-white.png"
                 alt="StreetdocMD"
-                width={28}
-                height={28}
-                className="object-contain"
+                width={220}
+                height={88}
+                className="h-6 w-auto"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
               />
-            </div>
-            <div>
-              <p className="text-white font-bold text-sm leading-tight">StreetdocMD</p>
-              <p className="text-blue-300 text-xs">Admin Console</p>
+              <p className="text-blue-300 text-xs mt-1">Admin Console</p>
             </div>
           </div>
           <button
