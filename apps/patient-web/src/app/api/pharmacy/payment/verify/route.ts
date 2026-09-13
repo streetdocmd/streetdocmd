@@ -6,5 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 // patient back to the app where the order's already-persisted state (updated
 // by the webhook, possibly moments before or after this redirect lands) is shown.
 export async function GET(req: NextRequest) {
-  return NextResponse.redirect(new URL("/dashboard", req.url));
+  const orderId = req.nextUrl.searchParams.get("orderId");
+  const dest = orderId ? `/dashboard/medications/${orderId}` : "/dashboard";
+  return NextResponse.redirect(new URL(dest, req.url));
 }

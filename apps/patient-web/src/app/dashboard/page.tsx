@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   Stethoscope, FlaskConical, Bandage, HeartHandshake, Syringe, Dumbbell, Footprints, PenLine,
-  KeyRound, ArrowRight, Truck, CalendarClock, type LucideIcon,
+  KeyRound, ArrowRight, Truck, CalendarClock, Pill, type LucideIcon,
 } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, SERVICE_DESCRIPTIONS, BOOKING_STATUS_LABELS } from "@/lib/shared";
@@ -145,6 +145,24 @@ export default async function DashboardHome() {
             </Link>
           );
         })}
+
+        <Link
+          href="/dashboard/book/medication"
+          className="card p-5 hover:shadow-card-md hover:border-blue-mid active:scale-[0.98] transition-all group relative"
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className="w-11 h-11 rounded-xl bg-blue-light flex items-center justify-center">
+              <Pill size={22} strokeWidth={2} className="text-blue-brand" />
+            </div>
+            <ArrowRight size={16} className="text-gray-200 group-hover:text-blue-brand group-hover:translate-x-0.5 transition-all mt-1.5" />
+          </div>
+          <h3 className="font-semibold text-gray-900 group-hover:text-blue-brand transition-colors">
+            Buy Medication
+          </h3>
+          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+            Order over-the-counter medication for delivery from the pharmacy nearest you
+          </p>
+        </Link>
       </div>
 
       <Link
