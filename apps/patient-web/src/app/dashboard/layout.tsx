@@ -23,7 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar userName={firstName} />
+      <Navbar userName={firstName} userId={user.id} />
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8 pb-24 md:pb-8">
         {needsPolicyReview && <PolicyUpdateBanner />}
         {children}

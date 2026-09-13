@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
-import { Stethoscope, HeartPulse, CalendarCheck, FileText, User, LogOut } from "lucide-react";
-import { createClient } from "@/lib/supabase";
+import { usePathname } from "next/navigation";
+import { Stethoscope, HeartPulse, CalendarCheck, FileText, User } from "lucide-react";
+import NotificationBell from "./NotificationBell";
+import ProfileMenu from "./ProfileMenu";
 
 // Book Care (the primary action) is deliberately centered in this order —
 // both the desktop nav and mobile tab bar share it, so the layout below
@@ -16,23 +17,15 @@ const NAV = [
   { href: "/dashboard/profile", label: "Profile", icon: User },
 ];
 
-export default function Navbar({ userName }: { userName: string }) {
+export default function Navbar({ userName, userId }: { userName: string; userId: string }) {
   const pathname = usePathname();
-  const router = useRouter();
-
-  async function signOut() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
 
   return (
     <>
-      <header className="bg-navy-700 text-white border-b border-white/10">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <header className="bg-gradient-to-b from-navy-700 to-navy-800 text-white shadow-[0_1px_0_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.12)]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-5 h-16 flex items-center justify-between gap-3">
           <Link href="/dashboard" className="flex items-center shrink-0">
-            <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="h-7 w-auto" priority />
+            <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="h-9 w-auto" priority />
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
@@ -53,21 +46,10 @@ export default function Navbar({ userName }: { userName: string }) {
             })}
           </nav>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden sm:flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-blue-brand flex items-center justify-center text-xs font-semibold">
-                {userName.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-sm text-blue-100">{userName}</span>
-            </div>
-            <button
-              onClick={signOut}
-              aria-label="Sign out"
-              className="flex items-center gap-1.5 text-sm text-blue-200 hover:text-white hover:bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 transition-colors"
-            >
-              <LogOut size={14} strokeWidth={2} />
-              <span className="hidden sm:inline">Sign out</span>
-            </button>
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            <NotificationBell patientId={userId} />
+            <span className="w-px h-6 bg-white/10 hidden sm:block" />
+            <ProfileMenu userName={userName} />
           </div>
         </div>
       </header>
