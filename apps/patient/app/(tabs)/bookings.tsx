@@ -11,6 +11,8 @@ const STATUS_COLORS: Record<string, string> = {
   pending_payment: "#FFEDD5",
   provider_declined: "#FEE2E2",
   pending: "#FEF3C7",
+  paid: "#DBEAFE",
+  expired: "#F3F4F6",
   accepted: "#DBEAFE",
   en_route: "#EDE9FE",
   arrived: "#E0E7FF",
@@ -21,7 +23,7 @@ const STATUS_COLORS: Record<string, string> = {
 const STATUS_TEXT: Record<string, string> = {
   pending_payment: "#9A3412",
   provider_declined: "#991B1B",
-  pending: "#92400E", accepted: "#1E40AF", en_route: "#5B21B6",
+  pending: "#92400E", paid: "#1E40AF", expired: "#4B5563", accepted: "#1E40AF", en_route: "#5B21B6",
   arrived: "#3730A3", in_progress: "#92400E", completed: "#065F46", cancelled: "#991B1B",
 };
 

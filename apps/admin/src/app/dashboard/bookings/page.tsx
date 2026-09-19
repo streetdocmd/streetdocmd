@@ -2,7 +2,10 @@
 import { formatNaira } from "@/lib/shared";
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
+  pending_payment: "bg-yellow-100 text-yellow-700",
+  paid: "bg-yellow-100 text-yellow-700",
+  provider_declined: "bg-red-100 text-red-700",
+  expired: "bg-gray-100 text-gray-600",
   accepted: "bg-blue-100 text-blue-700",
   en_route: "bg-purple-100 text-purple-700",
   arrived: "bg-indigo-100 text-indigo-700",

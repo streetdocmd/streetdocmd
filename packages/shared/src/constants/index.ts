@@ -72,6 +72,7 @@ export const PROVIDER_ACCEPTANCE_WINDOW_SECONDS = 120; // 2 minutes
 
 export const BOOKING_STATUS_LABELS = {
   pending_payment: "Awaiting Payment",
+  paid: "Finding Provider",
   provider_declined: "Provider Unavailable",
   pending: "Finding Provider",
   accepted: "Provider Assigned",
@@ -80,6 +81,7 @@ export const BOOKING_STATUS_LABELS = {
   in_progress: "Visit in Progress",
   completed: "Visit Completed",
   cancelled: "Cancelled",
+  expired: "Expired",
 };
 
 export const VERIFICATION_STATUS_LABELS = {

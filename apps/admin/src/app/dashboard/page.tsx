@@ -8,7 +8,7 @@ async function getStats() {
 
   const [completed, pending, verified, patients, revenue] = await Promise.all([
     supabase.from("bookings").select("id", { count: "exact", head: true }).eq("status", "completed"),
-    supabase.from("bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("bookings").select("id", { count: "exact", head: true }).eq("status", "paid"),
     supabase.from("providers").select("id", { count: "exact", head: true }).eq("verification_status", "verified"),
     supabase.from("users").select("id", { count: "exact", head: true }).eq("role", "patient"),
     supabase.from("payments").select("amount").eq("status", "successful").gte("created_at", `${today}T00:00:00`),
@@ -191,7 +191,10 @@ function StatCard({ label, value, sub, icon, color }: {
 
 function StatusPill({ status }: { status: string }) {
   const s: Record<string, string> = {
-    pending:     "bg-yellow-50 text-yellow-700 border-yellow-200",
+    pending_payment: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    paid:        "bg-yellow-50 text-yellow-700 border-yellow-200",
+    provider_declined: "bg-red-50 text-red-700 border-red-200",
+    expired:     "bg-gray-100 text-gray-600 border-gray-200",
     accepted:    "bg-blue-50 text-blue-700 border-blue-200",
     en_route:    "bg-purple-50 text-purple-700 border-purple-200",
     in_progress: "bg-orange-50 text-orange-700 border-orange-200",
