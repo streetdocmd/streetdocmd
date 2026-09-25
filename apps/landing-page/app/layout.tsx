@@ -26,6 +26,12 @@ export const metadata: Metadata = {
     locale: "en_NG",
     type: "website",
   },
+  // og:image comes from app/opengraph-image.jpg; X falls back to it for the large card
+  twitter: {
+    card: "summary_large_image",
+    title: "StreetdocMD — Healthcare at your convenience",
+    description: "Verified doctors, nurses, and physiotherapists who come to you.",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
