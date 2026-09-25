@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Mulish, Nunito_Sans } from "next/font/google";
+import ScrollReveal from "@/components/ScrollReveal";
 import "./globals.css";
 
 // Mulish is used in the design for the hero badge.
@@ -29,8 +30,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${mulish.variable} ${nunito.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${mulish.variable} ${nunito.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Lets CSS hide scroll-reveal elements only when JS is running (no-JS visitors see everything). */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+      </head>
+      <body>
+        {children}
+        <ScrollReveal />
+      </body>
     </html>
   );
 }
