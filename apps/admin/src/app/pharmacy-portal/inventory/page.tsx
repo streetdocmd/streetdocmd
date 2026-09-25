@@ -1,12 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
+import InventoryImport from "./InventoryImport";
 
 const FORMULATIONS = ["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Ointment", "Drops", "Inhaler", "Other"];
 
 const BLANK_FORM = {
   drug_name: "", generic_name: "", formulation: "Tablet", strength: "",
-  price: "", stock_quantity: "", prescription_required: false,
+  // Defaults to true: anything not flagged prescription-only can be bought by
+  // patients directly (Buy Medication), so staff opt items OUT of the
+  // restriction deliberately rather than forgetting to opt them in.
+  price: "", stock_quantity: "", prescription_required: true,
 };
 
 interface LibraryItem {
@@ -21,6 +25,7 @@ export default function InventoryPage() {
   const [search, setSearch]           = useState("");
   const [showInactive, setShowInactive] = useState(false);
   const [showForm, setShowForm]       = useState(false);
+  const [showImport, setShowImport]   = useState(false);
   const [saving, setSaving]           = useState(false);
   const [form, setForm]               = useState(BLANK_FORM);
   const [editingId, setEditingId]     = useState<string | null>(null);
@@ -156,14 +161,25 @@ export default function InventoryPage() {
             Prices and stock here are what patients see when a prescription is sent to you — keep them current so orders don't need a back-and-forth.
           </p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:opacity-90 shrink-0">
-          {showForm ? "Cancel" : "+ Add Drug"}
-        </button>
+        <div className="flex gap-2 shrink-0">
+          {partnerId && (
+            <button onClick={() => setShowImport(!showImport)} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50">
+              {showImport ? "Close import" : "Import CSV"}
+            </button>
+          )}
+          <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:opacity-90">
+            {showForm ? "Cancel" : "+ Add Drug"}
+          </button>
+        </div>
       </div>
+
+      {showImport && partnerId && (
+        <InventoryImport partnerId={partnerId} existing={drugs} onDone={() => loadDrugs(partnerId)} />
+      )}
 
       {activeDrugs.length === 0 ? (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3.5 text-sm text-amber-800">
-          You haven't added any inventory yet — patients can't order medication from you until you do.
+          You haven't added any inventory yet — patients can't order medication from you until you do. Import your existing stock list from a spreadsheet, or add drugs one at a time.
         </div>
       ) : daysSinceUpdate !== null && daysSinceUpdate > 14 ? (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3.5 text-sm text-amber-800">

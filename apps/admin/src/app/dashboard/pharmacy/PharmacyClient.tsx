@@ -332,7 +332,9 @@ function PharmacyStaffPanel({ staff, partners }: { staff: any[]; partners: any[]
 
 const BLANK_DRUG_FORM = {
   pharmacy_partner_id: "", drug_name: "", generic_name: "", formulation: "Tablet",
-  strength: "", price: "", stock_quantity: "", prescription_required: false,
+  // true by default: unflagged items are purchasable by patients without a
+  // prescription, so opting OUT of the restriction should be deliberate.
+  strength: "", price: "", stock_quantity: "", prescription_required: true,
 };
 
 function AdminInventoryPanel({ drugs, partners, medicationLibrary }: { drugs: any[]; partners: any[]; medicationLibrary: any[] }) {
