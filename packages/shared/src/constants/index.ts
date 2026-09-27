@@ -298,3 +298,5 @@ export const FOLLOW_UP_TYPES_BY_PROFESSION: Record<Profession, FollowUpType[]> =
   physiotherapist: ["home_visit", "virtual_consultation"],
   lab_scientist: ["lab_review"],
 };
+
+export * from "./provider-agreement";

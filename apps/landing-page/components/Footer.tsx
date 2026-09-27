@@ -14,20 +14,20 @@ export default function Footer() {
           <div className="footer-links" data-reveal style={delay(120)}>
             <div className="footer-col col-product">
               <h4>PRODUCT</h4>
-              <a href="/features">PLATFORM</a>
-              <a href="/#who-its-for">WHO IT’S FOR</a>
+              <a href="/features">Platform</a>
+              <a href="/#who-its-for">Who it’s for</a>
             </div>
             <div className="footer-col col-company">
               <h4>COMPANY</h4>
-              <a href="/#about">ABOUT</a>
-              <a href={LINKS.contact}>CONTACT</a>
+              <a href="/#about">About</a>
+              <a href={LINKS.contact}>Contact</a>
             </div>
             <div className="footer-col col-legal">
               <h4>LEGAL</h4>
-              <a href={LINKS.patientTerms}>PATIENT’S TERMS OF SERVICE</a>
-              <a href={LINKS.providerTerms}>PROVIDER’S TERMS OF SERVICE</a>
-              <a href={LINKS.privacy}>PRIVACY POLICY</a>
-              <a href={LINKS.facilityAgreement}>FACILITY PARTNER AGREEMENT</a>
+              <a href={LINKS.patientTerms}>Patient terms of service</a>
+              <a href={LINKS.providerTerms}>Provider terms of service</a>
+              <a href={LINKS.privacy}>Privacy policy</a>
+              <a href={LINKS.facilityAgreement}>Facility partner agreement</a>
             </div>
           </div>
         </div>

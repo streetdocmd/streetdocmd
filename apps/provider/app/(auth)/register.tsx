@@ -5,7 +5,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
-import { SPECIALTIES, getPractitionerType, getProfession } from "@streetdocmd/shared";
+import {
+  SPECIALTIES, getPractitionerType, getProfession,
+  PLATFORM_COMMISSION_RATE, PROVIDER_AGREEMENT_ACCEPTANCE_LABEL, PROVIDER_AGREEMENT_TITLE, PROVIDER_AGREEMENT_VERSION,
+} from "@streetdocmd/shared";
+import ProviderAgreementModal from "../../components/ProviderAgreementModal";
 
 export default function ProviderRegisterScreen() {
   const router = useRouter();
@@ -19,6 +23,9 @@ export default function ProviderRegisterScreen() {
   const [licenseNumber, setLicenseNumber] = useState("");
   const [yearsExp, setYearsExp] = useState("");
   const [ndpr, setNdpr] = useState(false);
+  // Clause 3.2 / 21: must be ticked by the provider — never preselected
+  const [agreed, setAgreed] = useState(false);
+  const [showAgreement, setShowAgreement] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const practitionerType = getPractitionerType(specialty);
@@ -26,6 +33,10 @@ export default function ProviderRegisterScreen() {
   async function register() {
     if (!ndpr) {
       Alert.alert("Consent required", "Please accept the data privacy notice.");
+      return;
+    }
+    if (!agreed) {
+      Alert.alert("Agreement required", `Please accept the ${PROVIDER_AGREEMENT_TITLE} to continue.`);
       return;
     }
     if (practitionerType && !licenseNumber.trim()) {
@@ -54,6 +65,9 @@ export default function ProviderRegisterScreen() {
         license_number: practitionerType ? licenseNumber.trim() : null,
         years_experience: parseInt(yearsExp) || 0,
         verification_status: "pending",
+        agreement_version: PROVIDER_AGREEMENT_VERSION,
+        agreement_accepted_at: new Date().toISOString(),
+        agreement_commission_rate: PLATFORM_COMMISSION_RATE * 100,
       });
       if (provErr) {
         Alert.alert("Error", "Account created but profile setup failed. Contact support.");
@@ -63,7 +77,7 @@ export default function ProviderRegisterScreen() {
     router.replace("/(auth)/pending");
   }
 
-  const ready = name && email && password.length >= 8 && specialty && credentials && ndpr;
+  const ready = name && email && password.length >= 8 && specialty && credentials && ndpr && agreed;
 
   return (
     <KeyboardAvoidingView
@@ -133,13 +147,25 @@ export default function ProviderRegisterScreen() {
 
           <TouchableOpacity style={styles.consentRow} onPress={() => setNdpr(v => !v)} activeOpacity={0.7}>
             <View style={[styles.checkbox, ndpr && styles.checkboxChecked]}>
-              {ndpr && <Text style={styles.checkmark}>checkmark</Text>}
+              {ndpr && <Text style={styles.checkmark}>✓</Text>}
             </View>
             <Text style={styles.consentText}>
               I consent to StreetdocMD processing my professional and health data under the
               Nigeria Data Protection Regulation (NDPR).
             </Text>
           </TouchableOpacity>
+
+          <View style={styles.agreementBox}>
+            <TouchableOpacity style={styles.consentRow} onPress={() => setAgreed(v => !v)} activeOpacity={0.7}>
+              <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
+                {agreed && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+              <Text style={styles.consentText}>{PROVIDER_AGREEMENT_ACCEPTANCE_LABEL}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowAgreement(true)} style={styles.readLink}>
+              <Text style={styles.readLinkText}>Read the {PROVIDER_AGREEMENT_TITLE}</Text>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             style={[styles.btn, (!ready || loading) && styles.btnDisabled]}
@@ -154,6 +180,7 @@ export default function ProviderRegisterScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <ProviderAgreementModal visible={showAgreement} onClose={() => setShowAgreement(false)} />
     </KeyboardAvoidingView>
   );
 }
@@ -186,6 +213,12 @@ const styles = StyleSheet.create({
   checkboxChecked: { backgroundColor: "#059669", borderColor: "#059669" },
   checkmark: { color: "#fff", fontSize: 13, fontWeight: "700" },
   consentText: { flex: 1, fontSize: 12, color: "#6B7280", lineHeight: 18 },
+  agreementBox: {
+    borderWidth: 1, borderColor: "#A7F3D0", backgroundColor: "#ECFDF5",
+    borderRadius: 12, padding: 14, paddingBottom: 10, marginBottom: 20,
+  },
+  readLink: { marginTop: -8, marginLeft: 34, paddingVertical: 4 },
+  readLinkText: { fontSize: 13, fontWeight: "600", color: "#059669", textDecorationLine: "underline" },
   btn: { backgroundColor: "#059669", borderRadius: 10, paddingVertical: 14, alignItems: "center" },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontWeight: "600", fontSize: 15 },

@@ -205,6 +205,10 @@ export interface Provider {
   bank_account_number: string | null;
   bank_account_name: string | null;
   wallet_balance: number;
+  /** Provider Service Agreement acceptance (migration 046); null = not yet accepted */
+  agreement_version: string | null;
+  agreement_accepted_at: string | null;
+  agreement_commission_rate: number | null;
   created_at: string;
   updated_at: string;
 }

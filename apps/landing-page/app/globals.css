@@ -771,7 +771,6 @@ a {
   flex-direction: column;
   gap: 12px;
   letter-spacing: 0.32px;
-  text-transform: uppercase;
 }
 
 .col-product { width: 180px; }
@@ -779,6 +778,7 @@ a {
 .col-legal { width: 282px; }
 
 .footer-col h4 {
+  text-transform: uppercase;
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: var(--w-black);

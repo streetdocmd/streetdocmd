@@ -1,7 +1,13 @@
 "use client";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { getPractitionerType } from "@streetdocmd/shared";
+import {
+  getPractitionerType,
+  PROVIDER_AGREEMENT_ACCEPTANCE_LABEL,
+  PROVIDER_AGREEMENT_TITLE,
+  PROVIDER_AGREEMENT_VERSION,
+} from "@streetdocmd/shared";
+import ProviderAgreementModal from "@/components/ProviderAgreementModal";
 
 type DocType = "certificate" | "mdcn_licence" | "nmcn_licence" | "mrtb_licence" | "mlscn_licence";
 
@@ -50,6 +56,9 @@ export default function DocumentUploadForm({
 
   const [globalError, setGlobalError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // Clause 3.2 / 21: must be ticked by the provider — never preselected
+  const [agreed, setAgreed] = useState(false);
+  const [showAgreement, setShowAgreement] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   function setFile(index: number, file: File | null) {
@@ -65,8 +74,24 @@ export default function DocumentUploadForm({
       setGlobalError("Please select all required documents before uploading.");
       return;
     }
+    if (!agreed) {
+      setGlobalError(`Please accept the ${PROVIDER_AGREEMENT_TITLE} to continue.`);
+      return;
+    }
 
     setSubmitting(true);
+
+    const agreementRes = await fetch("/api/provider-agreement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accepted: true, version: PROVIDER_AGREEMENT_VERSION }),
+    });
+    if (!agreementRes.ok) {
+      const json = await agreementRes.json().catch(() => ({}));
+      setGlobalError(json.error ?? "Could not record your acceptance of the agreement. Please try again.");
+      setSubmitting(false);
+      return;
+    }
 
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i];
@@ -138,6 +163,29 @@ export default function DocumentUploadForm({
         </div>
       ))}
 
+      <div className="rounded-xl border border-blue-mid bg-blue-light p-4">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={e => setAgreed(e.target.checked)}
+            disabled={submitting}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-blue-brand"
+          />
+          <span className="text-sm leading-relaxed text-gray-700">{PROVIDER_AGREEMENT_ACCEPTANCE_LABEL}</span>
+        </label>
+        <div className="mt-2 flex items-center justify-between gap-3 pl-7">
+          <button
+            type="button"
+            onClick={() => setShowAgreement(true)}
+            className="text-sm font-semibold text-blue-brand underline-offset-2 hover:underline"
+          >
+            Read the {PROVIDER_AGREEMENT_TITLE}
+          </button>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Required to continue</span>
+        </div>
+      </div>
+
       {globalError && (
         <p className="text-red-600 text-sm">{globalError}</p>
       )}
@@ -145,7 +193,7 @@ export default function DocumentUploadForm({
       <button
         type="submit"
         className="btn-primary w-full"
-        disabled={submitting || slots.filter(s => s.required).some(s => !s.file && !s.done)}
+        disabled={submitting || !agreed || slots.filter(s => s.required).some(s => !s.file && !s.done)}
       >
         {submitting ? "Uploading documents…" : "Submit for verification"}
       </button>
@@ -153,6 +201,8 @@ export default function DocumentUploadForm({
       <p className="text-xs text-gray-400 text-center">
         Your documents are reviewed by our team within 24–48 hours.
       </p>
+
+      <ProviderAgreementModal isOpen={showAgreement} onClose={() => setShowAgreement(false)} />
     </form>
   );
 }

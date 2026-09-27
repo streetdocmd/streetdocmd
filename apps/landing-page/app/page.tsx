@@ -10,20 +10,20 @@ const STEPS = [
     n: "01",
     title: "Request",
     icon: "/images/icon-request.svg",
-    text: "Book through the app or on Website. Tell us what you need, and our dispatch matches you to the nearest available, verified doctor, nurse, or physiotherapist.",
+    text: "Book on the app or website. We match you with the nearest verified doctor, nurse or physiotherapist.",
     featured: true,
   },
   {
     n: "02",
     title: "Visit",
     icon: "/images/icon-visit.svg",
-    text: "Your Provider comes to you. Vitals, notes, and a treatment plan are logged in the app as the visit happens.",
+    text: "Your Provider comes to you and logs vitals, notes and a treatment plan in the app.",
   },
   {
     n: "03",
     title: "Follow-Through",
     icon: "/images/icon-follow.svg",
-    text: "Lab tests, prescriptions, and hospital referrals are coordinated with trusted partner facilities whenever they are needed.",
+    text: "Labs, prescriptions and hospital referrals are coordinated with partner facilities as needed.",
   },
 ];
 
@@ -50,10 +50,8 @@ export default function Home() {
             </h1>
 
             <p className="hero-text">
-              StreetdocMD connects you to independent, licensed doctors, nurses,
-              <br className="br-desktop" /> and physiotherapists who come to you — with lab testing, pharmacy
-              <br className="br-desktop" /> delivery, and hospital referral (when necessary) coordinated through
-              <br className="br-desktop" /> the same visit.
+              Licensed doctors, nurses and physiotherapists who come to you, with labs, pharmacy
+              <br className="br-desktop" /> delivery and hospital referrals coordinated in one visit.
             </p>
 
             <div className="btn-row">
@@ -66,8 +64,7 @@ export default function Home() {
             <div className="hero-alert">
               <img src="/images/icon-alert.svg" alt="" width={20} height={20} />
               <p>
-                <strong>Not for medical emergencies.</strong> If you or someone with you is having a medical
-                <br className="br-desktop" /> emergency, call 112 or go to the nearest emergency room immediately.
+                <strong>Not for emergencies.</strong> In an emergency, call 112 or go to the nearest emergency room.
               </p>
             </div>
           </div>
@@ -84,8 +81,8 @@ export default function Home() {
             </p>
           </div>
           <p className="safety-text" data-reveal style={delay(120)}>
-            Every Provider on StreetdocMD is independently licensed and verified against their Nigerian regulatory body —
-            MDCN for doctors, NMCN for nurses, MRTB for physiotherapists — before they can accept a single booking.
+            Every Provider is licensed and verified with their regulator (MDCN for doctors, NMCN for nurses, MRTB for
+            physiotherapists) before taking a booking.
           </p>
         </div>
       </section>
@@ -96,7 +93,7 @@ export default function Home() {
           <div className="how-head" data-reveal>
             <p className="eyebrow">HOW IT WORKS</p>
             <h2 className="section-title">
-              Turn a health concern into completed care, without leaving your home.
+              From health concern to completed care, without leaving home.
             </h2>
           </div>
           <div className="steps">
@@ -141,10 +138,9 @@ export default function Home() {
               <h2 className="section-title wwa-title">A platform that connects you to care — not a clinic.</h2>
             </div>
             <p className="wwa-text">
-              StreetdocMD is a technology platform. We connect you with independent, licensed healthcare professionals
-              and independent Facility Partners — we don’t practice medicine, employ Providers as clinicians, or direct
-              their clinical judgment. The care relationship, and the clinical decisions made in it, are between you and
-              your Provider or Facility Partner.
+              StreetdocMD is a technology platform connecting you with independent, licensed professionals and Facility
+              Partners. We don’t practise medicine, employ clinicians or direct their judgment. Clinical decisions are
+              between you and your Provider or Facility Partner.
             </p>
           </div>
         </div>
@@ -155,8 +151,8 @@ export default function Home() {
         <div className="cta-card" data-reveal="zoom">
           <img className="cta-heart" src="/images/icon-heart.svg" alt="" width={360} height={360} />
           <div className="cta-content">
-            <h2 className="cta-title">Ready when you need care, not when a clinic has an opening</h2>
-            <p className="cta-text">We handle your care at your convenience and on your schedule.</p>
+            <h2 className="cta-title">Care when you need it, not when a clinic has an opening</h2>
+            <p className="cta-text">On your schedule, wherever you are.</p>
             <div className="btn-row">
               <Button href={LINKS.bookWeb} arrow>
                 Book a visit

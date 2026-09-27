@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://streetdocmd.com"),
   title: "StreetdocMD — Healthcare at your convenience",
   description:
-    "StreetdocMD connects you to independent, licensed doctors, nurses, and physiotherapists who come to you — with lab testing, pharmacy delivery, and hospital referral coordinated through the same visit.",
+    "Licensed doctors, nurses and physiotherapists who come to you, with labs, pharmacy delivery and hospital referrals coordinated in one visit.",
   openGraph: {
     title: "StreetdocMD — Healthcare at your convenience",
     description: "Verified doctors, nurses, and physiotherapists who come to you.",

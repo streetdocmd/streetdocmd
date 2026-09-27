@@ -9,7 +9,7 @@ import { delay } from "@/lib/reveal";
 export const metadata: Metadata = {
   title: "Features — StreetdocMD",
   description:
-    "From first symptom to finished treatment, StreetdocMD coordinates your Provider, your lab, your pharmacy, and — where needed — a hospital.",
+    "StreetdocMD coordinates your Provider, lab, pharmacy and, if needed, a hospital, from first symptom to finished treatment.",
 };
 
 const JOURNEY = [
@@ -24,8 +24,8 @@ const CARE_NETWORK: CareItem[] = [
   {
     title: "Provider Matching & Dispatch",
     description:
-      "Automated, proximity-based dispatch offers your booking to the nearest available, verified Provider — doctor, nurse, or physiotherapist — matched to your need and their scope of practice.",
-    points: ["Verified licensure", "Same-day Visits", "Scheduled recurring care"],
+      "Your booking goes to the nearest available verified Provider suited to your need.",
+    points: ["Verified licensure", "Same-day visits", "Scheduled recurring care"],
     icon: "/images/icon-dispatch.svg",
     check: "/images/check-dispatch.svg",
     bg: "#eff6fd",
@@ -35,7 +35,7 @@ const CARE_NETWORK: CareItem[] = [
   {
     title: "In-home Visits",
     description:
-      "Providers log your visit as it happens — vitals, notes, and a clear treatment plan — directly into your ongoing health record.",
+      "Vitals, notes and your treatment plan are logged live into your health record.",
     points: ["Live vitals logging", "Clear treatment plans", "Caregiver access with consent"],
     icon: "/images/icon-home.svg",
     check: "/images/check-home.svg",
@@ -47,8 +47,8 @@ const CARE_NETWORK: CareItem[] = [
   {
     title: "Pharmacy & Medication",
     description:
-      "Digital prescriptions route to registered partner pharmacies for genuine, in-date, NAFDAC-compliant medication.",
-    points: ["E-Prescriptions", "Deliver or pickup", "Refill reminders"],
+      "E-prescriptions go to registered partner pharmacies for genuine, NAFDAC-compliant medicine.",
+    points: ["E-prescriptions", "Delivery or pickup", "Refill reminders"],
     icon: "/images/icon-pharmacy-med.svg",
     check: "/images/check-pharmacy.svg",
     bg: "#ffeee5",
@@ -58,8 +58,8 @@ const CARE_NETWORK: CareItem[] = [
   {
     title: "Laboratory Integration",
     description:
-      "Tests ordered by your Provider are sent to an accredited partner laboratory, with collection options and results connected to your care record.",
-    points: ["Home or In-lab collection", "Digital results", "Provider-linked follow-up"],
+      "Tests go to accredited partner labs, with results linked to your care record.",
+    points: ["Home or in-lab collection", "Digital results", "Provider-linked follow-up"],
     icon: "/images/icon-lab.svg",
     check: "/images/check-lab.svg",
     bg: "#fbfaec",
@@ -69,8 +69,8 @@ const CARE_NETWORK: CareItem[] = [
   {
     title: "Hospital Referral",
     description:
-      "When your condition needs a higher level of care, your Provider can refer you directly to a partner hospital through the platform.",
-    points: ["Real-Time Bed & Service Availability", "Warm Handoff", "Discharge Summary"],
+      "If you need a higher level of care, your Provider refers you straight to a partner hospital.",
+    points: ["Live bed availability", "Warm handoff", "Discharge summary"],
     icon: "/images/icon-hospital-ref.svg",
     check: "/images/check-hospital.svg",
     bg: "#ffeaeb",
@@ -80,8 +80,8 @@ const CARE_NETWORK: CareItem[] = [
   {
     title: "Care Records & History",
     description:
-      "Every visit, lab result, and prescription lives in one continuous record, visible to you and to any approved relative and Provider you authorise.",
-    points: ["Unified Timeline", "Exportable Summaries", "Provider Handoffs"],
+      "Every visit, result and prescription in one record, shared only with people you approve.",
+    points: ["Unified timeline", "Exportable summaries", "Provider handoffs"],
     icon: "/images/icon-records.svg",
     check: "/images/check-records.svg",
     bg: "#fceaf5",
@@ -91,8 +91,8 @@ const CARE_NETWORK: CareItem[] = [
   {
     title: "Payments & Coverage",
     description:
-      "Transparent, upfront pricing for visits, tests, and deliveries, with payment collected securely through Paystack.",
-    points: ["Upfront Pricing", "Secure Payments", "Fair Cancellation Terms"],
+      "Upfront prices for visits, tests and deliveries, paid securely through Paystack.",
+    points: ["Upfront pricing", "Secure payments", "Fair cancellation terms"],
     icon: "/images/icon-payments.svg",
     check: "/images/check-payments.svg",
     bg: "#f8f2ff",
@@ -122,8 +122,8 @@ export default function FeaturesPage() {
               <h1 className="f-hero-title">One Platform Connecting Every Part Of Your Care.</h1>
             </div>
             <p className="f-hero-text">
-              From first symptom to finished treatment, StreetdocMD coordinates your Provider, your lab, your pharmacy,
-              and — where needed — a hospital, so nothing falls through the cracks.
+              From first symptom to finished treatment, we coordinate your Provider, lab, pharmacy and, if needed, a
+              hospital.
             </p>
             <div className="btn-row">
               <Button href={LINKS.bookApp}>Book via app</Button>
@@ -147,8 +147,7 @@ export default function FeaturesPage() {
               <h2 className="f-title-64">Care That Keeps Moving Forward.</h2>
             </div>
             <p className="f-split-text">
-              Your care should not stop at the consultation. StreetdocMD keeps every next step connected, visible, and
-              easier to act on.
+              Care doesn’t stop at the consultation. Every next step stays connected and easy to act on.
             </p>
           </div>
 
@@ -195,7 +194,7 @@ export default function FeaturesPage() {
               <h2 className="f-title-48">Care Built On Recognised Standards.</h2>
             </div>
             <p className="f-split-text">
-              Built around the regulatory frameworks our Providers and Facility Partners answer to.
+              Built around the regulations our Providers and Facility Partners follow.
             </p>
           </div>
           <CareAccordion items={COMPLIANCE} />
