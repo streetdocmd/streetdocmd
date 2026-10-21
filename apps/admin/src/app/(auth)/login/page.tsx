@@ -43,6 +43,15 @@ export default function LoginPage() {
 
     // users_self_read RLS lets a user read their own row.
     const { data: profile } = await supabase.from("users").select("role").eq("id", data.user.id).maybeSingle();
+    // Facility partners who sign in here belong in their own portal
+    const partnerPortal: Record<string, string> = {
+      lab_staff: "/lab-portal", pharmacy_staff: "/pharmacy-portal", hospital_staff: "/hospital-portal",
+    };
+    if (profile?.role && partnerPortal[profile.role]) {
+      router.push(partnerPortal[profile.role]);
+      router.refresh();
+      return;
+    }
     if (profile?.role !== "admin") {
       await supabase.auth.signOut();
       setError(NOT_ADMIN_MESSAGE);
