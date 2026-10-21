@@ -5,6 +5,20 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
+import { normalizePhone, PHONE_ERROR } from "../../lib/phone";
+import { PRIVACY_POLICY_VERSION } from "../../lib/profile";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function friendlySignUpError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("already registered") || m.includes("already exists")) {
+    return "An account with this email already exists. Please sign in instead.";
+  }
+  if (m.includes("rate limit") || m.includes("too many")) return "Too many attempts. Please wait a minute and try again.";
+  if (m.includes("network") || m.includes("fetch")) return "Couldn't reach StreetdocMD. Check your internet connection and try again.";
+  return message;
+}
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -14,31 +28,64 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [ndpr, setNdpr] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const errors = {
+    name: name.trim().length < 2 ? "Please enter your full name" : "",
+    email: !EMAIL_RE.test(email.trim()) ? "Please enter a valid email address" : "",
+    phone: !normalizePhone(phone) ? PHONE_ERROR : "",
+    password: password.length < 8 ? "Password must be at least 8 characters" : "",
+  };
+  const hasErrors = Object.values(errors).some(Boolean);
 
   async function register() {
+    if (loading) return;
+    setSubmitted(true);
+    if (hasErrors) return;
     if (!ndpr) {
       Alert.alert("Consent required", "Please accept the data privacy notice to continue.");
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
-    if (error) { Alert.alert("Error", error.message); setLoading(false); return; }
-
-    const userId = data.user?.id;
-    if (userId) {
-      await supabase.from("users").insert({
-        id: userId,
-        name: name.trim(),
-        phone: phone.trim(),
-        role: "patient",
-        ndpr_consent: true,
+    try {
+      // name/phone/consent ride along as auth metadata; the root layout
+      // creates the patient profile row from them as soon as there's a
+      // session (immediately, or after the email is confirmed).
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          data: {
+            name: name.trim().replace(/\s+/g, " "),
+            phone: normalizePhone(phone),
+            core_consent: true,
+            core_consent_policy_version: PRIVACY_POLICY_VERSION,
+          },
+        },
       });
+      if (error) {
+        Alert.alert("Couldn't create account", friendlySignUpError(error.message));
+        setLoading(false);
+        return;
+      }
+      if (!data.session) {
+        // Email confirmation is switched on for this project.
+        setLoading(false);
+        Alert.alert(
+          "Confirm your email",
+          `We've sent a confirmation link to ${email.trim()}. Open it, then come back and sign in.`,
+          [{ text: "OK", onPress: () => router.replace("/(auth)/login") }],
+        );
+        return;
+      }
+      // Signed in — the root layout takes it from here (profile setup → home).
+    } catch {
+      setLoading(false);
+      Alert.alert("Couldn't create account", "Couldn't reach StreetdocMD. Check your internet connection and try again.");
     }
-    setLoading(false);
-    router.replace("/(tabs)/home");
   }
 
-  const ready = name.trim() && email.trim() && password.length >= 8 && ndpr;
+  const ready = ndpr && !loading;
 
   return (
     <KeyboardAvoidingView
@@ -58,6 +105,7 @@ export default function RegisterScreen() {
             placeholder="Segun Ogunlana"
             autoCapitalize="words"
           />
+          {submitted && errors.name ? <Text style={styles.fieldError}>{errors.name}</Text> : null}
 
           <Text style={styles.label}>Email address</Text>
           <TextInput
@@ -69,6 +117,7 @@ export default function RegisterScreen() {
             autoCapitalize="none"
             autoCorrect={false}
           />
+          {submitted && errors.email ? <Text style={styles.fieldError}>{errors.email}</Text> : null}
 
           <Text style={styles.label}>Phone number</Text>
           <TextInput
@@ -77,7 +126,9 @@ export default function RegisterScreen() {
             onChangeText={setPhone}
             placeholder="08012345678"
             keyboardType="phone-pad"
+            textContentType="telephoneNumber"
           />
+          {submitted && errors.phone ? <Text style={styles.fieldError}>{errors.phone}</Text> : null}
 
           <Text style={styles.label}>Password</Text>
           <TextInput
@@ -86,7 +137,9 @@ export default function RegisterScreen() {
             onChangeText={setPassword}
             placeholder="At least 8 characters"
             secureTextEntry
+            textContentType="newPassword"
           />
+          {submitted && errors.password ? <Text style={styles.fieldError}>{errors.password}</Text> : null}
 
           {/* NDPR Consent */}
           <TouchableOpacity style={styles.consentRow} onPress={() => setNdpr(v => !v)} activeOpacity={0.7}>
@@ -101,14 +154,14 @@ export default function RegisterScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.btn, (!ready || loading) && styles.btnDisabled]}
+            style={[styles.btn, !ready && styles.btnDisabled]}
             onPress={register}
-            disabled={!ready || loading}
+            disabled={!ready}
           >
             <Text style={styles.btnText}>{loading ? "Creating account..." : "Create Account"}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => router.back()} style={styles.back}>
+          <TouchableOpacity onPress={() => router.replace("/(auth)/login")} style={styles.back}>
             <Text style={styles.backText}>Already have an account? Sign in</Text>
           </TouchableOpacity>
         </View>
@@ -125,9 +178,10 @@ const styles = StyleSheet.create({
   tagline: { fontSize: 13, color: "#888", textAlign: "center", marginBottom: 24 },
   label: { fontSize: 14, color: "#444", marginBottom: 6, fontWeight: "500" },
   input: {
-    borderWidth: 1, borderColor: "#ddd", borderRadius: 10,
+    borderWidth: 1, borderColor: "#E5E7EB", borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 16,
   },
+  fieldError: { color: "#DC2626", fontSize: 12, marginTop: -10, marginBottom: 12 },
   consentRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginBottom: 20 },
   checkbox: {
     width: 22, height: 22, borderRadius: 5, borderWidth: 2,

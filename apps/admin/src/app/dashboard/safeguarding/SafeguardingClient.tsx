@@ -1,4 +1,5 @@
 "use client";
+import { CircleCheck } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -44,7 +45,7 @@ export default function SafeguardingClient({ alerts, unresolvedCount }: { alerts
 
       {/* Warning banner */}
       <div className="bg-red-50 border border-red-200 text-red-800 text-sm px-4 py-3 rounded-xl">
-        🔒 Safeguarding alerts are strictly confidential. This page is visible to admin only and must never be shared with patients, providers, or facility portals.
+        Safeguarding alerts are strictly confidential. This page is visible to admin only and must never be shared with patients, providers, or facility portals.
       </div>
 
       {/* Filter toggle */}
@@ -61,7 +62,7 @@ export default function SafeguardingClient({ alerts, unresolvedCount }: { alerts
 
       {displayed.length === 0 ? (
         <div className="card p-12 text-center">
-          <p className="text-4xl mb-3">✅</p>
+          <div className="w-11 h-11 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3"><CircleCheck size={20} aria-hidden /></div>
           <p className="font-semibold text-gray-700">No {showResolved ? "" : "unresolved "}safeguarding alerts</p>
         </div>
       ) : (

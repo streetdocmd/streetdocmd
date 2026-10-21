@@ -1,4 +1,5 @@
 "use client";
+import { Pill } from "lucide-react";
 import { useState } from "react";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -110,7 +111,7 @@ export default function PharmacyClient({
       {tab === "orders" && (
         <div className="space-y-4">
           <div className="flex gap-2 overflow-x-auto text-sm pb-1">
-            {[["all","All"], ["flagged","⚠ Flagged"], ["sent","New"], ["dispatched","Dispatched"], ["delivered","Delivered"]].map(([v, l]) => (
+            {[["all","All"], ["flagged","Flagged"], ["sent","New"], ["dispatched","Dispatched"], ["delivered","Delivered"]].map(([v, l]) => (
               <button key={v} onClick={() => setFilter(v)}
                 className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap shrink-0 ${filter === v ? "bg-teal-brand text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                 {l}
@@ -218,7 +219,7 @@ export default function PharmacyClient({
             ))}
             {partnerList.length === 0 && (
               <div className="card p-12 text-center">
-                <p className="text-4xl mb-3">💊</p>
+                <div className="w-11 h-11 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3"><Pill size={20} aria-hidden /></div>
                 <p className="font-semibold text-gray-700">No pharmacy partners yet</p>
               </div>
             )}
@@ -257,18 +258,24 @@ function PharmacyStaffPanel({ staff, partners }: { staff: any[]; partners: any[]
     setSaving(false);
     if (res.ok) {
       const { temp_password } = await res.json();
-      setToast(`Staff added. Temp password: ${temp_password}`);
+      setToast(`Staff added. Temporary password (shown once — copy it now): ${temp_password}`);
       setShowForm(false);
       setForm({ name: "", email: "", phone: "", pharmacy_partner_id: partners[0]?.id ?? "" });
-      setTimeout(() => { setToast(""); window.location.reload(); }, 4000);
+      // Stays until dismissed — the temporary password is only shown once.
     } else {
-      setToast("Error creating staff account.");
+      const body = await res.json().catch(() => ({}));
+      setToast(`Error creating staff account: ${body?.error ?? res.statusText}`);
     }
   }
 
   return (
     <div className="space-y-4">
-      {toast && <div className="bg-gray-900 text-white px-5 py-3 rounded-xl text-sm">{toast}</div>}
+      {toast && (
+        <div className="bg-gray-900 text-white px-5 py-3 rounded-xl text-sm flex items-start justify-between gap-4" role="status">
+          <span className="select-all break-all">{toast}</span>
+          <button type="button" onClick={() => { const wasSuccess = toast.startsWith("Staff added"); setToast(""); if (wasSuccess) window.location.reload(); }} className="text-gray-300 hover:text-white text-xs font-semibold shrink-0">Dismiss</button>
+        </div>
+      )}
       <div className="flex justify-end">
         <button onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-teal-brand text-white rounded-lg text-sm font-semibold hover:opacity-90">
@@ -495,7 +502,7 @@ function AdminInventoryPanel({ drugs, partners, medicationLibrary }: { drugs: an
       </div>
 
       {visible.length === 0 ? (
-        <div className="card p-12 text-center"><p className="text-4xl mb-3">💊</p><p className="font-semibold text-gray-700">No matching drugs</p></div>
+        <div className="card p-12 text-center"><div className="w-11 h-11 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3"><Pill size={20} aria-hidden /></div><p className="font-semibold text-gray-700">No matching drugs</p></div>
       ) : (
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">

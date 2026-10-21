@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import AuthShell from "@/components/AuthShell";
 import PasswordInput from "@/components/PasswordInput";
 
 export default function ResetPasswordPage() {
@@ -42,22 +43,11 @@ export default function ResetPasswordPage() {
     setLoading(false);
     if (error) { setError(error.message); return; }
     setDone(true);
-    setTimeout(() => router.push("/login"), 2000);
+    setTimeout(() => { router.push("/dashboard"); router.refresh(); }, 1500);
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-navy-700 to-navy-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-10 h-10 bg-blue-brand rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">S</span>
-            </div>
-            <span className="text-white font-bold text-xl">StreetdocMD</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-8 shadow-xl">
+    <AuthShell subtitle="">
           {status === "checking" && (
             <p className="text-gray-500 text-sm text-center py-4">Verifying your reset link…</p>
           )}
@@ -115,11 +105,9 @@ export default function ResetPasswordPage() {
           {done && (
             <>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Password updated</h1>
-              <p className="text-gray-500 text-sm">Redirecting you to sign in…</p>
+              <p className="text-gray-500 text-sm">Taking you to your dashboard…</p>
             </>
           )}
-        </div>
-      </div>
-    </div>
+    </AuthShell>
   );
 }

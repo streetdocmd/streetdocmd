@@ -1,18 +1,14 @@
-﻿import { createServerSupabase } from "@/lib/supabase-server";
+import Link from "next/link";
+import { ClipboardList } from "lucide-react";
+import { createServerSupabase } from "@/lib/supabase-server";
 import { formatNaira } from "@/lib/shared";
+import PageHeader from "@/components/ui/PageHeader";
+import StatusBadge from "@/components/ui/StatusBadge";
+import EmptyState from "@/components/ui/EmptyState";
 
-const STATUS_STYLES: Record<string, string> = {
-  pending_payment: "bg-yellow-100 text-yellow-700",
-  paid: "bg-yellow-100 text-yellow-700",
-  provider_declined: "bg-red-100 text-red-700",
-  expired: "bg-gray-100 text-gray-600",
-  accepted: "bg-blue-100 text-blue-700",
-  en_route: "bg-purple-100 text-purple-700",
-  arrived: "bg-indigo-100 text-indigo-700",
-  in_progress: "bg-orange-100 text-orange-700",
-  completed: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
-};
+export const dynamic = "force-dynamic";
+
+const TABS = ["all", "pending", "accepted", "en_route", "completed", "cancelled"];
 
 export default async function BookingsPage({
   searchParams,
@@ -20,7 +16,7 @@ export default async function BookingsPage({
   searchParams: { status?: string };
 }) {
   const supabase = createServerSupabase();
-  const status = searchParams.status;
+  const status = searchParams.status && TABS.includes(searchParams.status) && searchParams.status !== "all" ? searchParams.status : undefined;
 
   let query = supabase
     .from("bookings")
@@ -30,75 +26,58 @@ export default async function BookingsPage({
 
   if (status) query = query.eq("status", status);
 
-  const { data: bookings } = await query;
-
-  const tabs = ["all", "pending", "accepted", "en_route", "completed", "cancelled"];
+  const { data: bookings, error } = await query;
+  if (error) throw new Error(`Could not load bookings: ${error.message}`);
+  const rows = bookings ?? [];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
+    <div>
+      <PageHeader title="Bookings" description="The 50 most recent consultation requests." />
 
-      <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
-        {tabs.map((t) => (
-          <a
-            key={t}
-            href={t === "all" ? "/dashboard/bookings" : `/dashboard/bookings?status=${t}`}
-            className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors whitespace-nowrap shrink-0 ${
-              (t === "all" && !status) || status === t
-                ? "border-brand-blue text-brand-blue"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {t.replace(/_/g, " ")}
-          </a>
-        ))}
-      </div>
+      <div className="card">
+        <nav className="flex gap-1 overflow-x-auto px-4 pt-3 border-b border-gray-100" aria-label="Booking status">
+          {TABS.map((t) => {
+            const active = (t === "all" && !status) || status === t;
+            return (
+              <Link
+                key={t}
+                href={t === "all" ? "/dashboard/bookings" : `/dashboard/bookings?status=${t}`}
+                aria-current={active ? "page" : undefined}
+                className={`-mb-px px-3 py-2.5 text-sm font-medium capitalize border-b-2 transition-colors whitespace-nowrap ${
+                  active ? "border-blue-brand text-blue-brand" : "border-transparent text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                {t.replace(/_/g, " ")}
+              </Link>
+            );
+          })}
+        </nav>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
-              <tr>
-                <th className="text-left px-4 py-3">ID</th>
-                <th className="text-left px-4 py-3">Service</th>
-                <th className="text-left px-4 py-3">Address</th>
-                <th className="text-left px-4 py-3">Fee</th>
-                <th className="text-left px-4 py-3">Status</th>
-                <th className="text-left px-4 py-3">Payment</th>
-                <th className="text-left px-4 py-3">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {(bookings ?? []).map((b) => (
-                <tr key={b.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-mono text-xs text-gray-500">
-                    {b.id.slice(0, 8)}…
-                  </td>
-                  <td className="px-4 py-3 capitalize text-gray-900">
-                    {b.service_type.replace(/_/g, " ")}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{b.patient_address}</td>
-                  <td className="px-4 py-3 text-gray-900 font-medium">{formatNaira(b.fee)}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${STATUS_STYLES[b.status]}`}>
-                      {b.status.replace(/_/g, " ")}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${b.payment_status === "successful" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
-                      {b.payment_status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">
-                    {new Date(b.created_at).toLocaleDateString("en-NG")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {rows.length === 0 ? (
+          <EmptyState icon={ClipboardList} title="No bookings" description={status ? "No bookings with this status." : "Bookings will appear here as patients request visits."} />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table-base">
+              <thead>
+                <tr><th>ID</th><th>Service</th><th>Address</th><th>Fee</th><th>Status</th><th>Payment</th><th>Date</th></tr>
+              </thead>
+              <tbody>
+                {rows.map((b) => (
+                  <tr key={b.id}>
+                    <td className="font-mono text-xs text-gray-500">{b.id.slice(0, 8)}…</td>
+                    <td className="capitalize text-gray-900 whitespace-nowrap">{String(b.service_type ?? "").replace(/_/g, " ")}</td>
+                    <td className="text-gray-600 max-w-xs truncate">{b.patient_address}</td>
+                    <td className="text-gray-900 font-medium whitespace-nowrap">{formatNaira(Number(b.fee ?? 0))}</td>
+                    <td><StatusBadge status={b.status} /></td>
+                    <td>{b.payment_status ? <StatusBadge status={b.payment_status} tone={b.payment_status === "paid" || b.payment_status === "successful" ? "success" : undefined} /> : <span className="text-gray-400">—</span>}</td>
+                    <td className="text-gray-500 whitespace-nowrap">{new Date(b.created_at).toLocaleDateString("en-NG")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-

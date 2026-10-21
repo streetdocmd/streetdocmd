@@ -29,21 +29,28 @@ export default function RootLayout() {
       .from("providers")
       .select("verification_status")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
     setVerified(data?.verification_status === "verified");
   }
 
   useEffect(() => {
     if (loading) return;
     const inAuth = segments[0] === "(auth)";
-    if (!session && !inAuth) { router.replace("/(auth)/login"); return; }
-    if (session && inAuth && segments[1] === "pending") return;
-    if (session && verified === false && segments[1] !== "pending") {
-      router.replace("/(auth)/pending"); return;
+    const screen = segments[1] as string | undefined;
+    if (!session) {
+      if (!inAuth) router.replace("/(auth)/login");
+      return;
     }
-    if (session && verified === true && inAuth) {
-      router.replace("/(tabs)/dispatch");
+    // Password-recovery links sign the user in — let them finish resetting.
+    if (screen === "reset-password") return;
+    if (verified === null) return; // still checking
+    if (verified === false) {
+      // Unverified (pending, under review, rejected, or no provider row yet):
+      // the pending screen explains which of those it is and what to do next.
+      if (screen !== "pending") router.replace("/(auth)/pending");
+      return;
     }
+    if (inAuth) router.replace("/(tabs)/dispatch");
   }, [session, verified, loading, segments]);
 
   return <Slot />;

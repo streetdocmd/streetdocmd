@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { formatNaira } from "@streetdocmd/shared";
 
 export default function WithdrawForm({
@@ -28,6 +29,7 @@ export default function WithdrawForm({
     const num = parseFloat(amount);
     if (!num || num < min) { setError(`Minimum withdrawal is ${formatNaira(min)}.`); return; }
     if (num > walletBalance) { setError("Amount exceeds your wallet balance."); return; }
+    if (loading) return;
 
     setLoading(true);
     setError("");
@@ -36,7 +38,7 @@ export default function WithdrawForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount: num }),
     });
-    const json = await res.json();
+    const json = await res.json().catch(() => ({}));
     setLoading(false);
     if (!res.ok) { setError(json.error ?? "Request failed. Please try again."); return; }
     setSuccess(true);
@@ -51,9 +53,9 @@ export default function WithdrawForm({
         <p className="text-sm text-amber-700 mb-3">
           Add your bank account in your profile before requesting a withdrawal.
         </p>
-        <a href="/dashboard/profile" className="btn-teal text-sm inline-block">
-          Go to Profile →
-        </a>
+        <Link href="/dashboard/profile#payouts" className="btn-teal text-sm inline-block">
+          Add bank details →
+        </Link>
       </div>
     );
   }
@@ -81,7 +83,7 @@ export default function WithdrawForm({
 
       <form onSubmit={submit} className="space-y-3">
         <div>
-          <label className="text-sm font-medium text-gray-700">
+          <label className="label">
             Amount (max {formatNaira(walletBalance)})
           </label>
           <div className="relative mt-1">
@@ -94,7 +96,7 @@ export default function WithdrawForm({
               value={amount}
               onChange={e => setAmount(e.target.value)}
               placeholder="0"
-              className="w-full border border-gray-200 rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-brand"
+              className="input pl-8"
               required
             />
           </div>
@@ -106,7 +108,7 @@ export default function WithdrawForm({
         <button
           type="submit"
           disabled={loading || walletBalance < min}
-          className="w-full py-2.5 bg-teal-brand text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition-colors disabled:opacity-50"
+          className="btn-teal w-full"
         >
           {loading ? "Submitting…" : "Request Withdrawal"}
         </button>

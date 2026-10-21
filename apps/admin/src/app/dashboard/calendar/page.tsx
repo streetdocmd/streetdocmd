@@ -1,3 +1,4 @@
+import { CalendarDays } from "lucide-react";
 import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS } from "@/lib/shared";
@@ -58,7 +59,7 @@ export default async function AdminCalendarPage({
 
           {sortedDates.length === 0 ? (
             <div className="card p-12 text-center">
-              <p className="text-4xl mb-3">🗓️</p>
+              <div className="w-11 h-11 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3"><CalendarDays size={20} aria-hidden /></div>
               <p className="font-semibold text-gray-700">Nothing scheduled</p>
               <p className="text-sm text-gray-400 mt-1">This provider has no upcoming or in-progress visits.</p>
             </div>

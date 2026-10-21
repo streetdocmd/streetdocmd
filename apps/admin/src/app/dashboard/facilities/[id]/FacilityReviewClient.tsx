@@ -1,235 +1,408 @@
 "use client";
-import { useState } from "react";
+
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  FlaskConical, Pill, Hospital, FileText, ExternalLink, Info, Copy, Check,
+  CircleCheck, KeyRound, Clock, CircleX,
+} from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
+import StatusBadge from "@/components/ui/StatusBadge";
+import ConfirmModal, { Spinner } from "@/components/ui/ConfirmModal";
+import EmptyState from "@/components/ui/EmptyState";
 
-const STATUS_COLOR: Record<string, string> = {
-  pending:      "bg-yellow-100 text-yellow-700",
-  under_review: "bg-blue-100 text-blue-700",
-  approved:     "bg-green-100 text-green-700",
-  rejected:     "bg-red-100 text-red-700",
+const TYPE_META: Record<string, { label: string; icon: typeof Pill; portal: string }> = {
+  lab:      { label: "Laboratory", icon: FlaskConical, portal: "/lab-portal/login" },
+  pharmacy: { label: "Pharmacy",   icon: Pill,         portal: "/pharmacy-portal/login" },
+  hospital: { label: "Hospital",   icon: Hospital,     portal: "/hospital-portal/login" },
 };
 
-const PORTAL_URLS: Record<string, string> = {
-  lab:      "/lab-portal/login",
-  pharmacy: "/pharmacy-portal/login",
-  hospital: "/hospital-portal/login",
+type ApproveResult = {
+  temp_password: string | null;
+  login_email: string | null;
+  portal_url: string | null;
+  sms_sent: boolean;
 };
 
-export default function FacilityReviewClient({ application: app }: { application: any }) {
+function fmtDate(d?: string | null, withTime = false) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-NG", {
+    day: "numeric", month: "short", year: "numeric",
+    ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
+  });
+}
+
+function humanise(key: string) {
+  return key.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+}
+
+function displayValue(v: unknown): string {
+  if (v === null || v === undefined || v === "") return "—";
+  if (Array.isArray(v)) return v.filter(Boolean).join(", ") || "—";
+  if (typeof v === "boolean") return v ? "Yes" : "No";
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+
+async function readError(res: Response) {
+  const data = await res.json().catch(() => ({}));
+  return (data as { error?: string }).error ?? `Request failed (${res.status}).`;
+}
+
+export default function FacilityReviewClient({
+  application: app,
+  reviewerName,
+}: {
+  application: any;
+  reviewerName?: string | null;
+}) {
   const router = useRouter();
-  const [showApproveModal, setShowApproveModal] = useState(false);
-  const [showRejectModal,  setShowRejectModal]  = useState(false);
-  const [rejectReason,     setRejectReason]     = useState("");
-  const [processing,       setProcessing]       = useState(false);
-  const [toast,            setToast]            = useState("");
+  const [modal, setModal] = useState<"approve" | "reject" | "review" | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [approved, setApproved] = useState<ApproveResult | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const docs = app.documents ?? {};
-  const typeData = app.type_specific_data ?? {};
+  const meta = TYPE_META[app.facility_type] ?? { label: humanise(app.facility_type ?? "Facility"), icon: FileText, portal: "" };
+  const TypeIcon = meta.icon;
+  const docs: Record<string, unknown> = app.documents ?? {};
+  const typeData: Record<string, unknown> = app.type_specific_data ?? {};
+  const isOpen = app.status === "pending" || app.status === "under_review";
+  const hasLogin = !!app.user_id;
 
-  function showToast(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(""), 4000);
+  const closeModal = useCallback(() => {
+    if (processing) return;
+    setModal(null);
+    setError(null);
+  }, [processing]);
+
+  async function post(body: Record<string, unknown>, method: "POST" | "PATCH" = "POST") {
+    setProcessing(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/facilities/${app.id}/review`, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        setError(await readError(res));
+        return null;
+      }
+      return await res.json().catch(() => ({}));
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+      return null;
+    } finally {
+      setProcessing(false);
+    }
   }
 
   async function handleApprove() {
-    setProcessing(true);
-    const res = await fetch(`/api/facilities/${app.id}/review`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "approve" }),
+    const data = await post({ action: "approve" });
+    if (!data) return;
+    setModal(null);
+    setApproved({
+      temp_password: data.temp_password ?? null,
+      login_email: data.login_email ?? app.email ?? null,
+      portal_url: data.portal_url ?? null,
+      sms_sent: !!data.sms_sent,
     });
-    setProcessing(false);
-    setShowApproveModal(false);
-    if (res.ok) {
-      const data = await res.json();
-      showToast(`${app.name} approved. Account created. Temp password: ${data.temp_password}`);
-      setTimeout(() => router.push("/dashboard/facilities"), 3000);
-    } else {
-      showToast("Error approving application. Please try again.");
-    }
   }
 
   async function handleReject() {
     if (!rejectReason.trim()) return;
-    setProcessing(true);
-    await fetch(`/api/facilities/${app.id}/review`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "reject", rejection_reason: rejectReason }),
-    });
-    setProcessing(false);
-    setShowRejectModal(false);
-    showToast("Application rejected and facility notified.");
-    setTimeout(() => router.push("/dashboard/facilities"), 2000);
+    const data = await post({ action: "reject", rejection_reason: rejectReason.trim() });
+    if (!data) return;
+    setModal(null);
+    router.refresh();
   }
 
+  async function handleUnderReview() {
+    const data = await post({ action: "under_review" }, "PATCH");
+    if (!data) return;
+    setModal(null);
+    router.refresh();
+  }
+
+  async function copyPassword() {
+    if (!approved?.temp_password) return;
+    try {
+      await navigator.clipboard.writeText(approved.temp_password);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable — the password stays visible to copy manually */
+    }
+  }
+
+  const docEntries = Object.entries(docs).flatMap(([key, value]) =>
+    Array.isArray(value)
+      ? value.filter(Boolean).map((v, i) => ({ key: `${key}-${i}`, label: `${humanise(key.replace(/_urls?$/, ""))} ${i + 1}`, value: String(v) }))
+      : value
+        ? [{ key, label: humanise(key.replace(/_urls?$/, "")), value: String(value) }]
+        : []
+  );
+
   return (
-    <div className="space-y-6 max-w-3xl">
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-6 left-6 right-6 sm:left-auto z-50 bg-gray-900 text-white px-5 py-3 rounded-xl text-sm shadow-lg max-w-sm">
-          {toast}
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <a href="/dashboard/facilities" className="text-sm text-blue-brand hover:underline inline-flex items-center gap-1 mb-2">
-            ← Back to Applications
-          </a>
-          <h1 className="text-2xl font-bold text-gray-900 break-words">{app.name}</h1>
-          <div className="flex items-center gap-3 mt-1 flex-wrap">
-            <span className="text-sm text-gray-500 capitalize">{app.facility_type}</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[app.status] ?? ""}`}>
-              {app.status.replace("_", " ")}
+    <div className="max-w-4xl">
+      <PageHeader
+        backHref="/dashboard/facilities"
+        backLabel="Facility applications"
+        title={app.name}
+        meta={
+          <>
+            <span className="inline-flex items-center gap-1.5 text-sm text-gray-600">
+              <TypeIcon size={15} className="text-gray-400" aria-hidden />
+              {meta.label}
             </span>
-            <span className="text-xs text-gray-400">{new Date(app.created_at).toLocaleDateString("en-NG")}</span>
-          </div>
-        </div>
+            <span className="text-gray-300" aria-hidden>·</span>
+            <StatusBadge status={app.status} />
+            <span className="text-gray-300" aria-hidden>·</span>
+            <span className="text-sm text-gray-500">Submitted {fmtDate(app.created_at)}</span>
+          </>
+        }
+        actions={
+          isOpen ? (
+            <>
+              {app.status === "pending" && (
+                <button onClick={() => setModal("review")} className="btn-secondary">
+                  <Clock size={15} aria-hidden /> Mark under review
+                </button>
+              )}
+              <button onClick={() => { setModal("reject"); setError(null); }} className="btn-danger-outline">
+                <CircleX size={15} aria-hidden /> Reject
+              </button>
+              <button onClick={() => { setModal("approve"); setError(null); }} className="btn-success">
+                <CircleCheck size={15} aria-hidden /> Approve
+              </button>
+            </>
+          ) : undefined
+        }
+      />
 
-        {app.status !== "approved" && app.status !== "rejected" && (
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button onClick={() => setShowRejectModal(true)}
-              className="px-5 py-2.5 border border-red-300 text-red-600 rounded-xl font-semibold hover:bg-red-50 text-sm">
-              Reject
-            </button>
-            <button onClick={() => setShowApproveModal(true)}
-              className="px-5 py-2.5 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 text-sm">
-              Approve & Create Account
-            </button>
+      <div className="space-y-5">
+        {/* Decision summary for closed applications */}
+        {app.status === "approved" && (
+          <div className="card border-green-200 bg-green-50/60 p-5 flex gap-3">
+            <CircleCheck size={20} className="text-green-600 shrink-0 mt-0.5" aria-hidden />
+            <div className="text-sm">
+              <p className="font-semibold text-green-800">Approved {fmtDate(app.reviewed_at, true)}{reviewerName ? ` by ${reviewerName}` : ""}</p>
+              <p className="text-green-700 mt-0.5">
+                The partner is live. Staff sign in at <span className="font-medium">{meta.portal}</span> with {app.email}.
+              </p>
+            </div>
           </div>
         )}
-      </div>
-
-      {/* Basic info */}
-      <div className="card p-5 space-y-3">
-        <p className="text-sm font-semibold text-gray-700 uppercase tracking-wide text-xs mb-3">Basic Information</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          <Row label="Email"    value={app.email} />
-          <Row label="Phone"    value={app.phone} />
-          <Row label="Address"  value={`${app.address}, ${app.city ?? ""} ${app.state ?? ""}`.trim()} />
-          {app.registration_number && <Row label="Reg. No."   value={app.registration_number} />}
-          {app.cac_number          && <Row label="CAC No."    value={app.cac_number} />}
-          {app.contact_person_name && <Row label="Contact"    value={`${app.contact_person_name} (${app.contact_person_role ?? ""})`} />}
-          {app.operating_hours     && <Row label="Hours"      value={app.operating_hours} />}
-        </div>
-      </div>
-
-      {/* Type-specific details */}
-      <div className="card p-5 space-y-3">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-          {app.facility_type === "lab" ? "Laboratory" : app.facility_type === "pharmacy" ? "Pharmacy" : "Hospital"} Details
-        </p>
-        {Object.entries(typeData).map(([k, v]) => {
-          if (Array.isArray(v)) return <Row key={k} label={k.replace(/_/g, " ")} value={(v as any[]).join(", ") || "—"} />;
-          if (typeof v === "boolean") return <Row key={k} label={k.replace(/_/g, " ")} value={v ? "Yes" : "No"} />;
-          return <Row key={k} label={k.replace(/_/g, " ")} value={String(v ?? "—")} />;
-        })}
-      </div>
-
-      {/* Documents */}
-      {(docs.licence_url || docs.cac_url || (docs.photo_urls?.length > 0)) && (
-        <div className="card p-5 space-y-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Documents</p>
-          <div className="flex gap-4 flex-wrap">
-            {docs.licence_url && (
-              <a href={docs.licence_url} target="_blank" rel="noopener noreferrer"
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 font-medium">
-                📄 View Licence
-              </a>
-            )}
-            {docs.cac_url && (
-              <a href={docs.cac_url} target="_blank" rel="noopener noreferrer"
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 font-medium">
-                📄 View CAC Certificate
-              </a>
-            )}
-            {(docs.photo_urls ?? []).map((url: string, i: number) => (
-              <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 font-medium">
-                📷 Photo {i + 1}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Rejection reason if rejected */}
-      {app.status === "rejected" && app.rejection_reason && (
-        <div className="card p-5 border-red-200 bg-red-50">
-          <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2">Rejection Reason</p>
-          <p className="text-sm text-red-700">{app.rejection_reason}</p>
-        </div>
-      )}
-
-      {/* Approve Modal */}
-      {showApproveModal && (
-        <div className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-xl">
-            <p className="text-lg font-bold text-gray-900">Approve Application</p>
-            <p className="text-sm text-gray-600">
-              This will:
-              <ul className="mt-2 space-y-1 list-disc list-inside">
-                <li>Create a partner account for <strong>{app.name}</strong></li>
-                <li>Create a login in the {app.facility_type} portal</li>
-                <li>Generate a temporary password</li>
-              </ul>
-            </p>
-            <p className="text-xs text-gray-400">
-              Portal login URL: <strong>{PORTAL_URLS[app.facility_type]}</strong>
-            </p>
-            <div className="flex gap-3">
-              <button onClick={() => setShowApproveModal(false)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
-                Cancel
-              </button>
-              <button onClick={handleApprove} disabled={processing}
-                className="flex-1 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 disabled:opacity-50">
-                {processing ? "Processing…" : "Confirm Approve"}
-              </button>
+        {app.status === "rejected" && (
+          <div className="card border-red-200 bg-red-50/60 p-5 flex gap-3">
+            <CircleX size={20} className="text-red-600 shrink-0 mt-0.5" aria-hidden />
+            <div className="text-sm">
+              <p className="font-semibold text-red-800">Rejected {fmtDate(app.reviewed_at, true)}{reviewerName ? ` by ${reviewerName}` : ""}</p>
+              {app.rejection_reason && <p className="text-red-700 mt-1 whitespace-pre-wrap">{app.rejection_reason}</p>}
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Reject Modal */}
-      {showRejectModal && (
-        <div className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-xl">
-            <p className="text-lg font-bold text-gray-900">Reject Application</p>
-            <p className="text-sm text-gray-600">
-              Please provide a reason. This will be sent to the facility so they can reapply after addressing the issues.
+        {isOpen && !hasLogin && (
+          <div className="card border-blue-200 bg-blue-50/60 p-4 flex gap-3 text-sm text-blue-800">
+            <Info size={18} className="shrink-0 mt-0.5" aria-hidden />
+            <p>
+              This application was submitted before facilities created their own login. Approving it creates a portal
+              login for <strong>{app.email}</strong> with a temporary password, shown to you once after approval.
             </p>
-            <textarea
-              rows={4}
-              className="input resize-none"
-              placeholder="Reason for rejection…"
-              value={rejectReason}
-              onChange={e => setRejectReason(e.target.value)}
+          </div>
+        )}
+
+        <section className="card">
+          <h2 className="px-5 pt-5 pb-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Facility details</h2>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 px-5 pb-5 text-sm">
+            <Field label="Email" value={app.email} />
+            <Field label="Phone" value={app.phone} />
+            <Field label="Address" value={[app.address, app.city, app.state].filter(Boolean).join(", ")} wide />
+            <Field label="Registration no." value={app.registration_number} />
+            <Field label="CAC no." value={app.cac_number} />
+            <Field
+              label="Contact person"
+              value={app.contact_person_name ? `${app.contact_person_name}${app.contact_person_role ? ` (${app.contact_person_role})` : ""}` : null}
             />
-            <div className="flex gap-3">
-              <button onClick={() => setShowRejectModal(false)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
-                Cancel
-              </button>
-              <button onClick={handleReject} disabled={processing || !rejectReason.trim()}
-                className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 disabled:opacity-50">
-                {processing ? "Processing…" : "Confirm Reject"}
+            <Field label="Operating hours" value={app.operating_hours} />
+            <Field label="Portal login" value={hasLogin ? `Created at registration (${app.email})` : "Not yet created"} />
+          </dl>
+        </section>
+
+        <section className="card">
+          <h2 className="px-5 pt-5 pb-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{meta.label} details</h2>
+          {Object.keys(typeData).length === 0 ? (
+            <p className="px-5 pb-5 text-sm text-gray-400">No additional details were provided.</p>
+          ) : (
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 px-5 pb-5 text-sm">
+              {Object.entries(typeData).map(([k, v]) => (
+                <Field key={k} label={humanise(k)} value={displayValue(v)} />
+              ))}
+            </dl>
+          )}
+        </section>
+
+        <section className="card">
+          <h2 className="px-5 pt-5 pb-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Documents</h2>
+          {docEntries.length === 0 ? (
+            <EmptyState
+              compact
+              icon={FileText}
+              title="No documents attached"
+              description="Verify the registration and CAC numbers above with the issuing body before approving."
+            />
+          ) : (
+            <ul className="px-5 pb-5 grid gap-2 sm:grid-cols-2">
+              {docEntries.map((d) => {
+                const isUrl = /^https?:\/\//i.test(d.value);
+                return (
+                  <li key={d.key}>
+                    {isUrl ? (
+                      <a
+                        href={d.value}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50 transition-colors"
+                      >
+                        <FileText size={16} className="text-gray-400 shrink-0" aria-hidden />
+                        <span className="flex-1 text-sm font-medium text-gray-800 truncate">{d.label}</span>
+                        <ExternalLink size={14} className="text-gray-400" aria-hidden />
+                      </a>
+                    ) : (
+                      <div className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5">
+                        <FileText size={16} className="text-gray-400 shrink-0" aria-hidden />
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-sm font-medium text-gray-800">{d.label}</span>
+                          <span className="block text-xs text-gray-400 truncate font-mono">{d.value}</span>
+                        </span>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      {/* Approve */}
+      <ConfirmModal
+        open={modal === "approve"}
+        title={`Approve ${app.name}?`}
+        confirmLabel={processing ? "Approving…" : "Approve facility"}
+        tone="success"
+        loading={processing}
+        error={error}
+        onConfirm={handleApprove}
+        onCancel={closeModal}
+      >
+        <p>This will:</p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Create an active {meta.label.toLowerCase()} partner record for <strong>{app.name}</strong></li>
+          {hasLogin ? (
+            <li>Activate the portal login they created at registration (<strong>{app.email}</strong>)</li>
+          ) : (
+            <li>Create a portal login for <strong>{app.email}</strong> with a temporary password</li>
+          )}
+          <li>Send the facility an SMS with sign-in details (if SMS is configured)</li>
+        </ul>
+        <p className="text-xs text-gray-500">Portal: {meta.portal}</p>
+      </ConfirmModal>
+
+      {/* Reject */}
+      <ConfirmModal
+        open={modal === "reject"}
+        title="Reject application"
+        confirmLabel={processing ? "Rejecting…" : "Reject application"}
+        tone="danger"
+        loading={processing}
+        confirmDisabled={!rejectReason.trim()}
+        error={error}
+        onConfirm={handleReject}
+        onCancel={closeModal}
+      >
+        <p>The reason is sent to the facility by SMS so they can fix it and reapply.</p>
+        <label htmlFor="reject-reason" className="label">Reason <span className="text-red-500">*</span></label>
+        <textarea
+          id="reject-reason"
+          rows={4}
+          className="input resize-none"
+          placeholder="e.g. The premises licence number could not be verified with PCN. Please reapply with a valid licence."
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          disabled={processing}
+          autoFocus
+        />
+      </ConfirmModal>
+
+      {/* Under review */}
+      <ConfirmModal
+        open={modal === "review"}
+        title="Mark under review?"
+        confirmLabel={processing ? "Updating…" : "Mark under review"}
+        loading={processing}
+        error={error}
+        onConfirm={handleUnderReview}
+        onCancel={closeModal}
+      >
+        <p>Lets other admins see that someone is already checking this application.</p>
+      </ConfirmModal>
+
+      {/* Result after approval — stays until dismissed so a temporary password can be copied. */}
+      <ConfirmModal
+        open={!!approved}
+        title={`${app.name} approved`}
+        confirmLabel="Done"
+        tone="primary"
+        hideCancel
+        onConfirm={() => { router.push("/dashboard/facilities"); router.refresh(); }}
+        onCancel={() => { setApproved(null); router.refresh(); }}
+      >
+        <div className="flex items-start gap-3 rounded-lg bg-green-50 border border-green-200 p-3 text-green-800">
+          <CircleCheck size={18} className="shrink-0 mt-0.5" aria-hidden />
+          <p>The partner is now active and can sign in at <strong>{meta.portal}</strong>.</p>
+        </div>
+        <dl className="space-y-2">
+          <div className="flex justify-between gap-4"><dt className="text-gray-500">Login email</dt><dd className="font-medium text-gray-900 break-all text-right">{approved?.login_email ?? "—"}</dd></div>
+          <div className="flex justify-between gap-4"><dt className="text-gray-500">SMS to facility</dt><dd className="font-medium text-gray-900">{approved?.sms_sent ? "Sent" : "Not sent — share details manually"}</dd></div>
+        </dl>
+        {approved?.temp_password ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-800 uppercase tracking-wide">
+              <KeyRound size={13} aria-hidden /> Temporary password — shown once
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <code className="flex-1 rounded-md bg-white border border-amber-200 px-3 py-2 font-mono text-base text-gray-900 select-all">
+                {approved.temp_password}
+              </code>
+              <button type="button" onClick={copyPassword} className="btn-secondary px-3" aria-label="Copy temporary password">
+                {copied ? <Check size={15} className="text-green-600" /> : <Copy size={15} />}
               </button>
             </div>
+            <p className="mt-2 text-xs text-amber-800">Share it securely and ask them to change it after first sign-in.</p>
           </div>
+        ) : (
+          <p className="text-gray-500">They sign in with the password they chose when registering.</p>
+        )}
+      </ConfirmModal>
+
+      {processing && modal === null && (
+        <div className="fixed bottom-6 right-6 card px-4 py-3 text-sm flex items-center gap-2 shadow-lg">
+          <Spinner className="text-blue-brand" /> Working…
         </div>
       )}
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Field({ label, value, wide = false }: { label: string; value?: string | null; wide?: boolean }) {
   return (
-    <div className="text-sm">
-      <span className="text-gray-400 capitalize">{label}:</span>{" "}
-      <span className="text-gray-800 font-medium">{value}</span>
+    <div className={wide ? "sm:col-span-2" : ""}>
+      <dt className="text-xs text-gray-500">{label}</dt>
+      <dd className="mt-0.5 font-medium text-gray-900 break-words">{value || "—"}</dd>
     </div>
   );
 }

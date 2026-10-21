@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase, createServerSupabase } from "@/lib/supabase-server";
+import { requiredDocTypes } from "@/lib/onboarding";
 
 const BUCKET = "provider-docs";
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   const { data: provider } = await supabase
     .from("providers")
-    .select("id, verification_status")
+    .select("id, specialty, verification_status")
     .eq("user_id", user.id)
     .single();
   if (!provider) return NextResponse.json({ error: "Provider not found" }, { status: 404 });
@@ -23,7 +24,16 @@ export async function POST(req: NextRequest) {
 
   if (!file || !docType) return NextResponse.json({ error: "Missing file or doc_type" }, { status: 400 });
   if (file.size > MAX_SIZE) return NextResponse.json({ error: "File too large (max 10 MB)" }, { status: 400 });
-  if (!ALLOWED_TYPES.includes(file.type)) return NextResponse.json({ error: "Only PDF, JPG, or PNG allowed" }, { status: 400 });
+  if (!ALLOWED_TYPES.includes(file.type)) return NextResponse.json({ error: "Only PDF, JPG, or PNG files are allowed" }, { status: 400 });
+  if (file.size === 0) return NextResponse.json({ error: "This file is empty. Please choose another." }, { status: 400 });
+  // Only the documents this provider's specialty actually asks for — anything
+  // else would also trip provider_documents_document_type_check.
+  if (!requiredDocTypes(provider.specialty).includes(docType)) {
+    return NextResponse.json({ error: "Unexpected document type" }, { status: 400 });
+  }
+  if (provider.verification_status === "verified" || provider.verification_status === "under_review") {
+    return NextResponse.json({ error: "Your documents are already with our team. Contact support@streetdocmd.com to change them." }, { status: 409 });
+  }
 
   const admin = createAdminSupabase();
 
@@ -37,7 +47,7 @@ export async function POST(req: NextRequest) {
     allowedMimeTypes: ALLOWED_TYPES,
   });
 
-  const ext = file.name.split(".").pop();
+  const ext = file.type === "application/pdf" ? "pdf" : file.type === "image/png" ? "png" : "jpg";
   const path = `${provider.id}/${docType}_${Date.now()}.${ext}`;
   const bytes = await file.arrayBuffer();
 
@@ -55,17 +65,14 @@ export async function POST(req: NextRequest) {
     file_url: path,
   });
 
-  if (dbErr) return NextResponse.json({ error: dbErr.message }, { status: 500 });
-
-  // A previously-rejected provider uploading a replacement document is
-  // re-applying — put them back in the admin review queue instead of
-  // leaving them stuck showing the old rejection reason forever.
-  if (provider.verification_status === "rejected") {
-    await admin
-      .from("providers")
-      .update({ verification_status: "pending", rejection_reason: null })
-      .eq("id", provider.id);
+  if (dbErr) {
+    await admin.storage.from(BUCKET).remove([path]);
+    return NextResponse.json({ error: dbErr.message }, { status: 500 });
   }
+
+  // Re-applying after a rejection is completed by /api/onboarding/submit
+  // once every required document is in — not on the first upload, which
+  // would put a half-finished application back into the review queue.
 
   return NextResponse.json({ ok: true });
 }

@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Check, Clock, XCircle, Search } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { DOC_LABELS, onboardingRoute } from "@/lib/onboarding";
+import OnboardingSteps from "@/components/OnboardingSteps";
 
 export default async function PendingPage() {
   const supabase = await createServerSupabase();
@@ -9,75 +12,116 @@ export default async function PendingPage() {
 
   const { data: provider } = await supabase
     .from("providers")
-    .select("verification_status, rejection_reason")
+    .select("*")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (!provider) redirect("/register/individual");
-  if (provider.verification_status === "verified") redirect("/dashboard");
 
-  const isRejected = provider.verification_status === "rejected";
+  const { data: docs } = await supabase
+    .from("provider_documents")
+    .select("document_type, uploaded_at")
+    .eq("provider_id", provider.id)
+    .order("uploaded_at", { ascending: false });
+  const uploadedTypes = Array.from(new Set((docs ?? []).map(d => d.document_type as string)));
+
+  const target = onboardingRoute(provider, uploadedTypes);
+  if (target !== "/onboarding/pending") redirect(target);
+
+  const status = provider.verification_status as string;
+  const isRejected = status === "rejected";
+  const inReview = status === "under_review";
+  const firstName = (provider.name as string).replace(/^(dr|mr|mrs|ms|nurse)\.?\s+/i, "").split(" ")[0];
+
+  if (isRejected) {
+    return (
+      <div className="text-center">
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <XCircle size={32} className="text-red-500" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-2">Your application needs changes</h1>
+        <p className="text-gray-500 text-sm mb-5 max-w-md mx-auto">
+          Our team couldn&apos;t verify your application as submitted. Please review the note below,
+          upload corrected documents and re-submit — we&apos;ll review it again within 24–48 hours.
+        </p>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-left mb-6">
+          <p className="text-sm font-semibold text-red-700 mb-1">Note from the verification team</p>
+          <p className="text-sm text-red-600">
+            {provider.rejection_reason || "No reason was recorded. Please email support@streetdocmd.com and we'll tell you what to change."}
+          </p>
+        </div>
+        <Link href="/onboarding/documents" className="btn-primary inline-flex">
+          Update documents & re-submit
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full text-center">
-        {isRejected ? (
-          <>
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">❌</span>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Verification not approved</h1>
-            <p className="text-gray-500 text-sm mb-4">
-              Your application was not approved. Please review the reason below and re-submit with the correct documents.
-            </p>
-            {provider.rejection_reason && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-left mb-6">
-                <p className="text-sm font-semibold text-red-700 mb-1">Reason:</p>
-                <p className="text-sm text-red-600">{provider.rejection_reason}</p>
-              </div>
-            )}
-            <Link href="/onboarding/documents" className="btn-primary inline-flex">
-              Re-upload documents
-            </Link>
-          </>
-        ) : (
-          <>
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">⏳</span>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Verification in progress</h1>
-            <p className="text-gray-500 text-sm mb-6">
-              Our team is reviewing your credentials. You'll receive an email once your account is
-              approved — usually within 24–48 hours.
-            </p>
-            <div className="card p-5 text-left space-y-3 mb-6">
-              <Step done label="Account created" />
-              <Step done label="Documents submitted" />
-              <Step pending label="Admin review" />
-              <Step pending label="Account activated" />
-            </div>
-            <p className="text-xs text-gray-400">
-              Questions? Email us at{" "}
-              <a href="mailto:support@streetdocmd.com" className="text-blue-brand hover:underline">
-                support@streetdocmd.com
-              </a>
-            </p>
-          </>
-        )}
+    <div>
+      <div className="mb-8">
+        <OnboardingSteps current={2} />
+      </div>
+
+      <div className="text-center">
+        <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          {inReview ? <Search size={30} className="text-amber-600" /> : <Clock size={30} className="text-amber-600" />}
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-2">
+          {inReview ? "Your credentials are being checked" : `Thanks, ${firstName} — application received`}
+        </h1>
+        <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
+          {inReview
+            ? "A member of our team is verifying your licence with the issuing council. We'll email you as soon as it's done."
+            : "Our team will verify your credentials, usually within 24–48 hours. We'll email you once your account is approved — then just sign in here to start receiving bookings."}
+        </p>
+      </div>
+
+      <div className="card p-5 text-left space-y-3.5 mb-5">
+        <Step state="done" label="Account created" />
+        <Step state="done" label="Documents submitted & agreement accepted" />
+        <Step state={inReview ? "current" : "next"} label={inReview ? "Verification in progress" : "Waiting for verification"} />
+        <Step state="next" label="Account activated — start receiving bookings" />
+      </div>
+
+      {(docs ?? []).length > 0 && (
+        <div className="card p-5 mb-5">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">What you sent us</p>
+          <ul className="space-y-2">
+            {uploadedTypes.map(t => (
+              <li key={t} className="flex items-center gap-2 text-sm text-gray-700">
+                <Check size={15} className="text-green-600 shrink-0" />
+                {DOC_LABELS[t] ?? t}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="rounded-xl bg-blue-light border border-blue-mid p-4 text-sm text-gray-700">
+        <p className="font-semibold text-gray-900 mb-1">While you wait</p>
+        <p>
+          Once you&apos;re approved, have your bank details and working hours ready — you&apos;ll add them on your
+          profile so payouts and bookings can start straight away.
+        </p>
       </div>
     </div>
   );
 }
 
-function Step({ done, pending, label }: { done?: boolean; pending?: boolean; label: string }) {
+function Step({ state, label }: { state: "done" | "current" | "next"; label: string }) {
   return (
     <div className="flex items-center gap-3">
-      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-        done ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"
-      }`}>
-        {done ? "✓" : "○"}
+      <div
+        className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+          state === "done" ? "bg-green-100 text-green-700"
+            : state === "current" ? "bg-amber-100 text-amber-700"
+            : "bg-gray-100 text-gray-400"
+        }`}
+      >
+        {state === "done" ? <Check size={13} strokeWidth={3} /> : state === "current" ? <Clock size={13} /> : <span className="w-1.5 h-1.5 rounded-full bg-current" />}
       </div>
-      <span className={`text-sm ${done ? "text-gray-900 font-medium" : "text-gray-400"}`}>{label}</span>
+      <span className={`text-sm ${state === "next" ? "text-gray-400" : "text-gray-900 font-medium"}`}>{label}</span>
     </div>
   );
 }

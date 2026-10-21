@@ -1,13 +1,24 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { createClient } from "@/lib/supabase";
 import PasswordInput from "@/components/PasswordInput";
+import AuthShell from "@/components/AuthShell";
 
-export default function LoginPage() {
+function friendlyAuthError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("invalid login credentials")) return "Incorrect email or password. Please try again.";
+  if (m.includes("email not confirmed")) return "Please confirm your email address first — check your inbox for the link we sent.";
+  if (m.includes("rate limit") || m.includes("too many")) return "Too many attempts. Please wait a minute and try again.";
+  if (m.includes("fetch")) return "Couldn't reach StreetdocMD. Check your internet connection and try again.";
+  return message;
+}
+
+function LoginForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const justRegistered = params.get("registered") === "1";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -15,79 +26,88 @@ export default function LoginPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setError("");
     setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) { setError(error.message); return; }
-    router.push("/dashboard");
-    router.refresh();
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+      if (error) { setError(friendlyAuthError(error.message)); setLoading(false); return; }
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("Couldn't reach StreetdocMD. Check your internet connection and try again.");
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-navy-700 to-navy-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden bg-white flex items-center justify-center">
-              <Image src="/mark.jpg" alt="StreetdocMD" width={40} height={40} className="object-contain" />
-            </div>
-            <span className="text-white font-bold text-xl">StreetdocMD</span>
-          </div>
-          <p className="text-blue-200 text-sm">Home healthcare, on demand</p>
+    <AuthShell>
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h1>
+      <p className="text-gray-500 text-sm mb-6">Sign in to book care</p>
+
+      {justRegistered && (
+        <div className="mb-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg px-4 py-3">
+          Your account has been created. Sign in to continue.
         </div>
+      )}
 
-        <div className="bg-white rounded-2xl p-8 shadow-xl">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h1>
-          <p className="text-gray-500 text-sm mb-6">Sign in to book care</p>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="label">Email address</label>
-              <input
-                type="email"
-                className="input"
-                placeholder="you@example.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <label className="label">Password</label>
-                <Link href="/forgot-password" className="text-xs text-blue-brand font-medium hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
-              <PasswordInput
-                placeholder="••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-                {error}
-              </div>
-            )}
-
-            <button type="submit" disabled={loading} className="btn-primary w-full justify-center flex">
-              {loading ? "Signing in…" : "Sign In"}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500 mb-3">New to StreetdocMD?</p>
-            <Link href="/register" className="block w-full border border-blue-brand text-blue-brand font-medium py-2.5 rounded-xl text-sm hover:bg-blue-50 transition-colors">
-              Create a free account
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div>
+          <label className="label" htmlFor="email">Email address</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            className="input"
+            placeholder="you@example.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <div className="flex items-center justify-between">
+            <label className="label" htmlFor="password">Password</label>
+            <Link href="/forgot-password" className="text-xs text-blue-brand font-medium hover:underline mb-1">
+              Forgot password?
             </Link>
           </div>
+          <PasswordInput
+            id="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
         </div>
+
+        {error && (
+          <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+            {error}
+          </div>
+        )}
+
+        <button type="submit" disabled={loading} className="btn-primary w-full justify-center flex">
+          {loading ? "Signing in…" : "Sign in"}
+        </button>
+      </form>
+
+      <div className="mt-6 text-center">
+        <p className="text-sm text-gray-500 mb-3">New to StreetdocMD?</p>
+        <Link href="/register" className="block w-full border border-blue-brand text-blue-brand font-medium py-2.5 rounded-lg text-sm hover:bg-blue-50 transition-colors">
+          Create a free account
+        </Link>
       </div>
-    </div>
+    </AuthShell>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

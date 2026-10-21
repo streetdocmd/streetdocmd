@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import AuthShell from "@/components/AuthShell";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -25,19 +26,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-navy-700 to-navy-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-10 h-10 bg-blue-brand rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">S</span>
-            </div>
-            <span className="text-white font-bold text-xl">StreetdocMD</span>
-          </div>
-          <p className="text-blue-200 text-sm">Home healthcare, on demand</p>
-        </div>
-
-        <div className="bg-white rounded-2xl p-8 shadow-xl">
+    <AuthShell>
           {sent ? (
             <>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Check your email</h1>
@@ -84,8 +73,6 @@ export default function ForgotPasswordPage() {
               </div>
             </>
           )}
-        </div>
-      </div>
-    </div>
+    </AuthShell>
   );
 }

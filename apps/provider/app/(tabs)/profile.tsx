@@ -37,15 +37,24 @@ export default function ProfileScreen() {
   async function toggleAvailability() {
     const next = !provider.available;
     setProvider((p: any) => ({ ...p, available: next }));
-    await supabase.from("providers").update({ available: next }).eq("id", provider.id);
+    const { error } = await supabase.from("providers").update({ available: next }).eq("id", provider.id);
+    if (error) {
+      setProvider((p: any) => ({ ...p, available: !next }));
+      Alert.alert("Couldn't update availability", "Please check your connection and try again.");
+    }
   }
 
   async function saveBankDetails() {
+    const anyBank = bankName.trim() || accountNumber.trim() || accountName.trim();
+    if (anyBank && (!bankName.trim() || !accountName.trim() || !/^\d{10}$/.test(accountNumber.trim()))) {
+      Alert.alert("Check your bank details", "Enter your bank, a 10-digit account number and the account name.");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.from("providers").update({
-      bank_name: bankName,
-      bank_account_number: accountNumber,
-      bank_account_name: accountName,
+      bank_name: bankName.trim() || null,
+      bank_account_number: accountNumber.trim() || null,
+      bank_account_name: accountName.trim() || null,
     }).eq("id", provider.id);
     setSaving(false);
     if (error) Alert.alert("Error", "Could not save bank details.");

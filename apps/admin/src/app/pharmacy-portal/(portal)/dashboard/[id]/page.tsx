@@ -1,21 +1,18 @@
-export const dynamic = "force-dynamic";
-import { redirect } from "next/navigation";
-import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
+import { notFound } from "next/navigation";
+import { createAdminSupabase } from "@/lib/supabase-server";
+import { ownsRecord, requirePortalAccess } from "@/components/portal/access";
 import PharmacyOrderActions from "./PharmacyOrderActions";
 
+export const dynamic = "force-dynamic";
+
 export default async function PharmacyOrderPage({ params }: { params: { id: string } }) {
-  const supabase = await createServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/pharmacy-portal/login");
-
-  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
-  if (!profile || !["pharmacy_staff", "admin"].includes(profile.role)) redirect("/pharmacy-portal");
-
+  const access = await requirePortalAccess("pharmacy");
   const admin = createAdminSupabase();
+
   const { data: order } = await admin
     .from("prescription_orders")
     .select(`
-      id, status, total_amount, commission_amount, payment_status,
+      id, status, total_amount, commission_amount, payment_status, requested_by,
       prescription_pdf_url, drugs, requires_review, created_at, pharmacy_partner_id,
       users!patient_id(id, name, phone),
       providers(name, credentials, specialty),
@@ -23,9 +20,10 @@ export default async function PharmacyOrderPage({ params }: { params: { id: stri
       delivery_tracking(id, rider_name, rider_phone, dispatched_at, estimated_arrival, delivered_at, proof_of_delivery_url)
     `)
     .eq("id", params.id)
-    .single();
+    .maybeSingle();
 
-  if (!order) redirect("/pharmacy-portal/dashboard");
+  // Another pharmacy's order looks exactly like a missing one
+  if (!order || !ownsRecord(access, order.pharmacy_partner_id)) notFound();
 
   // This pharmacy's own catalogue, so staff can link each free-text drug
   // line to a real stock item (see 040_medication_library...sql) — used

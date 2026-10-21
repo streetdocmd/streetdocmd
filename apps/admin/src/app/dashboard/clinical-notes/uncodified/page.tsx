@@ -1,3 +1,4 @@
+import { CircleCheck } from "lucide-react";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import Link from "next/link";
 import AssignIcd10 from "./AssignIcd10";
@@ -34,7 +35,7 @@ export default async function UncodifiedPage() {
 
       {sorted.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <p className="text-4xl mb-3">✅</p>
+          <div className="w-11 h-11 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3"><CircleCheck size={20} aria-hidden /></div>
           <p className="font-semibold text-gray-700">No uncodified diagnoses</p>
           <p className="text-sm text-gray-400 mt-1">All diagnoses have been assigned ICD-10 codes.</p>
         </div>

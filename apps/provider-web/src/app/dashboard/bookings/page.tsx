@@ -1,4 +1,6 @@
 import { createServerSupabase } from "@/lib/supabase-server";
+import { CalendarCheck } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
 import { SERVICE_LABELS, BOOKING_STATUS_LABELS } from "@streetdocmd/shared";
 import ProviderBookingCard from "./ProviderBookingCard";
 
@@ -66,14 +68,14 @@ export default async function BookingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Bookings</h1>
+      <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-6">Bookings</h1>
 
       {enriched.length === 0 ? (
-        <div className="card p-12 text-center">
-          <p className="text-4xl mb-3">📋</p>
-          <p className="font-semibold text-gray-700">No bookings yet</p>
-          <p className="text-sm text-gray-400 mt-1">Your accepted visits will appear here.</p>
-        </div>
+        <EmptyState
+          icon={CalendarCheck}
+          title="No bookings yet"
+          description="Visits you accept appear here, with their notes and prescriptions once completed."
+        />
       ) : (
         <div className="space-y-3">
           {enriched.map((b: any) => {

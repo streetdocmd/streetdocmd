@@ -275,19 +275,23 @@ function StaffPanel({ staff, partners }: { staff: any[]; partners: any[] }) {
     setSaving(false);
     if (res.ok) {
       const { temp_password } = await res.json();
-      setToast(`Staff added. Temp password: ${temp_password}`);
+      setToast(`Staff added. Temporary password (shown once — copy it now): ${temp_password}`);
       setShowForm(false);
       setForm({ name: "", email: "", phone: "", lab_partner_id: partners[0]?.id ?? "" });
-      setTimeout(() => { setToast(""); window.location.reload(); }, 4000);
+      // Stays until dismissed — the temporary password is only shown once.
     } else {
-      setToast("Error creating staff account.");
+      const body = await res.json().catch(() => ({}));
+      setToast(`Error creating staff account: ${body?.error ?? res.statusText}`);
     }
   }
 
   return (
     <div className="space-y-4">
       {toast && (
-        <div className="bg-gray-900 text-white px-5 py-3 rounded-xl text-sm">{toast}</div>
+        <div className="bg-gray-900 text-white px-5 py-3 rounded-xl text-sm flex items-start justify-between gap-4" role="status">
+          <span className="select-all break-all">{toast}</span>
+          <button type="button" onClick={() => { const wasSuccess = toast.startsWith("Staff added"); setToast(""); if (wasSuccess) window.location.reload(); }} className="text-gray-300 hover:text-white text-xs font-semibold shrink-0">Dismiss</button>
+        </div>
       )}
       <div className="flex justify-end">
         <button onClick={() => setShowForm(!showForm)}

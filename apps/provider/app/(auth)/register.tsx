@@ -6,10 +6,11 @@ import {
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import {
-  SPECIALTIES, getPractitionerType, getProfession,
-  PLATFORM_COMMISSION_RATE, PROVIDER_AGREEMENT_ACCEPTANCE_LABEL, PROVIDER_AGREEMENT_TITLE, PROVIDER_AGREEMENT_VERSION,
+  SPECIALTIES, getPractitionerType,
+  PROVIDER_AGREEMENT_ACCEPTANCE_LABEL, PROVIDER_AGREEMENT_TITLE, PROVIDER_AGREEMENT_VERSION,
 } from "@streetdocmd/shared";
 import ProviderAgreementModal from "../../components/ProviderAgreementModal";
+import { PROVIDER_PORTAL_URL } from "../../lib/config";
 
 export default function ProviderRegisterScreen() {
   const router = useRouter();
@@ -31,6 +32,7 @@ export default function ProviderRegisterScreen() {
   const practitionerType = getPractitionerType(specialty);
 
   async function register() {
+    if (loading) return;
     if (!ndpr) {
       Alert.alert("Consent required", "Please accept the data privacy notice.");
       return;
@@ -47,37 +49,60 @@ export default function ProviderRegisterScreen() {
       Alert.alert("Missing specialist field", "Please enter your specialist field.");
       return;
     }
-    setLoading(true);
-    const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
-    if (error) { Alert.alert("Error", error.message); setLoading(false); return; }
-
-    const userId = data.user?.id;
-    if (userId) {
-      const { error: provErr } = await supabase.from("providers").insert({
-        user_id: userId,
-        name: name.trim(),
-        phone: phone.trim(),
-        specialty,
-        profession: getProfession(specialty),
-        specialist_field: practitionerType?.requiresSpecialistField ? specialistField.trim() : null,
-        credentials: credentials.trim(),
-        license_body: practitionerType?.licenseBody ?? null,
-        license_number: practitionerType ? licenseNumber.trim() : null,
-        years_experience: parseInt(yearsExp) || 0,
-        verification_status: "pending",
-        agreement_version: PROVIDER_AGREEMENT_VERSION,
-        agreement_accepted_at: new Date().toISOString(),
-        agreement_commission_rate: PLATFORM_COMMISSION_RATE * 100,
-      });
-      if (provErr) {
-        Alert.alert("Error", "Account created but profile setup failed. Contact support.");
-      }
+    if (phone.replace(/\D/g, "").length < 10) {
+      Alert.alert("Check your phone number", "Please enter a valid phone number, e.g. 08012345678.");
+      return;
     }
+    setLoading(true);
+
+    // Registration runs server-side (provider-web /api/register, service role):
+    // it creates the auth user, the users row and the providers row together,
+    // records NDPR consent and the agreement acceptance with a server
+    // timestamp, and works whether or not Supabase "Confirm email" is on.
+    // A client-side signUp + insert could leave a login with no profile.
+    let json: { ok?: boolean; error?: string } = {};
+    try {
+      const res = await fetch(`${PROVIDER_PORTAL_URL}/api/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          password,
+          specialty,
+          specialist_field: specialistField.trim(),
+          credentials: credentials.trim(),
+          license_number: licenseNumber.trim(),
+          years_experience: yearsExp,
+          ndpr_consent: true,
+          agreement_accepted: true,
+          agreement_version: PROVIDER_AGREEMENT_VERSION,
+        }),
+      });
+      json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        Alert.alert("Couldn't create your account", json.error ?? "Please try again.");
+        setLoading(false);
+        return;
+      }
+    } catch {
+      Alert.alert("Connection problem", "Please check your internet connection and try again.");
+      setLoading(false);
+      return;
+    }
+
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoading(false);
+    if (signInErr) {
+      Alert.alert("Account created", "Your application was saved. Please sign in to continue.");
+      router.replace("/(auth)/login");
+      return;
+    }
     router.replace("/(auth)/pending");
   }
 
-  const ready = name && email && password.length >= 8 && specialty && credentials && ndpr && agreed;
+  const ready = name && email && phone && password.length >= 8 && specialty && credentials && ndpr && agreed;
 
   return (
     <KeyboardAvoidingView
@@ -104,7 +129,7 @@ export default function ProviderRegisterScreen() {
 
           <Text style={styles.label}>Password</Text>
           <TextInput style={styles.input} value={password} onChangeText={setPassword}
-            placeholder="At least 8 characters" secureTextEntry />
+            placeholder="At least 8 characters" secureTextEntry autoCapitalize="none" />
 
           <Text style={styles.label}>Specialty</Text>
           <View style={styles.specialtyGrid}>

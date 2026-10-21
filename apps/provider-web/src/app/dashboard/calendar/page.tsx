@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { CalendarDays } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS } from "@streetdocmd/shared";
 
@@ -38,16 +40,16 @@ export default async function CalendarPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Calendar</h1>
         <p className="text-gray-500 text-sm mt-0.5">Your upcoming and in-progress visits</p>
       </div>
 
       {sortedDates.length === 0 ? (
-        <div className="card p-12 text-center">
-          <p className="text-4xl mb-3">🗓️</p>
-          <p className="font-semibold text-gray-700">Nothing scheduled</p>
-          <p className="text-sm text-gray-400 mt-1">Accepted and scheduled visits will appear here.</p>
-        </div>
+        <EmptyState
+          icon={CalendarDays}
+          title="Nothing scheduled"
+          description="Accepted and scheduled visits will appear here, grouped by day."
+        />
       ) : (
         <div className="space-y-6">
           {sortedDates.map(dateKey => {

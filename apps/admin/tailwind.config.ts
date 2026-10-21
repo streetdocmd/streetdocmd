@@ -18,6 +18,12 @@ const config: Config = {
           light: "#EFF6FF",
           mid:   "#BFDBFE",
         },
+        // Same accent as apps/patient-web. Used by the partner pages
+        // (bg-teal-brand, text-teal-brand) — previously undefined here, so
+        // those buttons rendered as white text on no background.
+        teal: {
+          brand: "#00B5A3",
+        },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],

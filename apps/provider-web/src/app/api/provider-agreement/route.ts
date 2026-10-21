@@ -33,7 +33,11 @@ export async function POST(req: NextRequest) {
     .select("id")
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    // Most likely cause: migration 046 (agreement columns) not applied yet.
+    console.error("[provider-agreement] could not record acceptance:", error.message);
+    return NextResponse.json({ error: "We couldn't record your acceptance right now. Please try again in a moment." }, { status: 500 });
+  }
   if (!provider) return NextResponse.json({ error: "Provider not found" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

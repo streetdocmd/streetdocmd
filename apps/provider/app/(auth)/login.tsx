@@ -13,11 +13,21 @@ export default function ProviderLoginScreen() {
   const [loading, setLoading] = useState(false);
 
   async function login() {
+    if (loading) return;
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoading(false);
-    if (error) { Alert.alert("Login failed", error.message); return; }
-    router.replace("/(tabs)/dispatch");
+    if (error) {
+      Alert.alert(
+        "Login failed",
+        error.message.toLowerCase().includes("invalid login credentials")
+          ? "That email and password don't match. Check them and try again, or reset your password."
+          : error.message
+      );
+      return;
+    }
+    // No navigation here: the root layout routes on sign-in — to the app if
+    // verified, otherwise to the application status screen.
   }
 
   return (

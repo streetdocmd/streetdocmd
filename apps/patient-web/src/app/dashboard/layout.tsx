@@ -9,11 +9,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileErr } = await supabase
     .from("users")
     .select("name, core_consent_policy_version")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
+
+  // A login with no public.users row (sign-up interrupted before the
+  // profile was saved) can't book anything — bookings reference users(id).
+  // Send them to finish sign-up instead of a half-working dashboard.
+  if (!profile && !profileErr) redirect("/register?complete=1");
 
   const firstName = profile?.name?.split(" ")[0] ?? "Patient";
   // Not a hard re-consent gate for this pass — a patient who accepted an

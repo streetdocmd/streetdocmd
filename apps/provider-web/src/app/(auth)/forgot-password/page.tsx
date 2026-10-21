@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import AuthBrand from "@/components/AuthBrand";
 import { createClient } from "@/lib/supabase";
 
 export default function ForgotPasswordPage() {
@@ -24,10 +25,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-white">StreetdocMD</h1>
-        <p className="text-navy-100 mt-1 text-sm">Provider Portal</p>
-      </div>
+      <AuthBrand />
 
       <div className="bg-white rounded-2xl shadow-xl p-8">
         {sent ? (
@@ -57,7 +55,7 @@ export default function ForgotPasswordPage() {
                 />
               </div>
 
-              {error && <p className="text-red-600 text-sm">{error}</p>}
+              {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
 
               <button type="submit" className="btn-primary w-full" disabled={loading}>
                 {loading ? "Sending…" : "Send reset link"}

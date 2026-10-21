@@ -1,7 +1,12 @@
 import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
+import { SUPPORT_PHONE_DISPLAY, SUPPORT_WHATSAPP_URL } from "@/components/portal/config";
+import { ui } from "@/components/portal/ui";
 
 export const metadata = { title: "Application Submitted — StreetdocMD" };
 
+// Registration now signs the facility straight into its portal; this page
+// remains for old links.
 export default function FacilityRegSuccessPage({
   searchParams,
 }: {
@@ -11,36 +16,32 @@ export default function FacilityRegSuccessPage({
   const name  = searchParams.name  ?? "your facility";
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center space-y-6">
-        <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto text-4xl">✓</div>
+        <CheckCircle2 size={56} className="mx-auto text-green-600" aria-hidden />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Application Submitted</h1>
-          <p className="text-gray-500 mt-2">
-            Thank you for applying to join the StreetdocMD partner network.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">Application submitted</h1>
+          <p className="text-gray-500 mt-2">Thank you for applying to join the StreetdocMD partner network.</p>
         </div>
 
-        <div className="card p-5 text-left space-y-3">
-          <p className="text-sm font-semibold text-gray-700">{name}</p>
+        <div className={`${ui.card} p-5 text-left space-y-3`}>
+          <p className="text-sm font-semibold text-gray-900">{name}</p>
           <p className="text-sm text-gray-600">
-            Your application is under review. We will contact you at{" "}
-            {email ? <strong>{email}</strong> : "the email you provided"} within 48 hours.
+            Your application is under review. We&apos;ll contact you at{" "}
+            {email ? <strong>{email}</strong> : "the email you provided"} within 48 hours. You can sign in to your
+            partner portal at any time to check its status.
           </p>
-          <div className="border-t border-gray-100 pt-3">
-            <p className="text-xs text-gray-500">
-              Questions? Contact us on WhatsApp:{" "}
-              <a href="https://wa.me/2347063216791" target="_blank" rel="noopener noreferrer"
-                className="text-teal-600 font-semibold hover:underline">
-                07063216791
-              </a>
-            </p>
-          </div>
+          <p className="border-t border-gray-100 pt-3 text-xs text-gray-500">
+            Questions? WhatsApp us on{" "}
+            <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className={ui.btnLink}>{SUPPORT_PHONE_DISPLAY}</a>
+          </p>
         </div>
 
-        <Link href="/" className="inline-block text-sm text-gray-400 hover:text-gray-600 underline">
-          Return to home
-        </Link>
+        <div className="flex flex-wrap justify-center gap-2 text-sm">
+          <Link href="/lab-portal/login" className={ui.btnSecondary}>Lab sign-in</Link>
+          <Link href="/pharmacy-portal/login" className={ui.btnSecondary}>Pharmacy sign-in</Link>
+          <Link href="/hospital-portal/login" className={ui.btnSecondary}>Hospital sign-in</Link>
+        </div>
       </div>
     </div>
   );

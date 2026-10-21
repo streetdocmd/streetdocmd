@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { Users } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
 import Link from "next/link";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
 import { CARE_EPISODE_STATUS_LABELS } from "@streetdocmd/shared";
@@ -83,14 +85,14 @@ export default async function MyPatientsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">My Patients</h1>
+      <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-6">My Patients</h1>
 
       {rows.length === 0 ? (
-        <div className="card p-12 text-center">
-          <p className="text-4xl mb-3">🧑‍🤝‍🧑</p>
-          <p className="font-semibold text-gray-700">No patients yet</p>
-          <p className="text-sm text-gray-400 mt-1">Patients you've treated will appear here.</p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No patients yet"
+          description="Patients you've visited, and care teams you join, will appear here."
+        />
       ) : (
         <div className="space-y-3">
           {rows.map(({ patient, episode, lastBooking, pendingTasks }) => (

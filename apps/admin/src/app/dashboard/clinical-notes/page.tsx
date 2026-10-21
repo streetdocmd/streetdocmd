@@ -1,3 +1,4 @@
+import { ShieldAlert, TriangleAlert } from "lucide-react";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import Link from "next/link";
 
@@ -118,10 +119,10 @@ export default async function ClinicalNotesPage({
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
                         {note.safeguarding_flag && (
-                          <span title="Safeguarding concern" className="text-base">🔴</span>
+                          <span title="Safeguarding concern" className="text-red-600 inline-flex"><ShieldAlert size={16} aria-label="Safeguarding concern" /></span>
                         )}
                         {rushed && (
-                          <span title="Submitted in under 5 minutes" className="text-base">⚠️</span>
+                          <span title="Submitted in under 5 minutes" className="text-amber-500 inline-flex"><TriangleAlert size={16} aria-label="Submitted in under 5 minutes" /></span>
                         )}
                       </div>
                     </td>

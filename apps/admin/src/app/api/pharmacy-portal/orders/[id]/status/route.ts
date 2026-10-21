@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
+import { createAdminSupabase } from "@/lib/supabase-server";
+import { getPortalApiAccess, ownsRecord } from "@/components/portal/access";
 
 export const dynamic = "force-dynamic";
 
+// The only moves pharmacy staff make, keyed by the status they move to.
+// (pending_payment -> confirmed is set by the payment webhook, not staff.)
+const ALLOWED_FROM: Record<string, string> = {
+  pending_payment: "sent",
+  dispensing: "confirmed",
+  dispatched: "dispensing",
+  delivered: "dispatched",
+};
+
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = await createServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getPortalApiAccess("pharmacy");
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
-  if (!profile || !["pharmacy_staff", "admin"].includes(profile.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const body = await req.json();
+  const body = await req.json().catch(() => ({}));
   const { status, drugPrices, outOfStock, catalogueLinks, riderName, riderPhone, eta } = body;
 
   const admin = createAdminSupabase();
@@ -23,9 +27,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     .from("prescription_orders")
     .select("id, drugs, status, payment_status, patient_id, provider_id, pharmacy_partner_id")
     .eq("id", params.id)
-    .single();
+    .maybeSingle();
 
-  if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  if (!order || !ownsRecord(auth.access, order.pharmacy_partner_id)) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
 
   // "confirmed" is set exclusively by the Paystack webhook once payment clears —
   // pharmacy staff cannot set it directly, and fulfillment (dispensing/dispatch)
@@ -33,8 +39,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (status === "confirmed") {
     return NextResponse.json({ error: "Order is confirmed automatically once payment is received" }, { status: 403 });
   }
+  if (!ALLOWED_FROM[status]) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
+  if (order.status !== ALLOWED_FROM[status]) {
+    return NextResponse.json({ error: "This order has already moved on. Refresh the page to see its latest status." }, { status: 409 });
+  }
   if (["dispensing", "dispatched"].includes(status) && order.payment_status !== "paid") {
     return NextResponse.json({ error: "Order is not paid yet" }, { status: 403 });
+  }
+  if (status === "pending_payment" && !drugPrices) {
+    return NextResponse.json({ error: "Enter prices before sending the order to the patient." }, { status: 400 });
+  }
+  if (status === "dispatched" && (!String(riderName ?? "").trim() || !String(riderPhone ?? "").trim())) {
+    return NextResponse.json({ error: "Enter the rider's name and phone number before dispatching." }, { status: 400 });
   }
 
   const updates: Record<string, unknown> = { status };
@@ -63,11 +81,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       const linkedId = (catalogueLinks ?? {})[i];
       return {
         ...drug,
-        price: drugPrices[i] ?? 0,
+        price: Math.max(0, Number(drugPrices[i]) || 0),
         catalogue_id: linkedId && validCatalogueIds.has(linkedId) ? linkedId : (drug.catalogue_id ?? null),
       };
     });
     const total = updatedDrugs.reduce((sum: number, d: any) => sum + (d.price ?? 0), 0);
+    if (!(total > 0)) {
+      return NextResponse.json({ error: "Enter a price for at least one medication." }, { status: 400 });
+    }
     const commission = Math.round(total * 0.08);
     updates.drugs           = updatedDrugs;
     updates.total_amount    = total;
@@ -95,7 +116,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
   }
 
-  const { error } = await admin.from("prescription_orders").update(updates).eq("id", params.id);
+  const { error } = await admin.from("prescription_orders").update(updates).eq("id", params.id).eq("status", order.status);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // When dispatching: create/update delivery_tracking row
@@ -104,7 +125,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       .from("delivery_tracking")
       .select("id")
       .eq("prescription_order_id", params.id)
-      .single();
+      .maybeSingle();
 
     const trackingPayload = {
       rider_name:           riderName,

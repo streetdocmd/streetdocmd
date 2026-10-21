@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import FamilyMembersManager from "../../components/FamilyMembersManager";
 
@@ -9,9 +9,8 @@ export default function ProfileScreen() {
   const [user, setUser] = useState<any>(null);
   const [familyMembers, setFamilyMembers] = useState<{ id: string; name: string; relationship: string }[]>([]);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  // Reload on focus so edits made on /profile/edit show up on return.
+  useFocusEffect(useCallback(() => { loadProfile(); }, []));
 
   async function loadProfile() {
     const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -49,12 +48,14 @@ export default function ProfileScreen() {
         <Text style={styles.name}>{user.name}</Text>
         <Text style={styles.phone}>{user.phone}</Text>
         <TouchableOpacity style={styles.editBtn} onPress={() => router.push("/profile/edit")}>
-          <Text style={styles.editBtnText}>Edit Medical Profile</Text>
+          <Text style={styles.editBtnText}>Edit Profile</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Medical Information</Text>
+        <InfoRow label="Date of Birth" value={user.dob ?? "Not set"} />
+        <InfoRow label="Gender" value={user.gender ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1) : "Not set"} />
         <InfoRow label="Blood Group" value={user.blood_group ?? "Not set"} />
         <InfoRow
           label="Known Conditions"

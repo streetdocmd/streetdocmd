@@ -1,25 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
+import { createAdminSupabase } from "@/lib/supabase-server";
+import { getPortalApiAccess, ownsRecord } from "@/components/portal/access";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = await createServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+const MAX_FILE_BYTES = 10 * 1024 * 1024; // matches the pharmacy-deliveries bucket limit
+const FILE_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "application/pdf": "pdf" };
 
-  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
-  if (!profile || !["pharmacy_staff", "admin"].includes(profile.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await getPortalApiAccess("pharmacy");
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const form = await req.formData();
   const file = form.get("proof") as File | null;
-  if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
+  if (!file || file.size === 0) return NextResponse.json({ error: "Choose a photo or PDF to upload." }, { status: 400 });
+  const ext = FILE_TYPES[file.type];
+  if (!ext) return NextResponse.json({ error: "Proof of delivery must be a JPG, PNG, WebP or PDF file." }, { status: 400 });
+  if (file.size > MAX_FILE_BYTES) return NextResponse.json({ error: "The file must be smaller than 10 MB." }, { status: 400 });
 
   const admin = createAdminSupabase();
 
-  const ext   = file.name.split(".").pop() ?? "jpg";
+  const { data: current } = await admin
+    .from("prescription_orders")
+    .select("id, status, patient_id, pharmacy_partner_id")
+    .eq("id", params.id)
+    .maybeSingle();
+  if (!current || !ownsRecord(auth.access, current.pharmacy_partner_id)) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+  if (current.status !== "dispatched") {
+    return NextResponse.json({ error: "Proof of delivery can only be added once the order is out for delivery." }, { status: 409 });
+  }
+
   const path  = `proof/${params.id}/${Date.now()}.${ext}`;
   const bytes = Buffer.from(await file.arrayBuffer());
 
@@ -37,24 +49,23 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .from("delivery_tracking")
     .select("id")
     .eq("prescription_order_id", params.id)
-    .single();
+    .maybeSingle();
 
   const deliveredAt = new Date().toISOString();
   const trackingUpdate = { proof_of_delivery_url: proofUrl, delivered_at: deliveredAt };
 
-  if (existing) {
-    await admin.from("delivery_tracking").update(trackingUpdate).eq("id", existing.id);
-  } else {
-    await admin.from("delivery_tracking").insert({ prescription_order_id: params.id, ...trackingUpdate });
-  }
+  const { error: trackErr } = existing
+    ? await admin.from("delivery_tracking").update(trackingUpdate).eq("id", existing.id)
+    : await admin.from("delivery_tracking").insert({ prescription_order_id: params.id, ...trackingUpdate });
+  if (trackErr) return NextResponse.json({ error: trackErr.message }, { status: 500 });
 
   // Mark order as delivered
-  await admin.from("prescription_orders").update({ status: "delivered" }).eq("id", params.id);
+  const { error: statusErr } = await admin.from("prescription_orders").update({ status: "delivered" }).eq("id", params.id);
+  if (statusErr) return NextResponse.json({ error: statusErr.message }, { status: 500 });
 
   // Notify patient
-  const { data: order } = await admin.from("prescription_orders").select("patient_id").eq("id", params.id).single();
-  if (order?.patient_id) {
-    await notifyUser(admin, order.patient_id, "Medication delivered!", "Your medications have been delivered. Please confirm receipt in the app.");
+  if (current.patient_id) {
+    await notifyUser(admin, current.patient_id, "Medication delivered!", "Your medications have been delivered. Please confirm receipt in the app.");
   }
 
   return NextResponse.json({ ok: true, proofUrl });

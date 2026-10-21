@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { createAdminSupabase } from "@/lib/supabase-server";
+import { withStaffEmails } from "@/lib/auth-emails";
 import PharmacyClient from "./PharmacyClient";
 
 export default async function PharmacyPage() {
@@ -23,7 +24,7 @@ export default async function PharmacyPage() {
       .order("created_at", { ascending: false }),
     admin
       .from("pharmacy_staff")
-      .select("id, user_id, pharmacy_partner_id, users(name, email, phone)")
+      .select("id, user_id, pharmacy_partner_id, users(name, phone)")
       .order("created_at", { ascending: false }),
     admin
       .from("drug_catalogue")
@@ -41,11 +42,13 @@ export default async function PharmacyPage() {
   const deliveredCount  = (orders ?? []).filter(o => o.status === "delivered").length;
   const flaggedCount    = (orders ?? []).filter(o => o.requires_review).length;
 
+  const staffWithEmails = await withStaffEmails(admin, (staffRows ?? []) as { user_id: string; users: unknown }[]);
+
   return (
     <PharmacyClient
       orders={orders ?? []}
       partners={partners ?? []}
-      staff={(staffRows ?? []) as any}
+      staff={staffWithEmails as any}
       drugs={(drugs ?? []) as any}
       medicationLibrary={(medicationLibrary ?? []) as any}
       stats={{ totalCommission, totalRevenue, deliveredCount, flaggedCount }}

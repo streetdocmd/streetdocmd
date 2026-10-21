@@ -1,4 +1,5 @@
 "use client";
+import { Hospital, Stethoscope } from "lucide-react";
 import { useState } from "react";
 
 const URGENCY_COLOR: Record<string, string> = {
@@ -164,7 +165,7 @@ export default function HospitalsClient({
       {tab === "referrals" && (
         <div className="space-y-4">
           <div className="flex gap-2 overflow-x-auto text-sm pb-1">
-            {[["all","All"],["emergency","🚨 Emergency"],["pending","Pending"],["acknowledged","Acknowledged"],["in_progress","In Progress"],["completed","Completed"]].map(([v,l]) => (
+            {[["all","All"],["emergency","Emergency"],["pending","Pending"],["acknowledged","Acknowledged"],["in_progress","In Progress"],["completed","Completed"]].map(([v,l]) => (
               <button key={v} onClick={() => setFilter(v)}
                 className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap shrink-0 ${filter === v ? "bg-teal-brand text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                 {l}
@@ -308,7 +309,7 @@ export default function HospitalsClient({
             ))}
             {partnerList.length === 0 && (
               <div className="card p-12 text-center">
-                <p className="text-4xl mb-3">🏥</p>
+                <div className="w-11 h-11 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3"><Hospital size={20} aria-hidden /></div>
                 <p className="font-semibold text-gray-700">No hospital partners yet</p>
               </div>
             )}
@@ -396,7 +397,7 @@ export default function HospitalsClient({
             ))}
             {providerList.length === 0 && (
               <div className="card p-12 text-center">
-                <p className="text-4xl mb-3">🧑‍⚕️</p>
+                <div className="w-11 h-11 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3"><Stethoscope size={20} aria-hidden /></div>
                 <p className="font-semibold text-gray-700">No hospital-affiliated providers yet</p>
               </div>
             )}

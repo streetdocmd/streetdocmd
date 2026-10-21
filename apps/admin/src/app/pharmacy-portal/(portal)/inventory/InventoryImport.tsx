@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
+import { Download, FileUp } from "lucide-react";
 import { createClient } from "@/lib/supabase";
+import { ui } from "@/components/portal/ui";
 
 const MAX_ROWS = 2000;
 
@@ -173,7 +175,7 @@ export default function InventoryImport({
   }
 
   return (
-    <div className="card p-5 space-y-4">
+    <div className={`${ui.card} p-5 space-y-4`}>
       <div>
         <p className="font-semibold text-gray-900">Import your existing inventory</p>
         <p className="text-sm text-gray-500 mt-0.5">
@@ -183,12 +185,12 @@ export default function InventoryImport({
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">
-        <label className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:opacity-90 cursor-pointer">
-          Choose CSV file
+        <label className={`${ui.btnPrimary} cursor-pointer`}>
+          <FileUp size={16} aria-hidden /> Choose CSV file
           <input type="file" accept=".csv,text/csv" className="hidden" onChange={onFile} />
         </label>
-        <button type="button" onClick={downloadTemplate} className="text-sm text-blue-600 hover:underline font-medium">
-          Download template
+        <button type="button" onClick={downloadTemplate} className={`${ui.btnLink} inline-flex items-center gap-1`}>
+          <Download size={14} aria-hidden /> Download template
         </button>
       </div>
 
@@ -204,7 +206,7 @@ export default function InventoryImport({
         <div className="space-y-3">
           <div className="flex gap-2 flex-wrap text-xs font-medium">
             <span className="px-2.5 py-1 rounded-full bg-green-100 text-green-700">{toAdd.length} new</span>
-            <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">{toUpdate.length} to update</span>
+            <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">{toUpdate.length} to update</span>
             {errors.length > 0 && <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-700">{errors.length} with errors (skipped)</span>}
           </div>
 
@@ -232,7 +234,7 @@ export default function InventoryImport({
                     <td className="px-3 py-1.5">{r.error ? "" : `₦${r.price.toLocaleString()}`}</td>
                     <td className="px-3 py-1.5">{r.error ? "" : r.stock_quantity}</td>
                     <td className="px-3 py-1.5">
-                      {r.error ? <span className="text-red-600">{r.error}</span> : r.existingId ? <span className="text-blue-600">Update</span> : <span className="text-green-600">New</span>}
+                      {r.error ? <span className="text-red-600">{r.error}</span> : r.existingId ? <span className="text-blue-700">Update</span> : <span className="text-green-600">New</span>}
                     </td>
                   </tr>
                 ))}
@@ -244,7 +246,7 @@ export default function InventoryImport({
           <button
             onClick={runImport}
             disabled={importing || valid.length === 0}
-            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm disabled:opacity-50"
+            className={ui.btnPrimary}
           >
             {importing ? "Importing…" : `Import ${valid.length} row${valid.length === 1 ? "" : "s"}`}
           </button>

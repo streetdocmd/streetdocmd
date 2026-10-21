@@ -1,5 +1,7 @@
 import { createServerSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, formatNaira } from "@streetdocmd/shared";
+import { BarChart3, Wallet } from "lucide-react";
+import { ComingSoonItem } from "@/components/ComingSoonBadge";
 import WithdrawForm from "./WithdrawForm";
 
 const WITHDRAWAL_STATUS: Record<string, string> = {
@@ -42,27 +44,36 @@ export default async function EarningsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Earnings</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Earnings</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Your wallet, payouts and completed visits.</p>
+      </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="card p-5 text-center col-span-2 sm:col-span-1">
-          <p className="text-3xl font-bold text-teal-brand">{formatNaira(provider.wallet_balance)}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-teal-brand">{formatNaira(provider.wallet_balance)}</p>
           <p className="text-sm text-gray-400 mt-1">Available balance</p>
         </div>
         <div className="card p-5 text-center">
-          <p className="text-3xl font-bold text-gray-900">{formatNaira(totalEarned)}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{formatNaira(totalEarned)}</p>
           <p className="text-sm text-gray-400 mt-1">Total earned</p>
         </div>
         <div className="card p-5 text-center">
-          <p className="text-3xl font-bold text-gray-900">{provider.total_visits}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{provider.total_visits}</p>
           <p className="text-sm text-gray-400 mt-1">Total visits</p>
         </div>
         <div className="card p-5 text-center">
-          <p className="text-3xl font-bold text-gray-900">{formatNaira(totalWithdrawn)}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{formatNaira(totalWithdrawn)}</p>
           <p className="text-sm text-gray-400 mt-1">Total withdrawn</p>
         </div>
       </div>
+
+      <ComingSoonItem
+        icon={BarChart3}
+        title="Earnings insights"
+        description="Weekly and monthly trends, earnings by service type and downloadable statements."
+      />
 
       {/* Withdrawal request */}
       <div>
@@ -106,9 +117,11 @@ export default async function EarningsPage() {
         </h2>
         {earnings.length === 0 ? (
           <div className="card p-8 text-center">
-            <p className="text-3xl mb-2">💰</p>
-            <p className="font-semibold text-gray-700">No completed visits yet</p>
-            <p className="text-sm text-gray-400 mt-1">Earnings appear here after each visit.</p>
+            <div className="w-12 h-12 rounded-2xl bg-teal-light flex items-center justify-center mx-auto mb-3">
+              <Wallet size={22} className="text-teal-brand" />
+            </div>
+            <p className="font-semibold text-gray-800">No completed visits yet</p>
+            <p className="text-sm text-gray-500 mt-1">Your payout for each visit appears here once its notes are submitted.</p>
           </div>
         ) : (
           <div className="space-y-2">

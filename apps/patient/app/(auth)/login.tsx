@@ -13,11 +13,25 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   async function login() {
+    if (loading) return;
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    setLoading(false);
-    if (error) { Alert.alert("Login failed", error.message); return; }
-    router.replace("/(tabs)/home");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+      if (error) {
+        setLoading(false);
+        const m = error.message.toLowerCase();
+        const msg = m.includes("invalid login credentials") ? "Incorrect email or password. Please try again."
+          : m.includes("email not confirmed") ? "Please confirm your email first — open the link we sent to your inbox."
+          : error.message;
+        Alert.alert("Sign in failed", msg);
+        return;
+      }
+      // The root layout routes on the new session (profile setup if
+      // needed, otherwise home).
+    } catch {
+      setLoading(false);
+      Alert.alert("Sign in failed", "Couldn't reach StreetdocMD. Check your internet connection and try again.");
+    }
   }
 
   return (
@@ -47,6 +61,7 @@ export default function LoginScreen() {
           onChangeText={setPassword}
           placeholder="Password"
           secureTextEntry
+          textContentType="password"
         />
 
         <TouchableOpacity onPress={() => router.push("/(auth)/forgot-password")} style={styles.forgotPassword}>
@@ -78,7 +93,7 @@ const styles = StyleSheet.create({
   tagline: { fontSize: 13, color: "#888", textAlign: "center", marginBottom: 28 },
   label: { fontSize: 14, color: "#444", marginBottom: 6, fontWeight: "500" },
   input: {
-    borderWidth: 1, borderColor: "#ddd", borderRadius: 10,
+    borderWidth: 1, borderColor: "#E5E7EB", borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 16,
   },
   forgotPassword: { alignSelf: "flex-end", marginTop: -10, marginBottom: 16 },

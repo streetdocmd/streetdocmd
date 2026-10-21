@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase";
 
 export default function ForgotPasswordPage() {
@@ -26,8 +27,8 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="w-10 h-10 bg-navy-700 rounded-xl flex items-center justify-center overflow-hidden">
-            <span className="text-white font-bold text-lg">S</span>
+          <div className="w-10 h-10 bg-white rounded-xl border border-gray-100 shadow-card flex items-center justify-center overflow-hidden">
+            <Image src="/mark.jpg" alt="" width={32} height={32} className="object-contain" />
           </div>
           <span className="text-xl font-bold text-navy-700">StreetdocMD</span>
         </div>

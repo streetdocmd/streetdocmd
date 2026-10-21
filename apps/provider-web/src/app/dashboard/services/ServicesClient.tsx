@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
+import { Stethoscope } from "lucide-react";
 import { createClient } from "@/lib/supabase";
+import EmptyState from "@/components/EmptyState";
 import { formatNaira, SERVICE_LABELS, SERVICE_PROFESSION, type Profession, type ProviderService, type ServiceType } from "@streetdocmd/shared";
 
 type ServiceRow = Pick<ProviderService, "id" | "name" | "description" | "price" | "duration_minutes" | "active" | "service_type">;
@@ -34,8 +36,13 @@ export default function ServicesClient({
 
   async function addService(e: React.FormEvent) {
     e.preventDefault();
+    if (saving) return;
     if (!form.name.trim() || !form.price) {
       setError("Please enter a name and price.");
+      return;
+    }
+    if (!(parseFloat(form.price) > 0)) {
+      setError("Please enter a price greater than ₦0.");
       return;
     }
     setSaving(true);
@@ -74,20 +81,30 @@ export default function ServicesClient({
       .from("provider_services")
       .update({ active: !service.active, updated_at: new Date().toISOString() })
       .eq("id", service.id);
-    if (!err) {
-      setServices(prev => prev.map(s => s.id === service.id ? { ...s, active: !s.active } : s));
+    if (err) {
+      setError(err.message.includes("provider_services_provider_service_type_idx")
+        ? "You already have an active service for that booking type — deactivate it first."
+        : "Couldn't update that service — please try again.");
+      return;
     }
+    setError("");
+    setServices(prev => prev.map(s => s.id === service.id ? { ...s, active: !s.active } : s));
   }
 
   return (
     <div className="space-y-4">
       {services.length === 0 && !showForm && (
-        <div className="card p-8 text-center">
-          <p className="text-3xl mb-2">🩺</p>
-          <p className="font-semibold text-gray-700">No services yet</p>
-          <p className="text-sm text-gray-400 mt-1 mb-4">Add a service so patients know what you offer and what it costs.</p>
+        <EmptyState
+          icon={Stethoscope}
+          title="No services yet"
+          description="Add a service so patients know what you offer and what it costs."
+        >
           <button onClick={() => setShowForm(true)} className="btn-primary">Add a service</button>
-        </div>
+        </EmptyState>
+      )}
+
+      {error && !showForm && (
+        <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
       )}
 
       {services.length > 0 && (
@@ -120,7 +137,7 @@ export default function ServicesClient({
             </div>
           ))}
           {!showForm && (
-            <button onClick={() => setShowForm(true)} className="text-sm text-teal-brand font-medium hover:underline">
+            <button onClick={() => setShowForm(true)} className="text-sm text-blue-brand font-medium hover:underline">
               + Add another service
             </button>
           )}
@@ -164,7 +181,7 @@ export default function ServicesClient({
           </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <div className="flex gap-2">
-            <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-200 rounded-lg py-2 text-sm font-medium text-gray-600">
+            <button type="button" onClick={() => { setShowForm(false); setError(""); }} className="btn-secondary flex-1">
               Cancel
             </button>
             <button type="submit" disabled={saving} className="btn-primary flex-1 text-sm">

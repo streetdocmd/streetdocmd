@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { onboardingRoute } from "@/lib/onboarding";
 import Navbar from "@/components/Navbar";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -7,29 +8,30 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // select("*") rather than a column list so a database that hasn't had
+  // migration 046 applied yet (agreement_version) can't break every page.
   const { data: provider } = await supabase
     .from("providers")
-    .select("id, name, verification_status, profession")
+    .select("*")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (!provider) redirect("/register/individual");
 
   if (provider.verification_status !== "verified") {
     const { data: docs } = await supabase
       .from("provider_documents")
-      .select("id")
-      .eq("provider_id", provider.id)
-      .limit(1);
-    redirect(docs && docs.length > 0 ? "/onboarding/pending" : "/onboarding/documents");
+      .select("document_type")
+      .eq("provider_id", provider.id);
+    redirect(onboardingRoute(provider, (docs ?? []).map(d => d.document_type)));
   }
 
-  const firstName = provider.name.split(" ").slice(0, 2).join(" ");
+  const displayName = (provider.name as string).split(" ").slice(0, 2).join(" ");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar providerName={firstName} profession={provider.profession} />
-      <main className="max-w-5xl mx-auto px-4 py-6">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar providerName={displayName} specialty={provider.specialty} profession={provider.profession} />
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-5 py-6 sm:py-8 pb-28 md:pb-8">
         {children}
       </main>
     </div>
