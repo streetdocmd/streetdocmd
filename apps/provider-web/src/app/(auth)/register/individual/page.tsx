@@ -1,4 +1,5 @@
 "use client";
+import { legalUrl } from "@streetdocmd/shared";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -213,7 +214,15 @@ export default function RegisterIndividualPage() {
             />
             <span className="text-sm leading-relaxed text-gray-600">
               I consent to StreetdocMD processing my personal and professional data to verify my credentials and
-              operate my provider account, in line with the Nigeria Data Protection Act.
+              operate my provider account, in line with the Nigeria Data Protection Act.{" "}
+              <a
+                href={legalUrl("privacy-policy")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-blue-brand underline-offset-2 hover:underline"
+              >
+                Read our Privacy Policy
+              </a>
             </span>
           </label>
 

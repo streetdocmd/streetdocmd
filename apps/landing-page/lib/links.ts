@@ -10,10 +10,12 @@ export const LINKS = {
   contact: process.env.NEXT_PUBLIC_CONTACT_URL ?? "mailto:hello@streetdocmd.com",
   providerSignup: process.env.NEXT_PUBLIC_PROVIDER_URL ?? "https://provider.streetdocmd.com",
 
-  patientTerms: process.env.NEXT_PUBLIC_PATIENT_TERMS_URL ?? "#",
-  providerTerms: process.env.NEXT_PUBLIC_PROVIDER_TERMS_URL ?? "#",
-  privacy: process.env.NEXT_PUBLIC_PRIVACY_URL ?? "#",
-  facilityAgreement: process.env.NEXT_PUBLIC_FACILITY_AGREEMENT_URL ?? "#",
+  // Legal documents default to the pages on this site (same as LEGAL_PATHS in lib/legal;
+  // literals here so the client-side Nav bundle never pulls in the legal text)
+  patientTerms: process.env.NEXT_PUBLIC_PATIENT_TERMS_URL ?? "/terms",
+  providerTerms: process.env.NEXT_PUBLIC_PROVIDER_TERMS_URL ?? "/provider-agreement",
+  privacy: process.env.NEXT_PUBLIC_PRIVACY_URL ?? "/privacy",
+  facilityAgreement: process.env.NEXT_PUBLIC_FACILITY_AGREEMENT_URL ?? "/facility-agreement",
 
   x: process.env.NEXT_PUBLIC_X_URL ?? "#",
   instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "#",

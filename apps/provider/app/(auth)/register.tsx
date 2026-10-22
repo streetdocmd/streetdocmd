@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  Alert, KeyboardAvoidingView, Platform, ScrollView
+  Alert, KeyboardAvoidingView, Platform, ScrollView, Linking
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
@@ -10,6 +10,7 @@ import {
   PROVIDER_AGREEMENT_ACCEPTANCE_LABEL, PROVIDER_AGREEMENT_TITLE, PROVIDER_AGREEMENT_VERSION,
 } from "@streetdocmd/shared";
 import ProviderAgreementModal from "../../components/ProviderAgreementModal";
+import { legalUrl } from "@streetdocmd/shared";
 import { PROVIDER_PORTAL_URL } from "../../lib/config";
 
 export default function ProviderRegisterScreen() {
@@ -175,9 +176,12 @@ export default function ProviderRegisterScreen() {
               {ndpr && <Text style={styles.checkmark}>✓</Text>}
             </View>
             <Text style={styles.consentText}>
-              I consent to StreetdocMD processing my professional and health data under the
-              Nigeria Data Protection Regulation (NDPR).
+              I consent to StreetdocMD processing my personal and professional data to verify my credentials and
+              operate my provider account, in line with the Nigeria Data Protection Act.
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Linking.openURL(legalUrl("privacy-policy"))} style={styles.readLink}>
+            <Text style={styles.readLinkText}>Read our Privacy Policy</Text>
           </TouchableOpacity>
 
           <View style={styles.agreementBox}>

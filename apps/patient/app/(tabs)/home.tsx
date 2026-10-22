@@ -6,6 +6,8 @@ import { useFocusEffect, useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { supabase } from "../../lib/supabase";
 import { SERVICE_LABELS, ServiceType } from "@streetdocmd/shared";
+import LegalUpdatePrompt from "../../components/LegalUpdatePrompt";
+import { needsLegalAcceptance } from "../../lib/legal";
 
 const SERVICES: ServiceType[] = [
   "general_consultation",
@@ -24,6 +26,7 @@ export default function HomeScreen() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationDenied, setLocationDenied] = useState(false);
   const [profileIncomplete, setProfileIncomplete] = useState(false);
+  const [legalPrompt, setLegalPrompt] = useState<null | { firstTime: boolean }>(null);
 
   useEffect(() => {
     requestLocation();
@@ -43,6 +46,17 @@ export default function HomeScreen() {
       .maybeSingle();
     if (data?.name) setUserName(data.name.split(" ")[0]);
     setProfileIncomplete(!!data && (!data.dob || !data.gender || !data.emergency_contact_name));
+
+    // Separate query so a missing column (migration 053 not yet applied)
+    // can't break the greeting above.
+    const { data: legal, error: legalErr } = await supabase
+      .from("users")
+      .select("terms_version, terms_accepted_at, privacy_policy_version, privacy_acknowledged_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    setLegalPrompt(!legalErr && needsLegalAcceptance(legal)
+      ? { firstTime: !legal?.terms_accepted_at && !legal?.privacy_acknowledged_at }
+      : null);
   }
 
   async function requestLocation() {
@@ -89,6 +103,10 @@ export default function HomeScreen() {
           </Text>
         )}
       </View>
+
+      {legalPrompt && (
+        <LegalUpdatePrompt firstTime={legalPrompt.firstTime} onAccepted={() => setLegalPrompt(null)} />
+      )}
 
       {profileIncomplete && (
         <TouchableOpacity style={styles.nudgeCard} onPress={() => router.push("/profile/edit")} activeOpacity={0.8}>

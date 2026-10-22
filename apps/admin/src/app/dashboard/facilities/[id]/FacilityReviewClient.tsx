@@ -4,12 +4,15 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FlaskConical, Pill, Hospital, FileText, ExternalLink, Info, Copy, Check,
-  CircleCheck, KeyRound, Clock, CircleX, TriangleAlert, Eye, FileClock,
+  CircleCheck, KeyRound, Clock, CircleX, TriangleAlert, Eye, FileClock, ScrollText,
 } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ConfirmModal, { Spinner } from "@/components/ui/ConfirmModal";
 import EmptyState from "@/components/ui/EmptyState";
+import LegalDocumentModal from "@/components/legal/LegalDocumentModal";
+import { FACILITY_AGREEMENT, legalUrl } from "@/lib/legal";
+import { agreementState, formatAcceptedAt } from "@/lib/facility-agreement";
 import { facilityDocLabel, facilityDocSpecs, missingFacilityDocs, type FacilityDocument } from "@/lib/facility-docs";
 
 const TYPE_META: Record<string, { label: string; icon: typeof Pill; portal: string }> = {
@@ -70,6 +73,7 @@ export default function FacilityReviewClient({
   const [error, setError] = useState<string | null>(null);
   const [approved, setApproved] = useState<ApproveResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [agreementOpen, setAgreementOpen] = useState(false);
 
   const meta = TYPE_META[app.facility_type] ?? { label: humanise(app.facility_type ?? "Facility"), icon: FileText, portal: "" };
   const TypeIcon = meta.icon;
@@ -77,6 +81,9 @@ export default function FacilityReviewClient({
   const typeData: Record<string, unknown> = app.type_specific_data ?? {};
   const isOpen = app.status === "pending" || app.status === "under_review";
   const hasLogin = !!app.user_id;
+  // Facility Partner Platform Service Agreement acceptance (migration 054)
+  const agreement = agreementState({ version: app.agreement_version, acceptedAt: app.agreement_accepted_at });
+  const acceptedByLogin = !!app.agreement_accepted_by && app.agreement_accepted_by === app.user_id;
   const missingDocs = uploadsUnavailable ? [] : missingFacilityDocs(app.facility_type, uploads.map((d) => d.document_type));
   const docsComplete = missingDocs.length === 0;
   const requiredCount = facilityDocSpecs(app.facility_type).filter((s) => s.required).length;
@@ -177,6 +184,14 @@ export default function FacilityReviewClient({
             <StatusBadge status={app.status} />
             <span className="text-gray-300" aria-hidden>·</span>
             <span className="text-sm text-gray-500">Submitted {fmtDate(app.created_at)}</span>
+            {agreement !== "accepted" && (
+              <>
+                <span className="text-gray-300" aria-hidden>·</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 px-2.5 py-0.5 text-xs font-semibold">
+                  <TriangleAlert size={12} aria-hidden /> {agreement === "missing" ? "Agreement not accepted" : "Older agreement version"}
+                </span>
+              </>
+            )}
           </>
         }
         actions={
@@ -246,6 +261,54 @@ export default function FacilityReviewClient({
             <Field label="Operating hours" value={app.operating_hours} />
             <Field label="Portal login" value={hasLogin ? `Created at registration (${app.email})` : "Not yet created"} />
           </dl>
+        </section>
+
+        <section className="card">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5 pb-3">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Facility Partner Agreement</h2>
+            {agreement === "accepted" ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 px-2.5 py-0.5 text-xs font-semibold">
+                <CircleCheck size={12} aria-hidden /> Accepted · v{app.agreement_version}
+              </span>
+            ) : agreement === "outdated" ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 px-2.5 py-0.5 text-xs font-semibold">
+                <TriangleAlert size={12} aria-hidden /> Accepted v{app.agreement_version} · v{FACILITY_AGREEMENT.version} is current
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 px-2.5 py-0.5 text-xs font-semibold">
+                <TriangleAlert size={12} aria-hidden /> Agreement not accepted
+              </span>
+            )}
+          </div>
+          {agreement === "missing" ? (
+            <p className="mx-5 mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
+              There&apos;s no acceptance record for this application (it was submitted before acceptance was captured at sign-up).
+              The facility is asked to accept version {FACILITY_AGREEMENT.version} from its partner portal.
+            </p>
+          ) : (
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 px-5 pb-4 text-sm">
+              <Field label="Version accepted" value={`Version ${app.agreement_version}${app.agreement_version === FACILITY_AGREEMENT.version ? ` (${FACILITY_AGREEMENT.versionLabel})` : ""}`} />
+              <Field label="Accepted at (server time)" value={formatAcceptedAt(app.agreement_accepted_at)} />
+              <Field label="Accepted by (authorised representative)" value={app.agreement_accepted_name} />
+              <div>
+                <dt className="text-xs text-gray-500">Accepting account</dt>
+                <dd className="mt-0.5 font-medium text-gray-900 break-words">
+                  {acceptedByLogin ? `Portal login (${app.email})` : app.agreement_accepted_by ? "Another login" : "—"}
+                  {app.agreement_accepted_by && (
+                    <span className="block text-xs font-normal text-gray-400 font-mono break-all">{app.agreement_accepted_by}</span>
+                  )}
+                </dd>
+              </div>
+            </dl>
+          )}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 pb-5">
+            <button type="button" onClick={() => setAgreementOpen(true)} className="btn-secondary px-3 py-1.5 text-xs">
+              <ScrollText size={13} aria-hidden /> View agreement (v{FACILITY_AGREEMENT.version})
+            </button>
+            <a href={legalUrl("facility-agreement")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-blue-brand hover:underline">
+              Public copy <ExternalLink size={11} aria-hidden />
+            </a>
+          </div>
         </section>
 
         <section className="card">
@@ -393,6 +456,16 @@ export default function FacilityReviewClient({
           <li>Send the facility an SMS with sign-in details (if SMS is configured)</li>
         </ul>
         <p className="text-xs text-gray-500">Portal: {meta.portal}</p>
+        {agreement !== "accepted" && (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-800">
+            <TriangleAlert size={16} className="shrink-0 mt-0.5" aria-hidden />
+            <p>
+              <strong>{agreement === "missing" ? "Agreement not accepted:" : `Accepted an older agreement (v${app.agreement_version}):`}</strong>{" "}
+              there&apos;s no record of this facility accepting the current Facility Partner Agreement (v{FACILITY_AGREEMENT.version}).
+              You can still approve — they&apos;ll be asked to accept it in their portal.
+            </p>
+          </div>
+        )}
         {missingDocs.length > 0 && (
           <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-800">
             <TriangleAlert size={16} className="shrink-0 mt-0.5" aria-hidden />
@@ -480,6 +553,8 @@ export default function FacilityReviewClient({
           <p className="text-gray-500">They sign in with the password they chose when registering.</p>
         )}
       </ConfirmModal>
+
+      <LegalDocumentModal doc={FACILITY_AGREEMENT} open={agreementOpen} onClose={() => setAgreementOpen(false)} />
 
       {processing && modal === null && (
         <div className="fixed bottom-6 right-6 card px-4 py-3 text-sm flex items-center gap-2 shadow-lg">

@@ -2,10 +2,11 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
+import LegalAcceptanceFields, { type LegalAcceptanceValue } from "@/components/LegalAcceptanceFields";
 import PasswordInput from "@/components/PasswordInput";
 import AuthShell from "@/components/AuthShell";
 import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
+import { TERMS_VERSION, PRIVACY_VERSION } from "@/lib/legal-acceptance";
 
 type Field = "name" | "email" | "phone" | "password";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26,8 +27,9 @@ function RegisterForm() {
   const [form, setForm] = useState<Record<Field, string>>({ name: "", email: "", phone: "", password: "" });
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
-  const [coreConsent, setCoreConsent] = useState(false);
-  const [policyOpen, setPolicyOpen] = useState(false);
+  // Both unchecked by default — the documents require an affirmative tick.
+  const [legal, setLegal] = useState<LegalAcceptanceValue>({ terms: false, privacy: false });
+  const legalOk = legal.terms && legal.privacy;
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -43,7 +45,10 @@ function RegisterForm() {
     if (loading) return;
     setSubmitted(true);
     if (Object.keys(errors).length > 0) return;
-    if (!coreConsent) { setError("You must accept the data privacy consent to continue."); return; }
+    if (!legalOk) {
+      setError("Please agree to the Terms of Service and acknowledge the Privacy Policy to continue.");
+      return;
+    }
     setError("");
     setLoading(true);
 
@@ -51,7 +56,13 @@ function RegisterForm() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coreConsent }),
+        body: JSON.stringify({
+          ...form,
+          acceptTerms: legal.terms,
+          acknowledgePrivacy: legal.privacy,
+          termsVersion: TERMS_VERSION,
+          privacyVersion: PRIVACY_VERSION,
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -112,29 +123,12 @@ function RegisterForm() {
           {show("password") && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
         </div>
 
-        <div className="flex items-start gap-3 rounded-xl border border-blue-mid bg-blue-light p-4">
-          <input
-            type="checkbox"
-            id="coreConsent"
-            checked={coreConsent}
-            onChange={e => { setCoreConsent(e.target.checked); if (e.target.checked) setError(""); }}
-            className="mt-0.5 h-[19px] w-[19px] shrink-0 cursor-pointer rounded border-gray-300 text-blue-brand"
-          />
-          <div>
-            <label htmlFor="coreConsent" className="cursor-pointer text-sm leading-relaxed text-gray-900">
-              I understand and consent to StreetdocMD processing my health information to provide care, as described in the{" "}
-              <button
-                type="button"
-                onClick={e => { e.preventDefault(); setPolicyOpen(true); }}
-                className="font-semibold text-blue-brand underline decoration-transparent hover:decoration-blue-brand"
-              >
-                Privacy Policy
-              </button>
-              .
-            </label>
-            <p className="mt-1.5 text-[10.5px] font-semibold tracking-wide text-gray-400">REQUIRED TO CONTINUE</p>
-          </div>
-        </div>
+        <LegalAcceptanceFields
+          value={legal}
+          onChange={next => { setLegal(next); if (next.terms && next.privacy) setError(""); }}
+          showErrors={submitted}
+          idPrefix="register"
+        />
 
         {error && (
           <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
@@ -142,9 +136,14 @@ function RegisterForm() {
           </div>
         )}
 
-        <button type="submit" disabled={loading || !coreConsent} className="btn-primary w-full flex justify-center">
-          {loading ? "Creating account…" : completing ? "Finish setup" : "Create account"}
-        </button>
+        <div>
+          <button type="submit" disabled={loading || !legalOk} aria-busy={loading} className="btn-primary w-full flex justify-center">
+            {loading ? "Creating account…" : completing ? "Finish setup" : "Create account"}
+          </button>
+          {!legalOk && !loading && (
+            <p className="mt-2 text-center text-xs text-gray-400">Tick both boxes above to continue.</p>
+          )}
+        </div>
       </form>
 
       <p className="text-center text-sm text-gray-500 mt-6">
@@ -152,7 +151,6 @@ function RegisterForm() {
         <Link href="/login" className="text-blue-brand font-medium hover:underline">Sign in</Link>
       </p>
 
-      <PrivacyPolicyModal isOpen={policyOpen} onClose={() => setPolicyOpen(false)} />
     </AuthShell>
   );
 }

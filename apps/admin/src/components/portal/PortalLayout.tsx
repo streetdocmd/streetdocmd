@@ -3,6 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ShieldAlert, Link2Off, PauseCircle, Mail, KeyRound } from "lucide-react";
 import FacilityApplicationStatus from "@/components/FacilityApplicationStatus";
+import FacilityAgreementPrompt from "@/components/legal/FacilityAgreementPrompt";
+import { agreementState } from "@/lib/facility-agreement";
+import { getFacilityAgreementRecord } from "@/lib/facility-agreement-server";
 import PortalChrome from "./PortalChrome";
 import { getPortalAccess } from "./access";
 import { PORTALS, ROLE_TO_PORTAL, SUPPORT_EMAIL, SUPPORT_MAILTO, type PortalType } from "./config";
@@ -48,7 +51,7 @@ export default async function PortalLayout({ type, children }: { type: PortalTyp
   let body: ReactNode;
   switch (access.status) {
     case "application":
-      body = <FacilityApplicationStatus app={access.application} />;
+      body = <FacilityApplicationStatus app={access.application} userId={access.user.id} userName={access.user.name} />;
       break;
     case "wrong_role": {
       const ownPortal = access.user.role ? ROLE_TO_PORTAL[access.user.role] : undefined;
@@ -88,9 +91,18 @@ export default async function PortalLayout({ type, children }: { type: PortalTyp
         </Blocked>
       );
       break;
-    case "ok":
+    case "ok": {
+      // Partners approved before the Agreement was captured at sign-up (or who
+      // accepted an older version) get a persistent prompt. It never blocks the portal.
+      const agreement = access.isAdmin ? null : await getFacilityAgreementRecord(access.user.id);
+      const needsAgreement = !!agreement && agreement.applicationStatus !== "rejected" && agreementState(agreement) !== "accepted";
       body = (
         <>
+          {needsAgreement && agreement && (
+            <div className="mb-6">
+              <FacilityAgreementPrompt record={agreement} defaultName={access.user.name} collapsible />
+            </div>
+          )}
           {access.user.usingTempPassword && (
             <div className="mb-6">
               <Notice tone="blue" icon={KeyRound}
@@ -111,6 +123,7 @@ export default async function PortalLayout({ type, children }: { type: PortalTyp
         </>
       );
       break;
+    }
   }
 
   return (

@@ -4,12 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  FlaskConical, Pill, Hospital, ArrowLeft, ArrowRight, Check, AlertCircle, Pencil, Info, ChevronRight, type LucideIcon,
+  FlaskConical, Pill, Hospital, ArrowLeft, ArrowRight, Check, AlertCircle, Pencil, Info, ChevronRight, ScrollText, type LucideIcon,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import PasswordInput from "@/components/ui/PasswordInput";
 import { PORTALS, SUPPORT_EMAIL, SUPPORT_MAILTO, type PortalType } from "@/components/portal/config";
 import { Spinner, ui } from "@/components/portal/ui";
+import AgreementCheckbox from "@/components/legal/AgreementCheckbox";
+import { FACILITY_AGREEMENT } from "@/lib/legal";
 
 type FacilityType = PortalType;
 
@@ -79,6 +81,8 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
   // Portal login, created at registration so the facility lands on its portal right away
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  // Facility Partner Platform Service Agreement — always starts unticked (cl. 2.3)
+  const [agreed, setAgreed] = useState(false);
 
   const [basic, setBasic] = useState({
     name: "", email: "", phone: "", address: "",
@@ -140,7 +144,7 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
   const e2 = (k: string) => (showErrors ? step2Errors[k] : undefined);
 
   async function handleSubmit() {
-    if (submitting) return;
+    if (submitting || !agreed) return;
     setSubmitting(true);
     setError("");
     try {
@@ -163,6 +167,8 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
           email: basic.email.trim(),
           password,
           type_specific_data: typeData,
+          agreement_accepted: agreed,
+          agreement_version: FACILITY_AGREEMENT.version,
         }),
       });
       if (!res.ok) {
@@ -312,7 +318,7 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
                 <Field label="CAC number">
                   <input className={ui.input} value={basic.cac_number} onChange={e => setB("cac_number", e.target.value)} />
                 </Field>
-                <Field label="Contact person" required error={e1("contact_person_name")}>
+                <Field label="Contact person (authorised representative)" required error={e1("contact_person_name")} hint="The person who will accept the partner agreement for the facility">
                   <input className={ui.input} autoComplete="name" value={basic.contact_person_name} onChange={e => setB("contact_person_name", e.target.value)} />
                 </Field>
                 <Field label="Their role">
@@ -545,7 +551,7 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
             <div className="rounded-xl border border-blue-mid bg-blue-light px-4 py-3 text-sm text-navy-700 flex gap-2.5">
               <Info size={17} className="mt-0.5 shrink-0 text-blue-brand" aria-hidden />
               <p>
-                After you submit, you&apos;ll go straight to your portal, which shows your application status. Our partnerships team reviews
+                After you complete sign-up, you&apos;ll go straight to your portal, which shows your application status. Our partnerships team reviews
                 applications within 48 hours and may ask you for your licence and CAC certificate.
               </p>
             </div>
@@ -555,6 +561,29 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
                 <textarea className={ui.input} rows={3} placeholder="Ask us anything, or share any suggestions"
                   value={basic.questions} onChange={e => setB("questions", e.target.value)} />
               </Field>
+            </section>
+
+            <section className={`${ui.card} p-5 sm:p-6`} aria-labelledby="agreement-heading">
+              <div className="flex items-start gap-3">
+                <span className="w-9 h-9 rounded-lg bg-blue-light text-blue-brand flex items-center justify-center shrink-0">
+                  <ScrollText size={18} aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <h2 id="agreement-heading" className="font-semibold text-gray-900">Facility Partner Agreement</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {FACILITY_AGREEMENT.title} · Version {FACILITY_AGREEMENT.version}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-4 text-sm text-gray-600">
+                To complete sign-up, an authorised representative of <strong className="text-gray-900">{basic.name.trim() || "your facility"}</strong> must
+                read and accept the Agreement. The details above form part of it, and we record the version, the date and time, and that it was
+                accepted by <strong className="text-gray-900">{basic.contact_person_name.trim() || "the contact person"}</strong>
+                {basic.contact_person_role.trim() ? ` (${basic.contact_person_role.trim()})` : ""}.
+              </p>
+              <div className="mt-4">
+                <AgreementCheckbox doc={FACILITY_AGREEMENT} checked={agreed} onChange={setAgreed} disabled={submitting} />
+              </div>
             </section>
 
             {error && (
@@ -573,10 +602,20 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
               <button onClick={() => setFormStep(2)} disabled={submitting} className={`${ui.btnSecondary} w-full sm:w-auto px-6 py-3`}>
                 <ArrowLeft size={16} aria-hidden /> Back
               </button>
-              <button onClick={handleSubmit} disabled={submitting} className={`${ui.btnPrimary} w-full sm:w-auto px-8 py-3`}>
-                {submitting ? <><Spinner /> Submitting…</> : "Submit application"}
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || !agreed}
+                aria-describedby={!agreed ? "complete-signup-hint" : undefined}
+                className={`${ui.btnPrimary} w-full sm:w-auto px-8 py-3`}
+              >
+                {submitting ? <><Spinner /> Completing sign-up…</> : "Complete sign-up"}
               </button>
             </div>
+            {!agreed && !submitting && (
+              <p id="complete-signup-hint" className="text-xs text-gray-500 text-center sm:text-right">
+                Tick the box above to accept the Facility Partner Agreement and enable Complete sign-up.
+              </p>
+            )}
             <p className="text-xs text-gray-500 text-center">
               Questions? Email us at{" "}
               <a href={SUPPORT_MAILTO} className={ui.btnLink}>{SUPPORT_EMAIL}</a>

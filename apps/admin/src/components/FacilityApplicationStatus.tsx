@@ -5,6 +5,10 @@ import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/components/portal/config";
 import { ui } from "@/components/portal/ui";
 import FacilityDocumentsUpload from "@/components/portal/FacilityDocumentsUpload";
 import { isMissingTableError, missingFacilityDocs, type FacilityDocument } from "@/lib/facility-docs";
+import FacilityAgreementPrompt from "@/components/legal/FacilityAgreementPrompt";
+import FacilityAgreementRecord from "@/components/legal/FacilityAgreementRecord";
+import { agreementState } from "@/lib/facility-agreement";
+import { getFacilityAgreementRecord } from "@/lib/facility-agreement-server";
 
 export interface PendingApplication {
   id: string;
@@ -62,8 +66,16 @@ const PREPARE: Record<string, string[]> = {
 };
 
 // Shown on a partner portal to a facility that registered but isn't approved yet
-export default async function FacilityApplicationStatus({ app }: { app: PendingApplication }) {
+export default async function FacilityApplicationStatus({ app, userId, userName }: {
+  app: PendingApplication;
+  /** The signed-in applicant (already verified by the portal guard). */
+  userId: string;
+  userName?: string | null;
+}) {
   const rejected = app.status === "rejected";
+  const agreement = rejected ? null : await getFacilityAgreementRecord(userId);
+  // Only the application shown here; never a different (older) one.
+  const agreementRecord = agreement && agreement.applicationId === app.id ? agreement : null;
   const submitted = app.created_at
     ? new Date(app.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })
     : null;
@@ -150,6 +162,21 @@ export default async function FacilityApplicationStatus({ app }: { app: PendingA
           </p>
         )}
       </div>
+
+      {agreementRecord && (
+        agreementState(agreementRecord) === "accepted" ? (
+          <div className={`${ui.card} p-5 sm:p-6`}>
+            <h2 className="text-sm font-semibold text-gray-900 mb-3">Your partner agreement</h2>
+            <FacilityAgreementRecord
+              version={agreementRecord.version}
+              acceptedAt={agreementRecord.acceptedAt}
+              acceptedName={agreementRecord.acceptedName}
+            />
+          </div>
+        ) : (
+          <FacilityAgreementPrompt record={agreementRecord} defaultName={userName} />
+        )
+      )}
 
       {!rejected && (
         <div id="documents">

@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { MapPin, CreditCard } from "lucide-react";
 import ComingSoonBadge from "@/components/ComingSoonBadge";
 import { createServerSupabase } from "@/lib/supabase-server";
-import PrivacyPolicyLink from "@/components/PrivacyPolicyLink";
+import LegalDocumentLink from "@/components/LegalDocumentLink";
+import { formatLegalDate, TERMS_VERSION, PRIVACY_VERSION } from "@/lib/legal-acceptance";
 import FamilyMembersSection from "./FamilyMembersSection";
 
 export default async function ProfilePage() {
@@ -86,11 +87,17 @@ export default async function ProfilePage() {
       </div>
 
       <div className="card p-6">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Legal</h2>
-        <div className="flex items-center justify-between py-1">
-          <span className="text-sm text-gray-700">Privacy Policy</span>
-          <PrivacyPolicyLink>View →</PrivacyPolicyLink>
-        </div>
+        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Legal</h2>
+        <LegalRow
+          slug="patient-terms"
+          title="Patient Terms of Service"
+          status={acceptanceStatus("Accepted", p.terms_version, p.terms_accepted_at, TERMS_VERSION)}
+        />
+        <LegalRow
+          slug="privacy-policy"
+          title="Privacy Policy"
+          status={acceptanceStatus("Acknowledged", p.privacy_policy_version, p.privacy_acknowledged_at, PRIVACY_VERSION)}
+        />
       </div>
     </div>
   );
@@ -101,6 +108,39 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between gap-4 py-1 border-b border-gray-50 last:border-0">
       <dt className="text-sm text-gray-500">{label}</dt>
       <dd className="text-sm font-medium text-gray-900 text-right max-w-[60%] sm:max-w-xs break-words">{value}</dd>
+    </div>
+  );
+}
+function acceptanceStatus(
+  verb: string,
+  version: string | null | undefined,
+  at: string | null | undefined,
+  current: string,
+): { text: string; outdated: boolean } {
+  const date = formatLegalDate(at);
+  if (!version || !date) return { text: `Not yet ${verb.toLowerCase()}`, outdated: true };
+  return {
+    text: `${verb} version ${version} on ${date}${version !== current ? ` · version ${current} awaiting review` : ""}`,
+    outdated: version !== current,
+  };
+}
+
+function LegalRow({
+  slug, title, status,
+}: {
+  slug: "patient-terms" | "privacy-policy";
+  title: string;
+  status: { text: string; outdated: boolean };
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-2.5 border-b border-gray-50 last:border-0">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-gray-900">{title}</p>
+        <p className={`mt-0.5 text-xs ${status.outdated ? "text-amber-700" : "text-gray-500"}`}>{status.text}</p>
+      </div>
+      <LegalDocumentLink slug={slug} className="shrink-0 text-sm font-medium text-blue-brand hover:underline">
+        View →
+      </LegalDocumentLink>
     </div>
   );
 }

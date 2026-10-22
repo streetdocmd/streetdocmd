@@ -1,0 +1,55 @@
+import type { LegalBlock, LegalDocument } from "./types";
+import {
+  PROVIDER_AGREEMENT_ACCEPTANCE_LABEL,
+  PROVIDER_AGREEMENT_INTRO,
+  PROVIDER_AGREEMENT_PARTY_LINE,
+  PROVIDER_AGREEMENT_SCHEDULE_1,
+  PROVIDER_AGREEMENT_SCHEDULE_2,
+  PROVIDER_AGREEMENT_SECTIONS,
+  PROVIDER_AGREEMENT_SUBTITLE,
+  PROVIDER_AGREEMENT_TITLE,
+  PROVIDER_AGREEMENT_VERSION,
+  PROVIDER_AGREEMENT_YEAR,
+} from "./provider-agreement-source";
+
+// The Provider Service Agreement (v2.0) in the common LegalDocument shape. The text itself
+// lives in constants/provider-agreement.ts, which the provider apps already use for sign-up.
+export const PROVIDER_AGREEMENT: LegalDocument = {
+  slug: "provider-agreement",
+  title: PROVIDER_AGREEMENT_TITLE,
+  subtitle: PROVIDER_AGREEMENT_SUBTITLE,
+  version: PROVIDER_AGREEMENT_VERSION,
+  versionLabel: `Version ${PROVIDER_AGREEMENT_VERSION} · ${PROVIDER_AGREEMENT_YEAR}`,
+  partyLine: PROVIDER_AGREEMENT_PARTY_LINE,
+  intro: [{ kind: "callout", title: "Online agreement", text: PROVIDER_AGREEMENT_INTRO }],
+  sections: [
+    ...PROVIDER_AGREEMENT_SECTIONS.map(s => ({
+      id: `clause-${s.num}`,
+      title: `${s.num}. ${s.title}`,
+      blocks: [
+        ...s.clauses.map(([num, text]): LegalBlock => ({ kind: "clause", num, text })),
+        ...(s.bullets ? [{ kind: "bullets", items: s.bullets } as LegalBlock] : []),
+        ...(s.after ?? []).map(([num, text]): LegalBlock => ({ kind: "clause", num, text })),
+      ],
+    })),
+    {
+      id: "acceptance-record",
+      title: "21. Electronic Acceptance Record",
+      blocks: [
+        { kind: "p", text: `PROVIDER ACCEPTANCE — unchecked by default: “${PROVIDER_AGREEMENT_ACCEPTANCE_LABEL}”` },
+        { kind: "p", text: "The Platform should record the Provider account, Agreement version, applicable commission rate or commercial schedule version, affirmative acceptance action and timestamp." },
+      ],
+    },
+    {
+      id: "schedule-1",
+      title: "Schedule 1. Provider Commercial Framework",
+      blocks: [{ kind: "table", headers: ["Commercial Item", "Framework"], rows: PROVIDER_AGREEMENT_SCHEDULE_1.map(r => [...r]) }],
+    },
+    {
+      id: "schedule-2",
+      title: "Schedule 2. Professional and Operational Particulars",
+      blocks: [{ kind: "p", text: PROVIDER_AGREEMENT_SCHEDULE_2 }],
+    },
+  ],
+  acceptanceLabels: [PROVIDER_AGREEMENT_ACCEPTANCE_LABEL],
+};

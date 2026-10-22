@@ -1,5 +1,7 @@
 import { Mail } from "lucide-react";
 import ChangePasswordForm from "./ChangePasswordForm";
+import FacilityAgreementRecord from "@/components/legal/FacilityAgreementRecord";
+import { getFacilityAgreementRecord } from "@/lib/facility-agreement-server";
 import { requirePortalAccess } from "./access";
 import { PORTALS, SUPPORT_EMAIL, SUPPORT_MAILTO, type PortalType } from "./config";
 import { Card, CardHeader, DetailRow, PageHeader, StatusBadge, formatNaira, ui } from "./ui";
@@ -33,6 +35,7 @@ export default async function AccountPage({ type }: { type: PortalType }) {
   const cfg = PORTALS[type];
   const p = access.partner;
   const specialties: string[] = Array.isArray(p?.specialties) ? p!.specialties : [];
+  const agreement = access.isAdmin ? null : await getFacilityAgreementRecord(access.user.id);
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -71,6 +74,22 @@ export default async function AccountPage({ type }: { type: PortalType }) {
           )}
         </div>
       </Card>
+
+      {agreement && (
+        <Card>
+          <CardHeader
+            title="Partner agreement"
+            description="The terms your facility accepted to join the StreetdocMD partner network."
+          />
+          <div className="p-5">
+            <FacilityAgreementRecord
+              version={agreement.version}
+              acceptedAt={agreement.acceptedAt}
+              acceptedName={agreement.acceptedName}
+            />
+          </div>
+        </Card>
+      )}
 
       <Card>
         <CardHeader title="Sign-in details" />

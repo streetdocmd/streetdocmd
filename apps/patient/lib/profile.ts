@@ -1,9 +1,6 @@
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
-
-// Keep in sync with apps/patient-web/src/lib/privacy-policy.ts — the web
-// dashboard compares users.core_consent_policy_version against it.
-export const PRIVACY_POLICY_VERSION = "1.0";
+import { recordLegalAcceptance, type LegalAcceptanceContext } from "./legal";
 
 export const PHONE_TAKEN_MESSAGE =
   "This phone number is already linked to another StreetdocMD account. Use a different number, or sign in with that account.";
@@ -21,23 +18,31 @@ export function notifyProfileChanged() {
   listeners.forEach(fn => fn());
 }
 
+// Terms of Service acceptance + Privacy Policy acknowledgement to record
+// once the row exists: the two boxes ticked at sign-up (deferred) or on the
+// complete-profile screen, with the document versions shown at the time.
+export type LegalAcceptanceToRecord = {
+  context: Extract<LegalAcceptanceContext, "signup_deferred" | "complete_profile">;
+  termsVersion: string;
+  privacyVersion: string;
+};
+
 export async function createPatientProfile(
   userId: string,
   email: string | undefined,
   name: string,
   phone: string,
+  legal: LegalAcceptanceToRecord | null,
 ): Promise<{ ok: boolean; error?: string }> {
-  const now = new Date().toISOString();
+  // No blanket "consent" flags: acknowledging the Privacy Policy is not
+  // consent to processing. The legal columns are written only by the
+  // record_patient_legal_acceptance RPC (migration 053 blocks direct writes).
   const { error } = await supabase.from("users").insert({
     id: userId,
     name,
     phone,
     email: email ?? null,
     role: "patient",
-    ndpr_consent: true,
-    ndpr_consent_at: now,
-    core_consent_accepted: true,
-    core_consent_policy_version: PRIVACY_POLICY_VERSION,
   });
 
   if (error) {
@@ -45,21 +50,21 @@ export async function createPatientProfile(
       // Either the row already exists (a concurrent call won) or the phone
       // belongs to someone else.
       const { data: mine } = await supabase.from("users").select("id").eq("id", userId).maybeSingle();
-      if (mine) return { ok: true };
+      if (mine) {
+        if (legal) await recordLegalAcceptance(legal.context, { terms: legal.termsVersion, privacy: legal.privacyVersion });
+        return { ok: true };
+      }
       return { ok: false, error: PHONE_TAKEN_MESSAGE };
     }
     console.warn("[profile] users insert failed", error);
     return { ok: false, error: "We couldn't finish setting up your account. Please try again." };
   }
 
-  const { error: consentErr } = await supabase.from("consent_log").insert({
-    patient_id: userId,
-    consent_type: "core",
-    action: "granted",
-    policy_version: PRIVACY_POLICY_VERSION,
-    context: "signup",
-  });
-  if (consentErr) console.warn("[profile] consent_log insert failed", consentErr);
+  if (legal) {
+    // If this fails the account still works; home asks them to accept
+    // again (needsLegalAcceptance), so nothing is silently skipped.
+    await recordLegalAcceptance(legal.context, { terms: legal.termsVersion, privacy: legal.privacyVersion });
+  }
   return { ok: true };
 }
 
@@ -84,9 +89,20 @@ export function ensurePatientProfile(session: Session): Promise<ProfileStatus> {
     const meta = (session.user.user_metadata ?? {}) as Record<string, unknown>;
     const name = typeof meta.name === "string" ? meta.name.trim() : "";
     const phone = typeof meta.phone === "string" ? meta.phone.trim() : "";
-    if (!name || !phone || meta.core_consent !== true) return { status: "missing" };
+    // Current builds store the two separate sign-up ticks (and the versions
+    // shown); older builds stored a single core_consent flag. Either way the
+    // row can be created — but only the former is recorded as acceptance of
+    // the Terms / acknowledgement of the Privacy Policy. Older sign-ups are
+    // asked to accept on the home screen.
+    const termsVersion = typeof meta.terms_version === "string" ? meta.terms_version : "";
+    const privacyVersion = typeof meta.privacy_policy_version === "string" ? meta.privacy_policy_version : "";
+    const accepted = meta.terms_accepted === true && meta.privacy_acknowledged === true && !!termsVersion && !!privacyVersion;
+    if (!name || !phone || (!accepted && meta.core_consent !== true)) return { status: "missing" };
 
-    const res = await createPatientProfile(userId, session.user.email, name, phone);
+    const res = await createPatientProfile(
+      userId, session.user.email, name, phone,
+      accepted ? { context: "signup_deferred", termsVersion, privacyVersion } : null,
+    );
     return res.ok ? { status: "present" } : { status: "missing", error: res.error };
   })();
 

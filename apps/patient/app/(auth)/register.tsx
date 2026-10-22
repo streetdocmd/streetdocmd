@@ -6,7 +6,8 @@ import {
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { normalizePhone, PHONE_ERROR } from "../../lib/phone";
-import { PRIVACY_POLICY_VERSION } from "../../lib/profile";
+import { TERMS_VERSION, PRIVACY_VERSION } from "../../lib/legal";
+import LegalAcceptanceFields, { type LegalAcceptanceValue } from "../../components/LegalAcceptanceFields";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -26,7 +27,9 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [ndpr, setNdpr] = useState(false);
+  // Both unchecked by default — the documents require an affirmative tick.
+  const [legal, setLegal] = useState<LegalAcceptanceValue>({ terms: false, privacy: false });
+  const legalOk = legal.terms && legal.privacy;
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -42,15 +45,20 @@ export default function RegisterScreen() {
     if (loading) return;
     setSubmitted(true);
     if (hasErrors) return;
-    if (!ndpr) {
-      Alert.alert("Consent required", "Please accept the data privacy notice to continue.");
+    if (!legalOk) {
+      Alert.alert(
+        "Please review",
+        "Please agree to the Terms of Service and acknowledge the Privacy Policy to continue.",
+      );
       return;
     }
     setLoading(true);
     try {
-      // name/phone/consent ride along as auth metadata; the root layout
-      // creates the patient profile row from them as soon as there's a
-      // session (immediately, or after the email is confirmed).
+      // name/phone and the two separate ticks (with the document versions
+      // shown) ride along as auth metadata; the root layout creates the
+      // patient profile row from them as soon as there's a session
+      // (immediately, or after the email is confirmed) and records the
+      // acceptance with the server time of this sign-up request.
       const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
@@ -58,8 +66,10 @@ export default function RegisterScreen() {
           data: {
             name: name.trim().replace(/\s+/g, " "),
             phone: normalizePhone(phone),
-            core_consent: true,
-            core_consent_policy_version: PRIVACY_POLICY_VERSION,
+            terms_accepted: legal.terms,
+            terms_version: TERMS_VERSION,
+            privacy_acknowledged: legal.privacy,
+            privacy_policy_version: PRIVACY_VERSION,
           },
         },
       });
@@ -85,7 +95,7 @@ export default function RegisterScreen() {
     }
   }
 
-  const ready = ndpr && !loading;
+  const ready = legalOk && !loading;
 
   return (
     <KeyboardAvoidingView
@@ -141,17 +151,7 @@ export default function RegisterScreen() {
           />
           {submitted && errors.password ? <Text style={styles.fieldError}>{errors.password}</Text> : null}
 
-          {/* NDPR Consent */}
-          <TouchableOpacity style={styles.consentRow} onPress={() => setNdpr(v => !v)} activeOpacity={0.7}>
-            <View style={[styles.checkbox, ndpr && styles.checkboxChecked]}>
-              {ndpr && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.consentText}>
-              I consent to StreetdocMD collecting and processing my health data in accordance with
-              the Nigeria Data Protection Regulation (NDPR). My data will only be used to provide
-              healthcare services.
-            </Text>
-          </TouchableOpacity>
+          <LegalAcceptanceFields value={legal} onChange={setLegal} showErrors={submitted} />
 
           <TouchableOpacity
             style={[styles.btn, !ready && styles.btnDisabled]}
@@ -160,6 +160,7 @@ export default function RegisterScreen() {
           >
             <Text style={styles.btnText}>{loading ? "Creating account..." : "Create Account"}</Text>
           </TouchableOpacity>
+          {!legalOk && !loading ? <Text style={styles.hint}>Tick both boxes above to continue.</Text> : null}
 
           <TouchableOpacity onPress={() => router.replace("/(auth)/login")} style={styles.back}>
             <Text style={styles.backText}>Already have an account? Sign in</Text>
@@ -182,17 +183,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 16,
   },
   fieldError: { color: "#DC2626", fontSize: 12, marginTop: -10, marginBottom: 12 },
-  consentRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginBottom: 20 },
-  checkbox: {
-    width: 22, height: 22, borderRadius: 5, borderWidth: 2,
-    borderColor: "#D1D5DB", alignItems: "center", justifyContent: "center",
-    marginTop: 1, flexShrink: 0,
-  },
-  checkboxChecked: { backgroundColor: "#1E6FD9", borderColor: "#1E6FD9" },
-  checkmark: { color: "#fff", fontSize: 13, fontWeight: "700" },
-  consentText: { flex: 1, fontSize: 12, color: "#6B7280", lineHeight: 18 },
   btn: { backgroundColor: "#1E6FD9", borderRadius: 10, paddingVertical: 14, alignItems: "center" },
   btnDisabled: { opacity: 0.5 },
+  hint: { fontSize: 12, color: "#9CA3AF", textAlign: "center", marginTop: 8 },
   btnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
   back: { marginTop: 18, alignItems: "center" },
   backText: { fontSize: 14, color: "#6B7280" },

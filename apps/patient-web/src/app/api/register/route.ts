@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { PRIVACY_POLICY_VERSION } from "@/lib/privacy-policy";
+import { TERMS_VERSION, PRIVACY_VERSION } from "@/lib/legal-acceptance";
 import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
 
 const clean = (s: string) => s.replace(/[^\x00-\xFF]/g, "").trim();
@@ -34,7 +34,8 @@ export async function POST(req: NextRequest) {
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
   const phone = normalizePhone(typeof body.phone === "string" ? body.phone : "");
-  const coreConsent = body.coreConsent === true;
+  const acceptTerms = body.acceptTerms === true;
+  const acknowledgePrivacy = body.acknowledgePrivacy === true;
 
   if (!name || !email || !body.phone || !password) {
     return NextResponse.json({ error: "Please fill in all the fields." }, { status: 400 });
@@ -51,10 +52,20 @@ export async function POST(req: NextRequest) {
   if (password.length < 8) {
     return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
   }
-  // The UI already disables submit until this is checked — this is
+  // The UI disables submit until both separate boxes are ticked — this is
   // defense-in-depth against a direct API call bypassing that.
-  if (!coreConsent) {
-    return NextResponse.json({ error: "You must accept the Privacy Policy consent to continue." }, { status: 400 });
+  if (!acceptTerms || !acknowledgePrivacy) {
+    return NextResponse.json({
+      error: "Please agree to the Terms of Service and acknowledge the Privacy Policy to continue.",
+    }, { status: 400 });
+  }
+  // The form must have shown the current documents. A stale tab (opened
+  // before a new version shipped) is asked to reload rather than recording
+  // acceptance of text the patient never saw.
+  if (body.termsVersion !== TERMS_VERSION || body.privacyVersion !== PRIVACY_VERSION) {
+    return NextResponse.json({
+      error: "Our Terms of Service or Privacy Policy have been updated. Please refresh the page and review them again.",
+    }, { status: 409 });
   }
 
   const admin = createAdminSupabase();
@@ -105,14 +116,11 @@ export async function POST(req: NextRequest) {
 
   // Ensure public.users row exists (idempotent)
   const { data: existingUser } = await admin.from("users").select("id").eq("id", userId).maybeSingle();
-  const now = new Date().toISOString();
   if (!existingUser) {
+    // No blanket "consent" flags here: acknowledging the Privacy Policy is
+    // not consent to processing. Terms/Privacy acceptance is recorded below.
     const { error: userErr } = await admin.from("users").insert({
       id: userId, name, phone, email, role: "patient",
-      ndpr_consent: true,
-      ndpr_consent_at: now,
-      core_consent_accepted: true,
-      core_consent_policy_version: PRIVACY_POLICY_VERSION,
     });
     if (userErr) {
       if (!alreadySignedIn) await admin.auth.admin.deleteUser(userId);
@@ -123,24 +131,33 @@ export async function POST(req: NextRequest) {
         { status: isDup ? 409 : 500 },
       );
     }
-  } else {
-    // Rare edge case (auth user already existed, e.g. a retried signup) —
-    // they still just went through the consent-gated form, so record it
-    // the same way rather than silently skipping.
-    await admin.from("users").update({
-      core_consent_accepted: true,
-      core_consent_policy_version: PRIVACY_POLICY_VERSION,
-    }).eq("id", userId);
   }
 
-  const { error: consentErr } = await admin.from("consent_log").insert({
-    patient_id: userId,
-    consent_type: "core",
-    action: "granted",
-    policy_version: PRIVACY_POLICY_VERSION,
-    context: "signup",
+  // Record both documents (version, account, action, database timestamp)
+  // on users + two consent_log rows, in one transaction — migration 053.
+  // Also covers the rare retried-signup case where the row already existed:
+  // they still just ticked both boxes on this form.
+  const { error: legalErr } = await admin.rpc("record_patient_legal_acceptance", {
+    p_terms_version: TERMS_VERSION,
+    p_privacy_version: PRIVACY_VERSION,
+    p_context: "signup",
+    p_patient_id: userId,
   });
-  if (consentErr) console.error("[register] consent_log insert failed:", consentErr);
+  if (legalErr) {
+    console.error("[register] recording terms/privacy acceptance failed:", legalErr);
+    if (!existingUser && !alreadySignedIn) {
+      // Acceptance is a precondition of the account — don't leave one
+      // behind without the record. Undo and let them retry.
+      await admin.from("users").delete().eq("id", userId);
+      await admin.auth.admin.deleteUser(userId);
+      return NextResponse.json(
+        { error: "We couldn't finish creating your account. Please try again." },
+        { status: 500 },
+      );
+    }
+    // An account that already existed keeps working; the dashboard will
+    // ask them to accept again.
+  }
 
   let signedIn = alreadySignedIn;
   if (!alreadySignedIn) {

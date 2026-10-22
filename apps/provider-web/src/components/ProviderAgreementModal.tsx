@@ -10,6 +10,7 @@ import {
   PROVIDER_AGREEMENT_TITLE,
   PROVIDER_AGREEMENT_VERSION,
   PROVIDER_AGREEMENT_YEAR,
+  legalUrl,
 } from "@streetdocmd/shared";
 
 // Full text of the Provider Service Agreement, laid out like patient-web's PrivacyPolicyModal.
@@ -112,7 +113,10 @@ export default function ProviderAgreementModal({ isOpen, onClose }: { isOpen: bo
         {/* Footer */}
         <div className="flex shrink-0 items-center justify-between gap-3 border-t border-gray-100 px-6 py-4">
           <span className="text-xs text-gray-400">
-            Version {PROVIDER_AGREEMENT_VERSION} · {PROVIDER_AGREEMENT_YEAR}
+            Version {PROVIDER_AGREEMENT_VERSION} · {PROVIDER_AGREEMENT_YEAR} ·{" "}
+            <a href={legalUrl("provider-agreement")} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
+              Open full page
+            </a>
           </span>
           <button type="button" onClick={onClose} className="btn-primary shrink-0 whitespace-nowrap px-5 py-2.5 text-sm">
             Close

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createAdminSupabase } from "@/lib/supabase-server";
+import { FACILITY_AGREEMENT_VERSION } from "@/lib/facility-agreement";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,24 @@ export async function POST(req: NextRequest) {
   }
   if (typeof password !== "string" || password.length < 8) {
     return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+  }
+
+  // Facility Partner Platform Service Agreement (cl. 2.2–2.6): sign-up only
+  // completes once the authorised representative ticks the acceptance box for
+  // the CURRENT version. Checked before anything is created.
+  if (body.agreement_accepted !== true) {
+    return NextResponse.json({
+      error: "Please read the Facility Partner Platform Service Agreement and tick the box to accept it before completing sign-up.",
+    }, { status: 400 });
+  }
+  if (String(body.agreement_version ?? "") !== FACILITY_AGREEMENT_VERSION) {
+    return NextResponse.json({
+      error: "The Facility Partner Agreement has been updated since you opened this page. Please refresh the page, review the latest version and accept it again. (Copy anything you've typed first.)",
+    }, { status: 409 });
+  }
+  const contactName = str(body.contact_person_name, 200);
+  if (!contactName) {
+    return NextResponse.json({ error: "Enter the contact person (the authorised representative accepting the Agreement)." }, { status: 400 });
   }
 
   // Keep the applicant's questions with the application; reviewers see every
@@ -143,12 +162,25 @@ export async function POST(req: NextRequest) {
       documents: body.documents ?? null,
       status: "pending",
       user_id: userId,
+      // Electronic acceptance record (migration 054). Server time, not the client's.
+      agreement_version: FACILITY_AGREEMENT_VERSION,
+      agreement_accepted_at: new Date().toISOString(),
+      agreement_accepted_by: userId,
+      agreement_accepted_name: contactName,
     })
     .select("id")
     .single();
 
   if (error) {
-    console.error("facility_application insert error:", error);
+    if (/agreement_/i.test(error.message ?? "")) {
+      console.error(
+        "facility_application insert error: the agreement acceptance columns are missing on facility_applications. " +
+        "Apply supabase/migrations/054_facility_agreement_acceptance.sql (supabase db push).",
+        error
+      );
+    } else {
+      console.error("facility_application insert error:", error);
+    }
     if (createdNewUser) await admin.auth.admin.deleteUser(userId); // users row cascades
     return NextResponse.json({ error: "We couldn't save your application. Please try again, or contact support at contact@streetdocmd.com." }, { status: 500 });
   }

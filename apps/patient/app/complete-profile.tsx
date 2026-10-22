@@ -7,6 +7,8 @@ import { useLocalSearchParams } from "expo-router";
 import { supabase } from "../lib/supabase";
 import { normalizePhone, PHONE_ERROR } from "../lib/phone";
 import { createPatientProfile, notifyProfileChanged } from "../lib/profile";
+import { TERMS_VERSION, PRIVACY_VERSION } from "../lib/legal";
+import LegalAcceptanceFields, { type LegalAcceptanceValue } from "../components/LegalAcceptanceFields";
 
 // Reached when a signed-in user has no patient profile row yet — e.g. the
 // details saved at sign-up clashed with another account's phone number, or
@@ -16,7 +18,9 @@ export default function CompleteProfileScreen() {
   const params = useLocalSearchParams<{ error?: string }>();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [consent, setConsent] = useState(false);
+  // Both unchecked by default — the documents require an affirmative tick.
+  const [legal, setLegal] = useState<LegalAcceptanceValue>({ terms: false, privacy: false });
+  const legalOk = legal.terms && legal.privacy;
   const [error, setError] = useState(params.error ?? "");
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,12 +41,18 @@ export default function CompleteProfileScreen() {
     if (saving) return;
     setSubmitted(true);
     if (nameError || !phoneNorm) return;
-    if (!consent) { setError("Please accept the data privacy notice to continue."); return; }
+    if (!legalOk) {
+      setError("Please agree to the Terms of Service and acknowledge the Privacy Policy to continue.");
+      return;
+    }
     setSaving(true);
     setError("");
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
-    const res = await createPatientProfile(user.id, user.email, name.trim().replace(/\s+/g, " "), phoneNorm);
+    const res = await createPatientProfile(
+      user.id, user.email, name.trim().replace(/\s+/g, " "), phoneNorm,
+      { context: "complete_profile", termsVersion: TERMS_VERSION, privacyVersion: PRIVACY_VERSION },
+    );
     setSaving(false);
     if (!res.ok) { setError(res.error ?? "Something went wrong. Please try again."); return; }
     notifyProfileChanged();
@@ -68,23 +78,18 @@ export default function CompleteProfileScreen() {
           <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="08012345678" keyboardType="phone-pad" />
           {submitted && phoneError ? <Text style={styles.fieldError}>{phoneError}</Text> : null}
 
-          <TouchableOpacity style={styles.consentRow} onPress={() => setConsent(v => !v)} activeOpacity={0.7}>
-            <View style={[styles.checkbox, consent && styles.checkboxChecked]}>
-              {consent && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.consentText}>
-              I consent to StreetdocMD collecting and processing my health data in accordance with
-              the Nigeria Data Protection Regulation (NDPR). My data will only be used to provide
-              healthcare services.
-            </Text>
-          </TouchableOpacity>
+          <LegalAcceptanceFields
+            value={legal}
+            onChange={next => { setLegal(next); if (next.terms && next.privacy) setError(""); }}
+            showErrors={submitted}
+          />
 
           {error ? <Text style={styles.errorBox}>{error}</Text> : null}
 
           <TouchableOpacity
-            style={[styles.btn, (!consent || saving) && styles.btnDisabled]}
+            style={[styles.btn, (!legalOk || saving) && styles.btnDisabled]}
             onPress={save}
-            disabled={!consent || saving}
+            disabled={!legalOk || saving}
           >
             <Text style={styles.btnText}>{saving ? "Saving..." : "Continue"}</Text>
           </TouchableOpacity>
@@ -117,15 +122,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 16,
   },
   fieldError: { color: "#DC2626", fontSize: 12, marginTop: -10, marginBottom: 12 },
-  consentRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginBottom: 20 },
-  checkbox: {
-    width: 22, height: 22, borderRadius: 5, borderWidth: 2,
-    borderColor: "#D1D5DB", alignItems: "center", justifyContent: "center",
-    marginTop: 1, flexShrink: 0,
-  },
-  checkboxChecked: { backgroundColor: "#1E6FD9", borderColor: "#1E6FD9" },
-  checkmark: { color: "#fff", fontSize: 13, fontWeight: "700" },
-  consentText: { flex: 1, fontSize: 12, color: "#6B7280", lineHeight: 18 },
   errorBox: {
     backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA", color: "#B91C1C",
     borderRadius: 10, padding: 12, fontSize: 13, marginBottom: 16, overflow: "hidden",

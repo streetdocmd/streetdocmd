@@ -3,10 +3,14 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from "rea
 import { useFocusEffect, useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import FamilyMembersManager from "../../components/FamilyMembersManager";
+import LegalDocumentModal from "../../components/LegalDocumentModal";
+import { PATIENT_TERMS, PRIVACY_POLICY, type LegalDocument } from "@streetdocmd/shared";
+import { formatLegalDate, TERMS_VERSION, PRIVACY_VERSION } from "../../lib/legal";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [openDoc, setOpenDoc] = useState<LegalDocument | null>(null);
   const [familyMembers, setFamilyMembers] = useState<{ id: string; name: string; relationship: string }[]>([]);
 
   // Reload on focus so edits made on /profile/edit show up on return.
@@ -82,10 +86,59 @@ export default function ProfileScreen() {
         </View>
       )}
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Legal</Text>
+        <LegalRow
+          title="Patient Terms of Service"
+          status={acceptanceStatus("Accepted", user.terms_version, user.terms_accepted_at, TERMS_VERSION)}
+          onPress={() => setOpenDoc(PATIENT_TERMS)}
+        />
+        <LegalRow
+          title="Privacy Policy"
+          status={acceptanceStatus("Acknowledged", user.privacy_policy_version, user.privacy_acknowledged_at, PRIVACY_VERSION)}
+          onPress={() => setOpenDoc(PRIVACY_POLICY)}
+          last
+        />
+      </View>
+      <LegalDocumentModal doc={openDoc} visible={!!openDoc} onClose={() => setOpenDoc(null)} />
+
       <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
     </ScrollView>
+  );
+}
+
+function acceptanceStatus(
+  verb: string,
+  version: string | null | undefined,
+  at: string | null | undefined,
+  current: string,
+): { text: string; outdated: boolean } {
+  const date = formatLegalDate(at);
+  if (!version || !date) return { text: `Not yet ${verb.toLowerCase()}`, outdated: true };
+  return {
+    text: `${verb} version ${version} on ${date}${version !== current ? ` · version ${current} awaiting review` : ""}`,
+    outdated: version !== current,
+  };
+}
+
+function LegalRow({
+  title, status, onPress, last,
+}: {
+  title: string;
+  status: { text: string; outdated: boolean };
+  onPress: () => void;
+  last?: boolean;
+}) {
+  return (
+    <TouchableOpacity style={[styles.legalRow, last && { borderBottomWidth: 0 }]} onPress={onPress} activeOpacity={0.7}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.legalTitle}>{title}</Text>
+        <Text style={[styles.legalStatus, status.outdated && styles.legalStatusOutdated]}>{status.text}</Text>
+      </View>
+      <Text style={styles.legalView}>View ›</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -117,6 +170,14 @@ const styles = StyleSheet.create({
   infoRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "#F9FAFB" },
   infoLabel: { fontSize: 14, color: "#6B7280" },
   infoValue: { fontSize: 14, color: "#111827", fontWeight: "500", flex: 1, textAlign: "right" },
+  legalRow: {
+    flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: "#F3F4F6",
+  },
+  legalTitle: { fontSize: 14, color: "#111827", fontWeight: "500" },
+  legalStatus: { fontSize: 12, color: "#6B7280", marginTop: 2 },
+  legalStatusOutdated: { color: "#B45309" },
+  legalView: { fontSize: 13, color: "#1E6FD9", fontWeight: "600" },
   signOutBtn: {
     backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA",
     borderRadius: 10, paddingVertical: 14, alignItems: "center", marginTop: 8
