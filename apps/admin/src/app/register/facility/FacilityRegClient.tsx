@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import PasswordInput from "@/components/ui/PasswordInput";
-import { PORTALS, SUPPORT_WHATSAPP_URL, SUPPORT_PHONE_DISPLAY, type PortalType } from "@/components/portal/config";
+import { PORTALS, SUPPORT_EMAIL, SUPPORT_MAILTO, type PortalType } from "@/components/portal/config";
 import { Spinner, ui } from "@/components/portal/ui";
 
 type FacilityType = PortalType;
@@ -578,8 +578,8 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
               </button>
             </div>
             <p className="text-xs text-gray-500 text-center">
-              Questions? WhatsApp us on{" "}
-              <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className={ui.btnLink}>{SUPPORT_PHONE_DISPLAY}</a>
+              Questions? Email us at{" "}
+              <a href={SUPPORT_MAILTO} className={ui.btnLink}>{SUPPORT_EMAIL}</a>
             </p>
           </>
         )}

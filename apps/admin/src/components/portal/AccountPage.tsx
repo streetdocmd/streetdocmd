@@ -1,7 +1,7 @@
-import { MessageCircle } from "lucide-react";
+import { Mail } from "lucide-react";
 import ChangePasswordForm from "./ChangePasswordForm";
 import { requirePortalAccess } from "./access";
-import { PORTALS, SUPPORT_WHATSAPP_URL, type PortalType } from "./config";
+import { PORTALS, SUPPORT_EMAIL, SUPPORT_MAILTO, type PortalType } from "./config";
 import { Card, CardHeader, DetailRow, PageHeader, StatusBadge, formatNaira, ui } from "./ui";
 
 const yesNo = (v: unknown) => (v ? "Yes" : "No");
@@ -60,8 +60,8 @@ export default async function AccountPage({ type }: { type: PortalType }) {
               )}
               <p className="mt-5 pt-4 border-t border-gray-100 text-xs text-gray-500">
                 Need to change any of these?{" "}
-                <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-brand hover:underline inline-flex items-center gap-1">
-                  <MessageCircle size={12} aria-hidden /> Message our partnerships team
+                <a href={SUPPORT_MAILTO} className="font-medium text-blue-brand hover:underline inline-flex items-center gap-1">
+                  <Mail size={12} aria-hidden /> Email {SUPPORT_EMAIL}
                 </a>{" "}
                 and we&apos;ll update them for you.
               </p>

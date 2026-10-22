@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FlaskConical, Pill, Hospital, Building, Search, Download, ChevronRight, Clock } from "lucide-react";
+import { FlaskConical, Pill, Hospital, Building, Search, Download, ChevronRight, Clock, FileCheck, FileClock } from "lucide-react";
+import { missingFacilityDocs } from "@/lib/facility-docs";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import EmptyState from "@/components/ui/EmptyState";
@@ -187,7 +188,21 @@ export default function FacilitiesClient({
                       <td className="text-gray-500 whitespace-nowrap">
                         {new Date(a.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
                       </td>
-                      <td><StatusBadge status={a.status} /></td>
+                      <td>
+                        <StatusBadge status={a.status} />
+                        {Array.isArray(a.doc_types) && (a.status === "pending" || a.status === "under_review") && (() => {
+                          const missing = missingFacilityDocs(a.facility_type, a.doc_types).length;
+                          return missing === 0 ? (
+                            <p className="mt-1 flex items-center gap-1 text-xs text-green-700 whitespace-nowrap">
+                              <FileCheck size={13} aria-hidden /> Documents complete
+                            </p>
+                          ) : (
+                            <p className="mt-1 flex items-center gap-1 text-xs text-amber-700 whitespace-nowrap">
+                              <FileClock size={13} aria-hidden /> Awaiting documents ({missing} missing)
+                            </p>
+                          );
+                        })()}
+                      </td>
                       <td>
                         <div className="flex items-center justify-end gap-2">
                           {a.status === "pending" && (

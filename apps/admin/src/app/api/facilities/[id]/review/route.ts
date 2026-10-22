@@ -131,7 +131,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
       const smsSent = await sendSms(
         app.phone,
-        `StreetdocMD Partner Application: Unfortunately, your application for ${app.name} was not approved. Reason: ${reason}. You may reapply after addressing the issues. Contact: 07063216791`
+        `StreetdocMD Partner Application: Unfortunately, your application for ${app.name} was not approved. Reason: ${reason}. You may reapply after addressing the issues. Contact: contact@streetdocmd.com`
       );
       return NextResponse.json({ ok: true, sms_sent: smsSent });
     }

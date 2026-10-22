@@ -47,7 +47,7 @@ export default async function PendingPage() {
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-left mb-6">
           <p className="text-sm font-semibold text-red-700 mb-1">Note from the verification team</p>
           <p className="text-sm text-red-600">
-            {provider.rejection_reason || "No reason was recorded. Please email support@streetdocmd.com and we'll tell you what to change."}
+            {provider.rejection_reason || "No reason was recorded. Please email contact@streetdocmd.com and we'll tell you what to change."}
           </p>
         </div>
         <Link href="/onboarding/documents" className="btn-primary inline-flex">

@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
         error: phoneTaken
           ? "This phone number is already linked to another StreetdocMD account. Use a different number for your facility."
           : roleCheck
-            ? "We couldn't create your account right now. Please contact support on WhatsApp 07063216791."
+            ? "We couldn't create your account right now. Please contact support at contact@streetdocmd.com."
             : userErr.message,
       },
       { status: phoneTaken ? 409 : 500 }
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
   if (error) {
     console.error("facility_application insert error:", error);
     if (createdNewUser) await admin.auth.admin.deleteUser(userId); // users row cascades
-    return NextResponse.json({ error: "We couldn't save your application. Please try again, or contact support on WhatsApp 07063216791." }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't save your application. Please try again, or contact support at contact@streetdocmd.com." }, { status: 500 });
   }
 
   // Notify admin via Termii SMS to the ops team

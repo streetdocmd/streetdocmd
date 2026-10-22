@@ -106,7 +106,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         action === "approve"
           ? "Good news — your StreetdocMD credentials have been verified and your provider badge is now active. Sign in to the provider app, set yourself as available, and you'll start receiving visit requests."
           : revoking
-            ? `Your StreetdocMD provider verification has been suspended. Reason: ${notes}. Please contact support@streetdocmd.com if you have questions.`
+            ? `Your StreetdocMD provider verification has been suspended. Reason: ${notes}. Please contact contact@streetdocmd.com if you have questions.`
             : `Your StreetdocMD provider application needs attention. Reason: ${notes}. Sign in to the provider app to upload corrected documents and we'll review them again.`;
       const { error: notifyErr } = await admin.from("notifications_queue").insert({
         provider_id: params.id,

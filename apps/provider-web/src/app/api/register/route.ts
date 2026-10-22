@@ -34,7 +34,7 @@ function friendlyDbError(message: string): string {
   if (m.includes("users_phone_key") || (m.includes("duplicate") && m.includes("phone"))) {
     return "This phone number is already linked to another StreetdocMD account. Sign in with that account's email, or use a different phone number.";
   }
-  return "We couldn't finish creating your account. Please try again, or contact support@streetdocmd.com if this keeps happening.";
+  return "We couldn't finish creating your account. Please try again, or contact contact@streetdocmd.com if this keeps happening.";
 }
 
 // Creates the auth user + users row + providers row with the service role, so

@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unexpected document type" }, { status: 400 });
   }
   if (provider.verification_status === "verified" || provider.verification_status === "under_review") {
-    return NextResponse.json({ error: "Your documents are already with our team. Contact support@streetdocmd.com to change them." }, { status: 409 });
+    return NextResponse.json({ error: "Your documents are already with our team. Contact contact@streetdocmd.com to change them." }, { status: 409 });
   }
 
   const admin = createAdminSupabase();

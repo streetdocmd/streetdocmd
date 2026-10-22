@@ -103,7 +103,7 @@ export default function PrivacyPolicyModal({ isOpen, onClose }: { isOpen: boolea
           </Section>
 
           <Section num={5} title="Questions or concerns?">
-            <p>Message us on WhatsApp at 07063216791, or contact our support team at contact@streetdocmd.com.</p>
+            <p>Email our support team at contact@streetdocmd.com.</p>
           </Section>
         </div>
 

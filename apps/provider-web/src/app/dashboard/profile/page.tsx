@@ -105,7 +105,7 @@ export default async function ProfilePage() {
         <h3 className="font-semibold text-gray-900 mb-1">Credentials on file</h3>
         <p className="text-xs text-gray-500 mb-3">
           Verified by the StreetdocMD team. To update a licence (for example on renewal), email{" "}
-          <a href="mailto:support@streetdocmd.com" className="text-blue-brand hover:underline">support@streetdocmd.com</a>.
+          <a href="mailto:contact@streetdocmd.com" className="text-blue-brand hover:underline">contact@streetdocmd.com</a>.
         </p>
         {(docs ?? []).length === 0 ? (
           <p className="text-sm text-gray-400 py-2">No documents on file.</p>

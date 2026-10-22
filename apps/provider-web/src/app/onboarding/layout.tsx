@@ -21,7 +21,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
       <main className="flex-1 w-full max-w-xl mx-auto px-4 py-8 sm:py-10">{children}</main>
       <footer className="pb-8 text-center text-xs text-gray-400">
         Need help? Email{" "}
-        <a href="mailto:support@streetdocmd.com" className="text-blue-brand hover:underline">support@streetdocmd.com</a>
+        <a href="mailto:contact@streetdocmd.com" className="text-blue-brand hover:underline">contact@streetdocmd.com</a>
       </footer>
     </div>
   );

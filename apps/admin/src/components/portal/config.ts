@@ -36,5 +36,5 @@ export const ROLE_TO_PORTAL: Record<string, PortalType> = {
   hospital_staff: "hospital",
 };
 
-export const SUPPORT_WHATSAPP_URL = "https://wa.me/2347063216791";
-export const SUPPORT_PHONE_DISPLAY = "0706 321 6791";
+export const SUPPORT_EMAIL = "contact@streetdocmd.com";
+export const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}`;

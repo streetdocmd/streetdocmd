@@ -5,7 +5,7 @@ import {
 import { useFocusEffect, useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { supabase } from "../../lib/supabase";
-import { SERVICE_LABELS, SERVICE_PRICES, ServiceType, formatNaira } from "@streetdocmd/shared";
+import { SERVICE_LABELS, ServiceType } from "@streetdocmd/shared";
 
 const SERVICES: ServiceType[] = [
   "general_consultation",
@@ -110,8 +110,9 @@ export default function HomeScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.cardTitle}>{serviceLabel(service)}</Text>
+            {/* Providers set their own prices, so none is shown here */}
             <Text style={styles.cardPrice}>
-              {service === "wellness_check" ? "From " + formatNaira(SERVICE_PRICES[service]) : formatNaira(SERVICE_PRICES[service])}
+              {service === "wellness_check" ? "Choose a package" : "See providers & prices"}
             </Text>
           </TouchableOpacity>
         ))}

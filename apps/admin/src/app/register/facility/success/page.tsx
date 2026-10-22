@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { SUPPORT_PHONE_DISPLAY, SUPPORT_WHATSAPP_URL } from "@/components/portal/config";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/components/portal/config";
 import { ui } from "@/components/portal/ui";
 
 export const metadata = { title: "Application Submitted — StreetdocMD" };
@@ -32,8 +32,8 @@ export default function FacilityRegSuccessPage({
             partner portal at any time to check its status.
           </p>
           <p className="border-t border-gray-100 pt-3 text-xs text-gray-500">
-            Questions? WhatsApp us on{" "}
-            <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className={ui.btnLink}>{SUPPORT_PHONE_DISPLAY}</a>
+            Questions? Email us at{" "}
+            <a href={SUPPORT_MAILTO} className={ui.btnLink}>{SUPPORT_EMAIL}</a>
           </p>
         </div>
 

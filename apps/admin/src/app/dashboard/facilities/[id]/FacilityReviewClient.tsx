@@ -4,12 +4,13 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FlaskConical, Pill, Hospital, FileText, ExternalLink, Info, Copy, Check,
-  CircleCheck, KeyRound, Clock, CircleX,
+  CircleCheck, KeyRound, Clock, CircleX, TriangleAlert, Eye, FileClock,
 } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ConfirmModal, { Spinner } from "@/components/ui/ConfirmModal";
 import EmptyState from "@/components/ui/EmptyState";
+import { facilityDocLabel, facilityDocSpecs, missingFacilityDocs, type FacilityDocument } from "@/lib/facility-docs";
 
 const TYPE_META: Record<string, { label: string; icon: typeof Pill; portal: string }> = {
   lab:      { label: "Laboratory", icon: FlaskConical, portal: "/lab-portal/login" },
@@ -52,9 +53,15 @@ async function readError(res: Response) {
 export default function FacilityReviewClient({
   application: app,
   reviewerName,
+  uploads = [],
+  uploadsUnavailable = false,
 }: {
   application: any;
   reviewerName?: string | null;
+  /** Files the facility uploaded from its portal (facility_documents), newest first. */
+  uploads?: FacilityDocument[];
+  /** facility_documents doesn't exist yet (migration 052 not applied). */
+  uploadsUnavailable?: boolean;
 }) {
   const router = useRouter();
   const [modal, setModal] = useState<"approve" | "reject" | "review" | null>(null);
@@ -70,6 +77,15 @@ export default function FacilityReviewClient({
   const typeData: Record<string, unknown> = app.type_specific_data ?? {};
   const isOpen = app.status === "pending" || app.status === "under_review";
   const hasLogin = !!app.user_id;
+  const missingDocs = uploadsUnavailable ? [] : missingFacilityDocs(app.facility_type, uploads.map((d) => d.document_type));
+  const docsComplete = missingDocs.length === 0;
+  const requiredCount = facilityDocSpecs(app.facility_type).filter((s) => s.required).length;
+  // Required types first (in spec order), then anything else.
+  const specOrder = facilityDocSpecs(app.facility_type).map((s) => s.type as string);
+  const sortedUploads = [...uploads].sort((a, b) => {
+    const ia = specOrder.indexOf(a.document_type), ib = specOrder.indexOf(b.document_type);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || b.uploaded_at.localeCompare(a.uploaded_at);
+  });
 
   const closeModal = useCallback(() => {
     if (processing) return;
@@ -246,44 +262,111 @@ export default function FacilityReviewClient({
         </section>
 
         <section className="card">
-          <h2 className="px-5 pt-5 pb-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Documents</h2>
-          {docEntries.length === 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5 pb-3">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              Documents <span className="normal-case font-normal text-gray-400">({uploads.length} uploaded)</span>
+            </h2>
+            {!uploadsUnavailable && (
+              docsComplete ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 px-2.5 py-0.5 text-xs font-semibold">
+                  <CircleCheck size={12} aria-hidden /> Documents complete
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 px-2.5 py-0.5 text-xs font-semibold">
+                  <FileClock size={12} aria-hidden /> Awaiting documents ({requiredCount - missingDocs.length}/{requiredCount})
+                </span>
+              )
+            )}
+          </div>
+
+          {uploadsUnavailable ? (
+            <p className="mx-5 mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
+              Portal document uploads aren&apos;t set up yet. Apply migration 052 (facility_documents).
+            </p>
+          ) : missingDocs.length > 0 && (
+            <div className="mx-5 mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800 flex gap-2">
+              <TriangleAlert size={16} className="shrink-0 mt-0.5" aria-hidden />
+              <div>
+                <p className="font-medium">Missing required documents</p>
+                <ul className="mt-1 flex flex-wrap gap-1.5">
+                  {missingDocs.map((m) => (
+                    <li key={m.type} className="rounded-full bg-white/70 ring-1 ring-inset ring-amber-200 px-2 py-0.5 text-xs">{m.label}</li>
+                  ))}
+                </ul>
+                <p className="mt-1.5 text-xs text-amber-700">The facility uploads these from its partner portal while the application is open.</p>
+              </div>
+            </div>
+          )}
+
+          {sortedUploads.length > 0 && (
+            <ul className="px-5 pb-4 divide-y divide-gray-100">
+              {sortedUploads.map((d) => (
+                <li key={d.id} className="flex items-center gap-3 py-3">
+                  <FileText size={18} className="text-gray-400 shrink-0" aria-hidden />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{facilityDocLabel(d.document_type)}</p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {d.file_name ?? "Uploaded file"} · Uploaded {fmtDate(d.uploaded_at, true)}
+                    </p>
+                  </div>
+                  <a
+                    href={`/api/facilities/${app.id}/documents/${d.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary px-3 py-1.5 text-xs shrink-0"
+                  >
+                    <Eye size={13} aria-hidden /> View
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {docEntries.length > 0 && (
+            <>
+              <h3 className="px-5 pt-1 pb-2 text-xs font-medium text-gray-500">Submitted with the application</h3>
+              <ul className="px-5 pb-5 grid gap-2 sm:grid-cols-2">
+                {docEntries.map((d) => {
+                  const isUrl = /^https?:\/\//i.test(d.value);
+                  return (
+                    <li key={d.key}>
+                      {isUrl ? (
+                        <a
+                          href={d.value}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50 transition-colors"
+                        >
+                          <FileText size={16} className="text-gray-400 shrink-0" aria-hidden />
+                          <span className="flex-1 text-sm font-medium text-gray-800 truncate">{d.label}</span>
+                          <ExternalLink size={14} className="text-gray-400" aria-hidden />
+                        </a>
+                      ) : (
+                        <div className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5">
+                          <FileText size={16} className="text-gray-400 shrink-0" aria-hidden />
+                          <span className="flex-1 min-w-0">
+                            <span className="block text-sm font-medium text-gray-800">{d.label}</span>
+                            <span className="block text-xs text-gray-400 truncate font-mono">{d.value}</span>
+                          </span>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+
+          {sortedUploads.length === 0 && docEntries.length === 0 && (
             <EmptyState
               compact
               icon={FileText}
-              title="No documents attached"
-              description="Verify the registration and CAC numbers above with the issuing body before approving."
+              title="No documents uploaded yet"
+              description="The facility uploads its documents from its partner portal. You can also verify the registration and CAC numbers above with the issuing body."
             />
-          ) : (
-            <ul className="px-5 pb-5 grid gap-2 sm:grid-cols-2">
-              {docEntries.map((d) => {
-                const isUrl = /^https?:\/\//i.test(d.value);
-                return (
-                  <li key={d.key}>
-                    {isUrl ? (
-                      <a
-                        href={d.value}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50 transition-colors"
-                      >
-                        <FileText size={16} className="text-gray-400 shrink-0" aria-hidden />
-                        <span className="flex-1 text-sm font-medium text-gray-800 truncate">{d.label}</span>
-                        <ExternalLink size={14} className="text-gray-400" aria-hidden />
-                      </a>
-                    ) : (
-                      <div className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5">
-                        <FileText size={16} className="text-gray-400 shrink-0" aria-hidden />
-                        <span className="flex-1 min-w-0">
-                          <span className="block text-sm font-medium text-gray-800">{d.label}</span>
-                          <span className="block text-xs text-gray-400 truncate font-mono">{d.value}</span>
-                        </span>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+          )}
+          {sortedUploads.length > 0 && (
+            <p className="px-5 pb-4 text-xs text-gray-400">View opens a private link that expires after 2 minutes.</p>
           )}
         </section>
       </div>
@@ -310,6 +393,15 @@ export default function FacilityReviewClient({
           <li>Send the facility an SMS with sign-in details (if SMS is configured)</li>
         </ul>
         <p className="text-xs text-gray-500">Portal: {meta.portal}</p>
+        {missingDocs.length > 0 && (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-800">
+            <TriangleAlert size={16} className="shrink-0 mt-0.5" aria-hidden />
+            <p>
+              <strong>Required documents missing:</strong> {missingDocs.map((m) => m.label).join(", ")}.
+              Only approve if you&apos;ve verified these another way.
+            </p>
+          </div>
+        )}
       </ConfirmModal>
 
       {/* Reject */}

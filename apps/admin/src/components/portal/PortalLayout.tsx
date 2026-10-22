@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ShieldAlert, Link2Off, PauseCircle, MessageCircle, KeyRound } from "lucide-react";
+import { ShieldAlert, Link2Off, PauseCircle, Mail, KeyRound } from "lucide-react";
 import FacilityApplicationStatus from "@/components/FacilityApplicationStatus";
 import PortalChrome from "./PortalChrome";
 import { getPortalAccess } from "./access";
-import { PORTALS, ROLE_TO_PORTAL, SUPPORT_WHATSAPP_URL, SUPPORT_PHONE_DISPLAY, type PortalType } from "./config";
+import { PORTALS, ROLE_TO_PORTAL, SUPPORT_EMAIL, SUPPORT_MAILTO, type PortalType } from "./config";
 import { Notice, ui } from "./ui";
 
 function Blocked({ icon: Icon, title, children, action }: {
@@ -21,8 +21,8 @@ function Blocked({ icon: Icon, title, children, action }: {
         <div className="mt-2 text-sm text-gray-600 space-y-2">{children}</div>
         <div className="mt-6 flex flex-col sm:flex-row gap-2">
           {action}
-          <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className={ui.btnSecondary}>
-            <MessageCircle size={15} aria-hidden /> WhatsApp support · {SUPPORT_PHONE_DISPLAY}
+          <a href={SUPPORT_MAILTO} className={ui.btnSecondary}>
+            <Mail size={15} aria-hidden /> Email {SUPPORT_EMAIL}
           </a>
         </div>
       </div>

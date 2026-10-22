@@ -5,11 +5,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ClipboardList, Package, Microscope, Settings, Wallet, BarChart3, Users,
-  FolderLock, Bell, Plug, Menu, X, ChevronDown, LogOut, MessageCircle, type LucideIcon,
+  FolderLock, Bell, Plug, Menu, X, ChevronDown, LogOut, Mail, type LucideIcon,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import ComingSoonBadge from "./ComingSoonBadge";
-import { PORTALS, SUPPORT_WHATSAPP_URL, type PortalType } from "./config";
+import { PORTALS, SUPPORT_MAILTO, type PortalType } from "./config";
 
 interface NavItem { href: string; label: string; icon: LucideIcon }
 
@@ -146,9 +146,9 @@ function UserMenu({ type, userName, userEmail, showAccount }: { type: PortalType
               <Settings size={15} className="text-gray-400" aria-hidden /> Account & password
             </Link>
           )}
-          <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
+          <a href={SUPPORT_MAILTO}
             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-            <MessageCircle size={15} className="text-gray-400" aria-hidden /> Contact support
+            <Mail size={15} className="text-gray-400" aria-hidden /> Contact support
           </a>
           <button onClick={signOut} disabled={signingOut}
             className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 border-t border-gray-100">

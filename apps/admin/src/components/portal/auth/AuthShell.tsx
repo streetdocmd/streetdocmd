@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { FlaskConical, Pill, Hospital, ShieldCheck, Zap, Smartphone } from "lucide-react";
-import { PORTALS, SUPPORT_WHATSAPP_URL, SUPPORT_PHONE_DISPLAY, type PortalType } from "../config";
+import { PORTALS, SUPPORT_EMAIL, SUPPORT_MAILTO, type PortalType } from "../config";
 
 const ICON = { lab: FlaskConical, pharmacy: Pill, hospital: Hospital };
 
@@ -56,7 +56,7 @@ export default function AuthShell({ type, children }: { type: PortalType; childr
           </div>
           {children}
           <p className="mt-8 text-xs text-gray-400 text-center">
-            Need help? <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="text-blue-brand font-medium hover:underline">WhatsApp {SUPPORT_PHONE_DISPLAY}</a>
+            Need help? <a href={SUPPORT_MAILTO} className="text-blue-brand font-medium hover:underline">{SUPPORT_EMAIL}</a>
           </p>
         </div>
       </div>

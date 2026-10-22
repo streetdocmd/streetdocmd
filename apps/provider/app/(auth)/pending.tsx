@@ -153,7 +153,7 @@ export default function PendingScreen() {
             <View style={styles.reasonBox}>
               <Text style={styles.reasonLabel}>Note from the verification team</Text>
               <Text style={styles.reasonText}>
-                {state.reason || "No reason was recorded — please email support@streetdocmd.com."}
+                {state.reason || "No reason was recorded — please email contact@streetdocmd.com."}
               </Text>
             </View>
             <TouchableOpacity style={styles.primaryBtn} onPress={() => openPortal("/login")}>
@@ -168,7 +168,7 @@ export default function PendingScreen() {
         <TouchableOpacity onPress={logout} style={styles.linkBtn}>
           <Text style={styles.linkText}>Sign out</Text>
         </TouchableOpacity>
-        <Text style={styles.hint}>Questions? support@streetdocmd.com</Text>
+        <Text style={styles.hint}>Questions? contact@streetdocmd.com</Text>
       </View>
     </ScrollView>
   );

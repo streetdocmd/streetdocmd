@@ -24,6 +24,25 @@ const TARGETED_PROVIDER_SERVICE_TYPE: Record<Profession, ServiceType> = {
   physiotherapist: "physiotherapy_assessment",
 };
 
+// Providers set their own price per bookable service (provider_services.service_type).
+// Anyone who hasn't priced a service is billed the platform's standard rate. The
+// patient's provider list (dashboard/book/[service]) shows exactly this number.
+async function providerPrice(
+  admin: ReturnType<typeof createAdminSupabase>,
+  providerId: string,
+  serviceType: ServiceType,
+): Promise<number> {
+  const { data } = await admin
+    .from("provider_services")
+    .select("price")
+    .eq("provider_id", providerId)
+    .eq("service_type", serviceType)
+    .eq("active", true)
+    .maybeSingle();
+  const price = Number(data?.price);
+  return price > 0 ? price : SERVICE_PRICES[serviceType];
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabase();
@@ -131,14 +150,24 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "That provider is no longer available" }, { status: 400 });
       }
       resolvedTargetedProviderId = targetedProvider.id;
-      service_type = TARGETED_PROVIDER_SERVICE_TYPE[targetedProvider.profession as Profession];
+      // Keep the service the patient picked when this provider's profession offers it
+      // (provider list on a service page); otherwise derive it from the profession
+      // (booking by provider code, where no service was chosen).
+      const picked = service_type as ServiceType | undefined;
+      if (!picked || !SERVICE_PRICES[picked] || SERVICE_PROFESSION[picked] !== targetedProvider.profession) {
+        service_type = TARGETED_PROVIDER_SERVICE_TYPE[targetedProvider.profession as Profession];
+      }
     }
 
     if (!service_type || !SERVICE_PRICES[service_type as ServiceType]) {
       return NextResponse.json({ error: "Invalid service type" }, { status: 400 });
     }
 
-    let standardFee = SERVICE_PRICES[service_type as ServiceType];
+    // A chosen provider (or the continuing provider on a follow-up) charges their own price
+    const pricingProviderId = resolvedTargetedProviderId ?? (isFollowUp ? preferredProviderId : null);
+    let standardFee = pricingProviderId
+      ? await providerPrice(admin, pricingProviderId, service_type as ServiceType)
+      : SERVICE_PRICES[service_type as ServiceType];
 
     // Wellness Check is priced by the tier the patient chose, not the flat
     // SERVICE_PRICES lookup every other service uses — the fee is never
