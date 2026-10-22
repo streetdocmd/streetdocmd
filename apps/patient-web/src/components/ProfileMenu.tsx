@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import SocialLinks from "@/components/SocialLinks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, LogOut, ChevronDown } from "lucide-react";
@@ -50,6 +51,7 @@ export default function ProfileMenu({ userName }: { userName: string }) {
           >
             <User size={15} className="text-gray-400" /> Profile
           </Link>
+          <SocialLinks className="px-3.5 py-2 border-t border-gray-50" />
           <button
             onClick={signOut}
             className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"

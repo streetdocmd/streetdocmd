@@ -7,7 +7,7 @@ export const LINKS = {
   bookApp: process.env.NEXT_PUBLIC_MOBILE_APP_URL ?? "#",
   // Provider onboarding
   // Footer "Contact" link — change to your real inbox or a contact page
-  contact: process.env.NEXT_PUBLIC_CONTACT_URL ?? "mailto:hello@streetdocmd.com",
+  contact: process.env.NEXT_PUBLIC_CONTACT_URL ?? "mailto:contact@streetdocmd.com",
   providerSignup: process.env.NEXT_PUBLIC_PROVIDER_URL ?? "https://provider.streetdocmd.com",
 
   // Legal documents default to the pages on this site (same as LEGAL_PATHS in lib/legal;
@@ -17,7 +17,5 @@ export const LINKS = {
   privacy: process.env.NEXT_PUBLIC_PRIVACY_URL ?? "/privacy",
   facilityAgreement: process.env.NEXT_PUBLIC_FACILITY_AGREEMENT_URL ?? "/facility-agreement",
 
-  x: process.env.NEXT_PUBLIC_X_URL ?? "#",
-  instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "#",
-  tiktok: process.env.NEXT_PUBLIC_TIKTOK_URL ?? "#",
+  // Social links live in lib/brand.ts (SOCIAL_LINKS), shared with every StreetdocMD app.
 };

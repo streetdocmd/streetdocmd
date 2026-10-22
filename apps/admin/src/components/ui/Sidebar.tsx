@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import SocialLinks from "@/components/SocialLinks";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
@@ -193,6 +194,7 @@ export default function Sidebar({
         </nav>
 
         <div className="px-5 py-4 border-t border-white/10 shrink-0">
+          <SocialLinks variant="dark" className="mb-2" />
           <p className="text-xs text-blue-300/50">Care. Anywhere. Anytime.</p>
         </div>
       </aside>

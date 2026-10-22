@@ -4,6 +4,7 @@ import {
   TextInput, Alert, Switch, ActivityIndicator, Share
 } from "react-native";
 import { useRouter } from "expo-router";
+import SocialLinks from "../../components/SocialLinks";
 import { supabase } from "../../lib/supabase";
 
 export default function ProfileScreen() {
@@ -169,6 +170,8 @@ export default function ProfileScreen() {
           <Text style={styles.btnText}>{saving ? "Saving..." : "Save Bank Details"}</Text>
         </TouchableOpacity>
       </View>
+
+      <SocialLinks />
 
       {/* Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={logout}>

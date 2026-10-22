@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
+import SocialLinks from "../../components/SocialLinks";
 import { supabase } from "../../lib/supabase";
 import FamilyMembersManager from "../../components/FamilyMembersManager";
 import LegalDocumentModal from "../../components/LegalDocumentModal";
@@ -101,6 +102,8 @@ export default function ProfileScreen() {
         />
       </View>
       <LegalDocumentModal doc={openDoc} visible={!!openDoc} onClose={() => setOpenDoc(null)} />
+
+      <SocialLinks />
 
       <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
         <Text style={styles.signOutText}>Sign Out</Text>

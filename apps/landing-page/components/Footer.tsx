@@ -1,4 +1,12 @@
 import { LINKS } from "@/lib/links";
+import { SOCIAL_LINKS, type SocialLink } from "@/lib/brand";
+
+const SOCIAL_ICONS: Record<SocialLink["id"], { src: string; size: number }> = {
+  x: { src: "/images/icon-x.svg", size: 24 },
+  instagram: { src: "/images/icon-instagram.svg", size: 24 },
+  tiktok: { src: "/images/icon-tiktok.svg", size: 16 },
+  facebook: { src: "/images/icon-facebook.svg", size: 24 },
+};
 import { delay } from "@/lib/reveal";
 
 export default function Footer() {
@@ -25,7 +33,7 @@ export default function Footer() {
             <div className="footer-col col-legal">
               <h4>LEGAL</h4>
               <a href={LINKS.patientTerms}>Patient terms of service</a>
-              <a href={LINKS.providerTerms}>Provider terms of service</a>
+              <a href={LINKS.providerTerms}>Provider service agreement</a>
               <a href={LINKS.privacy}>Privacy policy</a>
               <a href={LINKS.facilityAgreement}>Facility partner agreement</a>
             </div>
@@ -35,15 +43,11 @@ export default function Footer() {
         <div className="footer-bottom">
           <p>© 2026 StreetdocMD. Nigeria.</p>
           <div className="socials">
-            <a href={LINKS.x} aria-label="StreetdocMD on X">
-              <img src="/images/icon-x.svg" alt="" width={24} height={24} />
-            </a>
-            <a href={LINKS.instagram} aria-label="StreetdocMD on Instagram">
-              <img src="/images/icon-instagram.svg" alt="" width={24} height={24} />
-            </a>
-            <a href={LINKS.tiktok} aria-label="StreetdocMD on TikTok">
-              <img src="/images/icon-tiktok.svg" alt="" width={16} height={16} />
-            </a>
+            {SOCIAL_LINKS.map(s => (
+              <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={`StreetdocMD on ${s.label}`}>
+                <img src={SOCIAL_ICONS[s.id].src} alt="" width={SOCIAL_ICONS[s.id].size} height={SOCIAL_ICONS[s.id].size} />
+              </a>
+            ))}
           </div>
         </div>
       </div>

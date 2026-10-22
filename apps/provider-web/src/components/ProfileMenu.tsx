@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import SocialLinks from "@/components/SocialLinks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, LogOut, ChevronDown, Stethoscope, Users } from "lucide-react";
@@ -79,6 +80,7 @@ export default function ProfileMenu({
               <Stethoscope size={15} className="text-gray-400" /> My services
             </Link>
           )}
+          <SocialLinks className="px-3.5 py-2 border-t border-gray-50" />
           <button
             onClick={signOut}
             disabled={signingOut}

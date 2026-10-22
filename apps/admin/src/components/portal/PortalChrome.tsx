@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import SocialLinks from "@/components/SocialLinks";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -150,6 +151,7 @@ function UserMenu({ type, userName, userEmail, showAccount }: { type: PortalType
             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
             <Mail size={15} className="text-gray-400" aria-hidden /> Contact support
           </a>
+          <SocialLinks className="px-4 py-2 border-t border-gray-100" />
           <button onClick={signOut} disabled={signingOut}
             className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 border-t border-gray-100">
             <LogOut size={15} aria-hidden /> {signingOut ? "Signing out…" : "Sign out"}

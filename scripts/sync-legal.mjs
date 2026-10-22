@@ -1,4 +1,4 @@
-// Copies the legal documents (packages/shared/src/legal) into apps that don't import
+// Copies the legal documents (packages/shared/src/legal) and brand.ts into apps that don't import
 // @streetdocmd/shared on Vercel. Run after editing any legal text:  node scripts/sync-legal.mjs
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -25,4 +25,11 @@ for (const t of targets) {
   mkdirSync(dir, { recursive: true });
   for (const [name, from] of Object.entries(files)) writeFileSync(join(dir, name), header + readFileSync(from, "utf8"));
   console.log(`synced ${Object.keys(files).length} files → ${t}`);
+}
+
+// Brand constants (social links, support email) → <app lib>/brand.ts
+for (const t of targets) {
+  const dest = join(root, t, "..", "brand.ts");
+  writeFileSync(dest, header + readFileSync(join(root, "packages/shared/src/brand.ts"), "utf8"));
+  console.log(`synced brand.ts → ${join(t, "..")}`);
 }
