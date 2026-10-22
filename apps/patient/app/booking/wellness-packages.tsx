@@ -5,6 +5,7 @@ import {
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { supabase } from "../../lib/supabase";
+import { createBooking } from "../../lib/bookings";
 import FamilyMemberPicker from "../../components/FamilyMemberPicker";
 import SchedulePicker from "../../components/SchedulePicker";
 import { formatNaira, SERVICE_PROFESSION, SERVICE_DURATION_MINUTES } from "@streetdocmd/shared";
@@ -72,41 +73,23 @@ export default function WellnessPackagesScreen() {
   async function bookNow() {
     if (!coords || !packageId || !scheduleReady) return;
     setBooking(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setBooking(false); return; }
-
-    // Wellness Check still books through the same bookings table every
-    // other service uses — dispatch/payment are unchanged, only the fee
-    // and tests snapshot now come from the chosen tier.
-    const commission = Math.round(selectedPackage!.price * 0.2);
-    const { data: newBooking, error } = await supabase
-      .from("bookings")
-      .insert({
-        patient_id: user.id,
-        family_member_id: familyMemberId,
+    // Priced on the server from the chosen package, never from the phone
+    try {
+      const bookingId = await createBooking({
         service_type: "wellness_check",
         wellness_package_id: packageId,
-        profession: SERVICE_PROFESSION.wellness_check,
+        family_member_id: familyMemberId,
         patient_lat: coords.lat,
         patient_lng: coords.lng,
         patient_address: address,
         scheduled_at: scheduledAt,
-        duration_minutes: SERVICE_DURATION_MINUTES.wellness_check,
-        fee: selectedPackage!.price,
-        commission,
-        net_payout: selectedPackage!.price - commission,
-        status: "pending_payment",
-        payment_status: "pending",
-      })
-      .select("id")
-      .single();
-
-    setBooking(false);
-    if (error || !newBooking) {
-      Alert.alert("Error", "Could not create booking. Please try again.");
-      return;
+      });
+      router.push({ pathname: "/booking/payment", params: { bookingId } });
+    } catch (e) {
+      Alert.alert("Couldn't book", e instanceof Error ? e.message : "Please try again.");
+    } finally {
+      setBooking(false);
     }
-    router.push({ pathname: "/booking/payment", params: { bookingId: newBooking.id } });
   }
 
   if (loading) {

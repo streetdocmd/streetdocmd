@@ -6,20 +6,13 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Location from "expo-location";
 import { supabase } from "../../lib/supabase";
+import { createBooking } from "../../lib/bookings";
 import FamilyMemberPicker from "../../components/FamilyMemberPicker";
 import SchedulePicker from "../../components/SchedulePicker";
-import { SERVICE_PRICES, SERVICE_DURATION_MINUTES, ServiceType } from "@streetdocmd/shared";
 
 // A preferred-provider request is first contact, not a continuity
 // follow-up — a physiotherapist is booked as an assessment here, never a
 // session (that only ever follows a completed assessment).
-const PROFESSION_SERVICE_TYPE: Record<string, ServiceType> = {
-  doctor: "general_consultation",
-  nurse: "nursing_care",
-  physiotherapist: "physiotherapy_assessment",
-  lab_scientist: "general_consultation",
-};
-
 interface ProviderInfo {
   id: string;
   name: string;
@@ -98,38 +91,23 @@ export default function PreferredProviderScreen() {
   async function confirmNewBooking() {
     if (!provider || !coords || !scheduleReady) return;
     setBooking(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setBooking(false); return; }
-
-    const serviceType = PROFESSION_SERVICE_TYPE[provider.profession] ?? "general_consultation";
-    const fee = SERVICE_PRICES[serviceType];
-    const commission = Math.round(fee * 0.2);
-
-    const { data: newBooking, error } = await supabase
-      .from("bookings")
-      .insert({
-        patient_id: user.id,
-        family_member_id: familyMemberId,
+    // The server derives the service from the provider's profession and charges
+    // this provider's own price for it.
+    try {
+      const bookingId = await createBooking({
         targeted_provider_id: provider.id,
-        service_type: serviceType,
-        profession: provider.profession,
+        family_member_id: familyMemberId,
         patient_lat: coords.lat,
         patient_lng: coords.lng,
         patient_address: address,
         scheduled_at: scheduledAt,
-        duration_minutes: SERVICE_DURATION_MINUTES[serviceType],
-        fee,
-        commission,
-        net_payout: fee - commission,
-        status: "pending_payment",
-        payment_status: "pending",
-      })
-      .select("id")
-      .single();
-
-    setBooking(false);
-    if (error || !newBooking) { Alert.alert("Error", "Could not create booking. Please try again."); return; }
-    router.push({ pathname: "/booking/payment", params: { bookingId: newBooking.id } });
+      });
+      router.push({ pathname: "/booking/payment", params: { bookingId } });
+    } catch (e) {
+      Alert.alert("Couldn't book", e instanceof Error ? e.message : "Please try again.");
+    } finally {
+      setBooking(false);
+    }
   }
 
   return (

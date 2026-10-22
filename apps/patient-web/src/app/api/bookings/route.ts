@@ -1,5 +1,5 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
+import { createAdminSupabase, getRequestSupabase } from "@/lib/supabase-server";
 import { SERVICE_PRICES, SERVICE_PROFESSION, SERVICE_DURATION_MINUTES } from "@/lib/shared";
 import type { ServiceType, Profession } from "@/lib/shared";
 
@@ -45,8 +45,8 @@ async function providerPrice(
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createServerSupabase();
-    const { data: { user } } = await supabase.auth.getUser();
+    // Web (cookie session) or the patient mobile app (Bearer token)
+    const { supabase, user } = await getRequestSupabase(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();

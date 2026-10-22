@@ -4,18 +4,19 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Location from "expo-location";
-import { supabase } from "../../lib/supabase";
+import { createBooking } from "../../lib/bookings";
 import FamilyMemberPicker from "../../components/FamilyMemberPicker";
 import SchedulePicker from "../../components/SchedulePicker";
-import {
-  ServiceType, SERVICE_LABELS, SERVICE_PRICES, SERVICE_PROFESSION, SERVICE_DURATION_MINUTES,
-  formatNaira, calculateCommission, calculateNetPayout
-} from "@streetdocmd/shared";
+import { ServiceType, SERVICE_LABELS, formatNaira } from "@streetdocmd/shared";
 
 type GeoState = "idle" | "locating" | "ready" | "denied";
 
 export default function ConfirmBookingScreen() {
-  const { service, description } = useLocalSearchParams<{ service: ServiceType; description?: string }>();
+  // providerId/providerName/price come from choose-provider when the patient picked someone;
+  // without them we dispatch the nearest available provider.
+  const { service, description, providerId, providerName, price } = useLocalSearchParams<{
+    service: ServiceType; description?: string; providerId?: string; providerName?: string; price?: string;
+  }>();
   const router = useRouter();
   const [geoState, setGeoState] = useState<GeoState>("idle");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -25,7 +26,8 @@ export default function ConfirmBookingScreen() {
   const [scheduledAt, setScheduledAt] = useState<string | null>(null);
   const [scheduleReady, setScheduleReady] = useState(true);
 
-  const fee = SERVICE_PRICES[service];
+  // Display only — the server sets the real price (this provider's own price)
+  const fee = providerId && price ? Number(price) : null;
 
   async function getLocation() {
     setGeoState("locating");
@@ -57,58 +59,35 @@ export default function ConfirmBookingScreen() {
   async function bookNow() {
     if (!coords || !scheduleReady) return;
     setBooking(true);
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setBooking(false);
-      return;
-    }
-
-    const commission = calculateCommission(fee);
-
-    const { data: newBooking, error } = await supabase
-      .from("bookings")
-      .insert({
-        patient_id: user.id,
-        family_member_id: familyMemberId,
+    try {
+      const bookingId = await createBooking({
         service_type: service,
-        // Without this, every mobile booking silently defaults to
-        // profession='doctor' at the database level regardless of the
-        // service requested (e.g. a wound_care booking would dispatch to
-        // a doctor instead of a nurse) — see the Pass 1/3 merge report.
-        profession: SERVICE_PROFESSION[service],
+        targeted_provider_id: providerId ?? null,
+        family_member_id: familyMemberId,
         patient_lat: coords.lat,
         patient_lng: coords.lng,
         patient_address: address,
         scheduled_at: scheduledAt,
-        duration_minutes: SERVICE_DURATION_MINUTES[service],
-        fee,
-        commission,
-        net_payout: calculateNetPayout(fee),
-        status: "pending_payment",
-        payment_status: "pending",
-        ...(description ? { notes: description } : {}),
-      })
-      .select("id")
-      .single();
-
-    setBooking(false);
-
-    if (error || !newBooking) {
-      Alert.alert("Error", "Could not create booking. Please try again.");
-      return;
+        notes: description ?? null,
+      });
+      // A chosen provider gets the request to accept or decline; otherwise the
+      // payment-gated dispatch finds the nearest eligible provider once paid.
+      router.push({ pathname: "/booking/payment", params: { bookingId } });
+    } catch (e) {
+      Alert.alert("Couldn't book", e instanceof Error ? e.message : "Please try again.");
+    } finally {
+      setBooking(false);
     }
-
-    // No provider is chosen here — the payment-gated dispatch trigger finds
-    // the nearest eligible provider once payment is confirmed.
-    router.push({ pathname: "/booking/payment", params: { bookingId: newBooking.id } });
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{SERVICE_LABELS[service]}</Text>
-        <Text style={styles.price}>{formatNaira(fee)}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>{SERVICE_LABELS[service]}</Text>
+          <Text style={styles.subtitle}>{providerName ?? "Nearest available provider"}</Text>
+        </View>
+        {fee !== null && <Text style={styles.price}>{formatNaira(fee)}</Text>}
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -119,7 +98,9 @@ export default function ConfirmBookingScreen() {
           <View style={styles.card}>
             <Text style={styles.cardEmoji}>📍</Text>
             <Text style={styles.cardTitle}>Share your location</Text>
-            <Text style={styles.cardSub}>We use your location to find the nearest available provider.</Text>
+            <Text style={styles.cardSub}>
+              {providerName ? `So ${providerName} knows where to come.` : "We use your location to find the nearest available provider."}
+            </Text>
             <TouchableOpacity style={styles.btn} onPress={getLocation}>
               <Text style={styles.btnText}>Allow location access</Text>
             </TouchableOpacity>
@@ -165,12 +146,16 @@ export default function ConfirmBookingScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.bookBtnText}>
-                  {scheduledAt ? "Confirm Booking" : "Book Now"} · {formatNaira(fee)}
+                  {providerName && fee !== null
+                    ? `Book with ${providerName} · ${formatNaira(fee)}`
+                    : scheduledAt ? "Confirm Booking" : "Book Now"}
                 </Text>
               )}
             </TouchableOpacity>
             <Text style={styles.footnote}>
-              We'll match you with the nearest available provider. Payment due after confirmation.
+              {providerName
+                ? `${providerName} will be notified and can accept or decline. Payment is due before they set off.`
+                : "We'll match you with the nearest available provider. You'll see the price before you pay."}
             </Text>
           </>
         )}
@@ -186,6 +171,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", justifyContent: "space-between", alignItems: "center"
   },
   title: { fontSize: 16, fontWeight: "bold", color: "#fff" },
+  subtitle: { fontSize: 13, color: "#BFDBFE", marginTop: 2 },
   price: { fontSize: 16, color: "#93C5FD", fontWeight: "600" },
   content: { padding: 16, gap: 12 },
   card: {

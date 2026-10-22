@@ -24,7 +24,7 @@ export default function CustomRequestScreen() {
       return;
     }
     router.push({
-      pathname: "/booking/confirm",
+      pathname: "/booking/choose-provider",
       params: { service: "custom_request", description: description.trim() },
     });
   }

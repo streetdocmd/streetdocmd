@@ -4,6 +4,7 @@ import {
   Linking, Alert, ActivityIndicator
 } from "react-native";
 import { supabase } from "../../lib/supabase";
+import { PATIENT_WEB_URL } from "../../lib/config";
 import { formatNaira } from "@streetdocmd/shared";
 
 const STATUS_STEPS = [
@@ -50,7 +51,6 @@ interface MedOrder {
   }[];
 }
 
-const PATIENT_WEB_URL = "https://app.streetdocmd.com";
 
 export default function MedicationsScreen() {
   const [orders, setOrders] = useState<MedOrder[]>([]);
