@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useRecoveryLink, EXPIRED_MESSAGE } from "@/lib/recovery";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,26 +9,13 @@ import PasswordInput from "@/components/ui/PasswordInput";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const [status, setStatus] = useState<"checking" | "ready" | "expired">("checking");
+  const { status, continueReset } = useRecoveryLink();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  useEffect(() => {
-    const supabase = createClient();
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setStatus("ready");
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setStatus("ready");
-    });
-    const timeout = setTimeout(() => {
-      setStatus(s => (s === "checking" ? "expired" : s));
-    }, 4000);
-    return () => { sub.subscription.unsubscribe(); clearTimeout(timeout); };
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,11 +46,21 @@ export default function ResetPasswordPage() {
             <p className="text-gray-500 text-sm text-center py-4">Verifying your reset link…</p>
           )}
 
+          {(status === "confirm" || status === "verifying") && (
+            <>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Reset your password</h2>
+              <p className="text-gray-500 text-sm mb-6">Tap continue to choose a new password for your account.</p>
+              <button type="button" onClick={continueReset} disabled={status === "verifying"} className="w-full bg-navy-700 hover:bg-navy-800 text-white py-3 rounded-xl font-semibold text-sm transition-colors block text-center disabled:opacity-60">
+                {status === "verifying" ? "Checking your link…" : "Continue"}
+              </button>
+            </>
+          )}
+
           {status === "expired" && (
             <>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Link expired</h2>
               <p className="text-gray-500 text-sm mb-6">
-                This password reset link is invalid or has expired. Please request a new one.
+                {EXPIRED_MESSAGE}
               </p>
               <Link
                 href="/forgot-password"

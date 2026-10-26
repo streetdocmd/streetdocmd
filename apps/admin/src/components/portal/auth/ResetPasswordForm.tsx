@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useRecoveryLink, EXPIRED_MESSAGE } from "@/lib/recovery";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
@@ -11,23 +12,13 @@ import { Spinner, ui } from "../ui";
 export default function ResetPasswordForm({ type }: { type: PortalType }) {
   const cfg = PORTALS[type];
   const router = useRouter();
-  const [status, setStatus] = useState<"checking" | "ready" | "expired">("checking");
+  const { status, continueReset } = useRecoveryLink();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  useEffect(() => {
-    // The browser client exchanges the code in the reset link for a session.
-    const supabase = createClient();
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) setStatus("ready");
-    });
-    supabase.auth.getSession().then(({ data }) => { if (data.session) setStatus("ready"); });
-    const timeout = setTimeout(() => setStatus(s => (s === "checking" ? "expired" : s)), 5000);
-    return () => { sub.subscription.unsubscribe(); clearTimeout(timeout); };
-  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,11 +38,21 @@ export default function ResetPasswordForm({ type }: { type: PortalType }) {
       {status === "checking" && (
         <p className="text-sm text-gray-500 text-center py-6 flex items-center justify-center gap-2"><Spinner /> Verifying your reset link…</p>
       )}
+      {(status === "confirm" || status === "verifying") && (
+        <>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Reset your password</h2>
+          <p className="text-gray-500 text-sm mb-6">Tap continue to choose a new password for your account.</p>
+          <button type="button" onClick={continueReset} disabled={status === "verifying"} className={`${ui.btnPrimary} w-full py-3`}>
+            {status === "verifying" ? "Checking your link…" : "Continue"}
+          </button>
+        </>
+      )}
+
       {status === "expired" && (
         <>
           <h2 className="text-xl font-bold text-gray-900">Link expired</h2>
           <p className="text-sm text-gray-500 mt-2 mb-6">
-            This reset link is invalid or has expired. Links only work once, and on the device that requested them.
+            {EXPIRED_MESSAGE}
           </p>
           <Link href={`${cfg.base}/forgot-password`} className={`${ui.btnPrimary} w-full py-3`}>Request a new link</Link>
         </>

@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
+import { PATIENT_WEB_URL } from "../../lib/config";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -13,7 +14,11 @@ export default function ForgotPasswordScreen() {
 
   async function sendCode() {
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      // The same email carries the 6-digit code (used in this app) and a link; without this
+      // the link falls back to the Supabase Site URL instead of a real reset page.
+      redirectTo: `${PATIENT_WEB_URL}/reset-password`,
+    });
     setLoading(false);
     if (error) { Alert.alert("Something went wrong", error.message); return; }
     router.push({ pathname: "/(auth)/reset-password", params: { email: email.trim() } });
