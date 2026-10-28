@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { ExternalLink, X } from "lucide-react";
 import { legalUrl, type LegalBlock, type LegalDocument } from "@/lib/legal";
+import { Button, iconButtonClass } from "@/components/ds";
 
 // Renders a full StreetdocMD legal document (Terms of Service, Privacy
 // Policy) from the approved data in @/lib/legal — never retype legal text
@@ -42,50 +43,53 @@ export default function LegalDocumentModal({
   const titleId = `legal-${doc.slug}-title`;
 
   return (
+    // Bottom sheet on phones, centred dialog from sm up
     <div
-      className="fixed inset-0 z-[110] flex items-center justify-center bg-navy-900/60 backdrop-blur-[2px] p-3 sm:p-6"
+      className="fixed inset-0 z-[110] flex items-end justify-center bg-[rgba(10,20,36,0.42)] sm:items-center sm:p-6"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="flex w-full max-w-2xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="flex w-full max-h-[85dvh] flex-col overflow-hidden rounded-t-[30px] bg-surface shadow-ds sm:max-w-2xl sm:max-h-[90vh] sm:rounded-ds-lg"
       >
         {/* Header */}
-        <div className="flex shrink-0 items-start justify-between gap-4 bg-navy-700 px-5 py-4 sm:px-6 sm:py-5">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-200">StreetdocMD</p>
-            <h2 id={titleId} className="mt-1 text-lg font-bold text-white">{doc.title}</h2>
-            <p className="mt-0.5 text-xs text-blue-200">{doc.subtitle}</p>
+        <div className="shrink-0 px-[22px] pt-3 sm:pt-5">
+          <span aria-hidden className="mx-auto mb-4 block h-[5px] w-11 rounded-[3px] bg-line sm:hidden" />
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h2 id={titleId} className="text-ds-lg font-bold leading-tight text-navy">{doc.title}</h2>
+              <p className="mt-1 text-ds-xs text-muted">{doc.subtitle}</p>
+            </div>
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className={iconButtonClass}
+            >
+              <X size={18} />
+            </button>
           </div>
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white transition-colors hover:bg-white/20"
-          >
-            <X size={16} />
-          </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 pt-5 pb-4 sm:px-6">
+        <div className="flex-1 overflow-y-auto px-[22px] pt-4 pb-4">
           {doc.partyLine && (
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{doc.partyLine}</p>
+            <p className="mb-4 text-ds-2xs font-semibold uppercase tracking-wide text-muted">{doc.partyLine}</p>
           )}
           {doc.intro.length > 0 && (
-            <div className="mb-6 space-y-3 border-b border-gray-100 pb-5">
+            <div className="mb-6 space-y-3 border-b border-line pb-5">
               {doc.intro.map((b, i) => <Block key={i} block={b} />)}
             </div>
           )}
           {doc.sections.map(section => (
             <section key={section.id} className="mb-6" aria-labelledby={`${doc.slug}-${section.id}`}>
-              <h3 id={`${doc.slug}-${section.id}`} className="mb-2.5 text-sm font-bold text-navy-700">
+              <h3 id={`${doc.slug}-${section.id}`} className="mb-2.5 text-ds-control font-bold text-navy">
                 {section.title}
               </h3>
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {section.blocks.map((b, i) => <Block key={i} block={b} />)}
               </div>
             </section>
@@ -93,21 +97,21 @@ export default function LegalDocumentModal({
         </div>
 
         {/* Footer */}
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-5 py-3.5 sm:px-6">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-line px-[22px] pt-3.5 pb-[max(14px,env(safe-area-inset-bottom))]">
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-gray-400">{doc.versionLabel}</span>
+            <span className="text-ds-xs text-muted">{doc.versionLabel}</span>
             <a
               href={legalUrl(doc.slug)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-medium text-blue-brand hover:underline"
+              className="inline-flex items-center gap-1 text-ds-xs font-bold text-accent hover:underline"
             >
-              Open in a new tab <ExternalLink size={11} />
+              Open in a new tab <ExternalLink size={11} aria-hidden />
             </a>
           </div>
-          <button type="button" onClick={onClose} className="btn-primary shrink-0 whitespace-nowrap px-5 py-2.5 text-sm">
+          <Button onClick={onClose} className="shrink-0">
             Close
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -115,39 +119,39 @@ export default function LegalDocumentModal({
 }
 
 function Block({ block }: { block: LegalBlock }) {
-  const text = "text-[13px] leading-relaxed text-gray-600";
+  const text = "text-ds-sm leading-[1.6] text-ink/80";
   switch (block.kind) {
     case "p":
       return <p className={text}>{block.text}</p>;
     case "clause":
       return (
         <p className={`${text} flex gap-2.5`}>
-          <span className="w-8 shrink-0 font-semibold tabular-nums text-gray-400">{block.num}</span>
+          <span className="w-8 shrink-0 font-semibold tabular-nums text-muted">{block.num}</span>
           <span className="min-w-0">{block.text}</span>
         </p>
       );
     case "bullets":
       return (
-        <ul className={`${text} list-disc space-y-1.5 pl-5 marker:text-gray-300`}>
+        <ul className={`${text} list-disc space-y-1.5 pl-5 marker:text-line`}>
           {block.items.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
       );
     case "table":
       return (
-        <div className="overflow-x-auto rounded-lg border border-gray-100">
+        <div className="overflow-x-auto rounded-ds-sm border border-line">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-gray-50 text-gray-500">
+              <tr className="bg-page text-muted">
                 {block.headers.map((h, i) => (
                   <th key={i} className="px-3 py-2 text-left align-bottom font-semibold">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-line">
               {block.rows.map((row, r) => (
                 <tr key={r}>
                   {row.map((cell, c) => (
-                    <td key={c} className={`px-3 py-2 align-top ${c === 0 ? "text-gray-700" : "text-gray-600"}`}>{cell}</td>
+                    <td key={c} className={`px-3 py-2 align-top ${c === 0 ? "text-ink" : "text-ink/80"}`}>{cell}</td>
                   ))}
                 </tr>
               ))}
@@ -157,7 +161,7 @@ function Block({ block }: { block: LegalBlock }) {
       );
     case "callout":
       return (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs leading-relaxed text-amber-800">
+        <div className="rounded-ds-sm bg-warn-bg px-3.5 py-3 text-ds-xs leading-relaxed text-ink">
           {block.title && <strong className="mb-0.5 block">{block.title}</strong>}
           {block.text}
         </div>

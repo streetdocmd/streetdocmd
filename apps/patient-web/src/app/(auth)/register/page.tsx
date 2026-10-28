@@ -2,9 +2,10 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { CircleAlert } from "lucide-react";
 import LegalAcceptanceFields, { type LegalAcceptanceValue } from "@/components/LegalAcceptanceFields";
 import PasswordInput from "@/components/PasswordInput";
-import AuthShell from "@/components/AuthShell";
+import { Button, Input, Notice, TopBar, fieldLabelClass, inputClass } from "@/components/ds";
 import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
 import { TERMS_VERSION, PRIVACY_VERSION } from "@/lib/legal-acceptance";
 
@@ -82,76 +83,68 @@ function RegisterForm() {
     }
   }
 
-  const fieldClass = (k: Field) => `input ${show(k) ? "border-red-300 focus:ring-red-400" : ""}`;
-
   return (
-    <AuthShell subtitle="Step 1 of 2 · Create your account">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">
-        {completing ? "Finish setting up" : "Create account"}
-      </h1>
-      <p className="text-gray-500 text-sm mb-6">
-        {completing
-          ? "Your account setup wasn't completed. Enter your details using the same email and password to finish."
-          : "Get care delivered to your door"}
-      </p>
+    <main className="min-h-[100dvh] bg-page">
+      <div className="mx-auto max-w-md pb-8">
+        <TopBar title="Create account" className="pt-4" />
 
-      <form onSubmit={handleRegister} className="space-y-4" noValidate>
-        <div>
-          <label className="label" htmlFor="name">Full name</label>
-          <input id="name" type="text" autoComplete="name" className={fieldClass("name")} placeholder="Chukwuemeka Obi"
-            value={form.name} onChange={set("name")} onBlur={blur("name")} />
-          {show("name") && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
+        <div className="px-5">
+          <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">
+            {completing ? "Finish setting up" : "Let’s get you set up"}
+          </h1>
+          <p className="mt-1.5 mb-5 text-ds-sm text-muted">
+            {completing
+              ? "Your account setup wasn't completed. Enter your details using the same email and password to finish."
+              : "Takes less than a minute. Your phone number confirms every visit."}
+          </p>
+
+          <form onSubmit={handleRegister} noValidate>
+            <div className="space-y-4">
+              <Input id="name" label="Full name" type="text" autoComplete="name" placeholder="e.g. Ade Olatunji"
+                value={form.name} onChange={set("name")} onBlur={blur("name")} error={show("name") || undefined} />
+              <Input id="phone" label="Phone number" type="tel" autoComplete="tel" inputMode="tel" placeholder="+234 800 000 0000"
+                value={form.phone} onChange={set("phone")} onBlur={blur("phone")} error={show("phone") || undefined} />
+              <Input id="email" label="Email" type="email" autoComplete="email" inputMode="email" placeholder="you@example.com"
+                value={form.email} onChange={set("email")} onBlur={blur("email")} error={show("email") || undefined} />
+              <div>
+                <label className={fieldLabelClass} htmlFor="password">Password</label>
+                <PasswordInput id="password" autoComplete="new-password" className={inputClass(!!show("password"))}
+                  placeholder="At least 8 characters" value={form.password} onChange={set("password")} onBlur={blur("password")}
+                  aria-invalid={show("password") ? true : undefined} />
+                {show("password") && (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-ds-xs font-semibold text-danger">
+                    <CircleAlert size={14} aria-hidden /> {errors.password}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-2.5">
+              <LegalAcceptanceFields
+                value={legal}
+                onChange={next => { setLegal(next); if (next.terms && next.privacy) setError(""); }}
+                showErrors={submitted}
+                idPrefix="register"
+              />
+            </div>
+
+            {error && <Notice tone="danger" className="mt-3">{error}</Notice>}
+
+            <Button type="submit" block disabled={loading || !legalOk} aria-busy={loading} className="mt-[18px] min-h-[52px]">
+              {loading ? "Creating account…" : completing ? "Finish setup" : "Create account"}
+            </Button>
+            {!legalOk && !loading && (
+              <p className="mt-2 text-center text-ds-xs text-muted">Tick both boxes above to continue.</p>
+            )}
+          </form>
+
+          <p className="mt-6 text-center text-ds-sm text-muted">
+            Already have an account?{" "}
+            <Link href="/login" className="font-bold text-accent hover:underline">Sign in</Link>
+          </p>
         </div>
-        <div>
-          <label className="label" htmlFor="email">Email address</label>
-          <input id="email" type="email" autoComplete="email" inputMode="email" className={fieldClass("email")}
-            placeholder="you@example.com" value={form.email} onChange={set("email")} onBlur={blur("email")} />
-          {show("email") && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
-        </div>
-        <div>
-          <label className="label" htmlFor="phone">Phone number</label>
-          <input id="phone" type="tel" autoComplete="tel" inputMode="tel" className={fieldClass("phone")}
-            placeholder="08012345678" value={form.phone} onChange={set("phone")} onBlur={blur("phone")} />
-          {show("phone")
-            ? <p className="mt-1 text-xs text-red-600">{errors.phone}</p>
-            : <p className="mt-1 text-xs text-gray-400">Your provider will use this number to reach you.</p>}
-        </div>
-        <div>
-          <label className="label" htmlFor="password">Password</label>
-          <PasswordInput id="password" autoComplete="new-password" className={fieldClass("password")}
-            placeholder="At least 8 characters" value={form.password} onChange={set("password")} onBlur={blur("password")} />
-          {show("password") && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
-        </div>
-
-        <LegalAcceptanceFields
-          value={legal}
-          onChange={next => { setLegal(next); if (next.terms && next.privacy) setError(""); }}
-          showErrors={submitted}
-          idPrefix="register"
-        />
-
-        {error && (
-          <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-            {error}
-          </div>
-        )}
-
-        <div>
-          <button type="submit" disabled={loading || !legalOk} aria-busy={loading} className="btn-primary w-full flex justify-center">
-            {loading ? "Creating account…" : completing ? "Finish setup" : "Create account"}
-          </button>
-          {!legalOk && !loading && (
-            <p className="mt-2 text-center text-xs text-gray-400">Tick both boxes above to continue.</p>
-          )}
-        </div>
-      </form>
-
-      <p className="text-center text-sm text-gray-500 mt-6">
-        Already have an account?{" "}
-        <Link href="/login" className="text-blue-brand font-medium hover:underline">Sign in</Link>
-      </p>
-
-    </AuthShell>
+      </div>
+    </main>
   );
 }
 

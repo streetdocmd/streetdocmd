@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { cx, focusRing } from "./cx";
 
 interface CheckboxRowProps {
@@ -13,6 +13,11 @@ interface CheckboxRowProps {
   /** Opens the full text in a new tab. */
   readHref?: string;
   readLabel?: string;
+  /** Fuller name for screen readers, e.g. "Read the Privacy Policy". */
+  readAriaLabel?: string;
+  /** Shown under the row; marks the checkbox invalid. */
+  error?: ReactNode;
+  id?: string;
   name?: string;
   required?: boolean;
   disabled?: boolean;
@@ -30,35 +35,54 @@ export function CheckboxRow({
   onRead,
   readHref,
   readLabel = "Read",
+  readAriaLabel,
+  error,
+  id,
   name,
   required,
   disabled,
   className,
 }: CheckboxRowProps) {
+  const autoId = useId();
+  const inputId = id ?? autoId;
+  const errorId = error ? `${inputId}-error` : undefined;
   const readClass = cx("ml-1 font-bold text-accent no-underline hover:underline rounded-sm", focusRing);
+
   return (
-    <label className={cx("flex items-start gap-3 py-3 text-ds-sm leading-[1.45] text-ink", disabled && "opacity-60", className)}>
-      <input
-        type="checkbox"
-        name={name}
-        required={required}
-        disabled={disabled}
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="mt-px h-[22px] w-[22px] flex-none accent-accent cursor-pointer disabled:cursor-not-allowed"
-      />
-      <span>
-        {children}
-        {onRead ? (
-          <button type="button" onClick={onRead} className={readClass}>
-            {readLabel}
-          </button>
-        ) : readHref ? (
-          <Link href={readHref} target="_blank" rel="noopener noreferrer" className={readClass}>
-            {readLabel}
-          </Link>
-        ) : null}
-      </span>
-    </label>
+    <div className={className}>
+      <div className={cx("flex items-start gap-3 py-3 text-ds-sm leading-[1.45] text-ink", disabled && "opacity-60")}>
+        <input
+          type="checkbox"
+          id={inputId}
+          name={name}
+          required={required}
+          disabled={disabled}
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={errorId}
+          className="mt-px h-[22px] w-[22px] flex-none accent-accent cursor-pointer disabled:cursor-not-allowed"
+        />
+        <span>
+          <label htmlFor={inputId} className="cursor-pointer">
+            {children}
+          </label>
+          {onRead ? (
+            <button type="button" onClick={onRead} aria-label={readAriaLabel} className={readClass}>
+              {readLabel}
+            </button>
+          ) : readHref ? (
+            <Link href={readHref} target="_blank" rel="noopener noreferrer" aria-label={readAriaLabel} className={readClass}>
+              {readLabel}
+            </Link>
+          ) : null}
+        </span>
+      </div>
+      {error && (
+        <p id={errorId} className="-mt-1 mb-1 pl-[34px] text-ds-xs font-semibold text-danger">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
