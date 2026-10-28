@@ -39,7 +39,7 @@ export default async function PendingPage() {
         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
           <XCircle size={32} className="text-red-500" />
         </div>
-        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight mb-2">Your application needs changes</h1>
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-2">Your application needs changes</h1>
         <p className="text-muted text-sm mb-5 max-w-md mx-auto">
           Our team couldn&apos;t verify your application as submitted. Please review the note below,
           upload corrected documents and re-submit — we&apos;ll review it again within 24–48 hours.
@@ -67,7 +67,7 @@ export default async function PendingPage() {
         <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
           {inReview ? <Search size={30} className="text-amber-600" /> : <Clock size={30} className="text-amber-600" />}
         </div>
-        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight mb-2">
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-2">
           {inReview ? "Your credentials are being checked" : `Thanks, ${firstName} — application received`}
         </h1>
         <p className="text-muted text-sm mb-6 max-w-md mx-auto">

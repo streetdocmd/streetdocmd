@@ -9,7 +9,10 @@ export default function WithdrawForm({
   bankName,
   bankAccount,
   bankAccountName,
+  payoutDay = "Friday",
 }: {
+  /** Day finance pays out (platform_settings.provider_payout_weekday) */
+  payoutDay?: string;
   walletBalance: number;
   bankName: string | null;
   bankAccount: string | null;
@@ -48,13 +51,13 @@ export default function WithdrawForm({
 
   if (!hasBankDetails) {
     return (
-      <div className="card p-5 border border-amber-200 bg-amber-50">
-        <p className="text-sm font-medium text-amber-800 mb-1">Bank details required</p>
-        <p className="text-sm text-amber-700 mb-3">
+      <div className="rounded-ds-lg bg-warn-bg p-5">
+        <p className="mb-1 text-ds-sm font-bold text-ink">Bank details required</p>
+        <p className="mb-3 text-ds-sm text-ink">
           Add your bank account in your profile before requesting a withdrawal.
         </p>
         <Link href="/dashboard/profile#payouts" className="btn-teal text-sm inline-block">
-          Add bank details →
+          Add bank details
         </Link>
       </div>
     );
@@ -62,11 +65,10 @@ export default function WithdrawForm({
 
   if (success) {
     return (
-      <div className="card p-5 border border-green-200 bg-green-50 text-center">
-        <p className="text-2xl mb-2">✓</p>
-        <p className="font-semibold text-green-700">Withdrawal request submitted!</p>
-        <p className="text-sm text-green-600 mt-1">We process payments every Friday. You'll be notified once it's done.</p>
-        <button onClick={() => setSuccess(false)} className="mt-3 text-xs text-green-700 underline">
+      <div className="rounded-ds-lg bg-success-bg p-5 text-center">
+        <p className="font-bold text-success">Withdrawal requested</p>
+        <p className="mt-1 text-ds-sm text-ink">We pay out every {payoutDay}. You&apos;ll be notified once it&apos;s sent.</p>
+        <button onClick={() => setSuccess(false)} className="mt-3 text-ds-xs font-bold text-accent underline">
           Request another
         </button>
       </div>
@@ -110,7 +112,7 @@ export default function WithdrawForm({
           disabled={loading || walletBalance < min}
           className="btn-teal w-full"
         >
-          {loading ? "Submitting…" : "Request Withdrawal"}
+          {loading ? "Submitting…" : "Withdraw to bank"}
         </button>
 
         {walletBalance < min && (

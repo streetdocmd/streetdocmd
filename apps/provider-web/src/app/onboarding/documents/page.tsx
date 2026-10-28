@@ -43,7 +43,7 @@ export default async function DocumentsPage() {
         <div className="w-14 h-14 bg-accent-soft rounded-2xl flex items-center justify-center mx-auto mb-4">
           <FileCheck2 size={26} className="text-accent" />
         </div>
-        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight">
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">
           {isRejected ? "Update your documents" : "Upload your credentials"}
         </h1>
         <p className="text-muted text-sm mt-2 max-w-md mx-auto">

@@ -31,7 +31,7 @@ export default async function ProfilePage() {
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight">Profile</h1>
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Profile</h1>
         <p className="text-sm text-muted mt-0.5">How patients see you, when you work, and where your payouts go.</p>
       </div>
 

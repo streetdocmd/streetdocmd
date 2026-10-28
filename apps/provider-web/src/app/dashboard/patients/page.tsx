@@ -85,7 +85,7 @@ export default async function MyPatientsPage() {
 
   return (
     <div>
-      <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight mb-6">My Patients</h1>
+      <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-6">My Patients</h1>
 
       {rows.length === 0 ? (
         <EmptyState
