@@ -76,6 +76,11 @@ function VisitCard({ b }: { b: any }) {
       {b.follow_up_of_booking_id && (
         <p className="mt-2 text-ds-xs font-semibold text-accent">Recommended by your provider as a follow up visit</p>
       )}
+      {b.status === "cancelled" && b.refund_status && (
+        <p className="mt-2 text-ds-xs font-semibold text-muted">
+          {b.refund_status === "refunded" ? "Refunded" : "Refund in progress. We'll email you when it's sent."}
+        </p>
+      )}
       {b.status === "provider_declined" && (
         <p className="mt-2 text-ds-xs font-semibold text-danger">The provider you requested wasn&apos;t able to accept this booking.</p>
       )}
@@ -98,7 +103,7 @@ function VisitCard({ b }: { b: any }) {
           {b.status === "completed" && (
             <Button href={bookAgain} variant="secondary" size="sm">Book again</Button>
           )}
-          {b.status === "pending" && <CancelButton bookingId={b.id} />}
+          {["pending", "paid"].includes(b.status) && <CancelButton bookingId={b.id} />}
         </div>
       </div>
       {b.status === "provider_declined" && <ProviderDeclinedActions bookingId={b.id} />}

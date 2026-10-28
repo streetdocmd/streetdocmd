@@ -8,13 +8,44 @@ import { Button, Card, TopBar } from "@/components/ds";
 export default function FindingProviderPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [status, setStatus] = useState("pending");
-  // Seconds since this screen opened. There is no acceptance deadline to count down from.
-  const [elapsed, setElapsed] = useState(0);
+  // The offer currently waiting on a provider (each provider has a 2 minute window)
+  const [offer, setOffer] = useState<{ expires_at: string; sent_at: string; provider_first_name: string | null; is_doctor: boolean } | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   useEffect(() => {
-    const id = setInterval(() => setElapsed(e => e + 1), 1000);
+    const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    let stop = false;
+    async function loadOffer() {
+      const res = await fetch(`/api/bookings/${params.id}/dispatch`).catch(() => null);
+      if (!res?.ok || stop) return;
+      const json = await res.json().catch(() => null);
+      if (!stop) setOffer(json?.offer ?? null);
+    }
+    loadOffer();
+    const id = setInterval(loadOffer, 3000);
+    return () => { stop = true; clearInterval(id); };
+  }, [params.id]);
+
+  async function cancelRequest() {
+    if (!confirm("Cancel this request? If you've paid, we'll refund you.")) return;
+    setCancelling(true);
+    setCancelError("");
+    const res = await fetch(`/api/bookings/${params.id}/cancel`, { method: "POST" }).catch(() => null);
+    const json = await res?.json().catch(() => ({}));
+    if (!res?.ok) {
+      setCancelError(json?.error ?? "Could not cancel. Check your connection and try again.");
+      setCancelling(false);
+      return;
+    }
+    router.push("/dashboard/bookings");
+    router.refresh();
+  }
 
   useEffect(() => {
     const supabase = createClient();
@@ -81,8 +112,14 @@ export default function FindingProviderPage({ params }: { params: { id: string }
     );
   }
 
-  const mins = Math.floor(elapsed / 60);
-  const secs = String(elapsed % 60).padStart(2, "0");
+  // Countdown to the current offer's deadline; without an offer the ring just turns
+  const windowMs = offer ? Math.max(1, Date.parse(offer.expires_at) - Date.parse(offer.sent_at)) : 0;
+  const leftMs = offer ? Math.max(0, Date.parse(offer.expires_at) - now) : 0;
+  const leftS = Math.ceil(leftMs / 1000);
+  const mins = Math.floor(leftS / 60);
+  const secs = String(leftS % 60).padStart(2, "0");
+  const circumference = 452;
+  const who = offer?.provider_first_name ? `${offer.is_doctor ? "Dr. " : ""}${offer.provider_first_name}` : null;
   const steps = [
     { done: true, label: "Booking created" },
     { done: true, label: "Locating nearby providers" },
@@ -96,22 +133,37 @@ export default function FindingProviderPage({ params }: { params: { id: string }
 
       <div className="flex flex-col items-center px-6 pb-6 pt-6 text-center">
         <div className="relative h-[170px] w-[170px]" role="status" aria-label="Waiting for a provider to accept">
-          <svg viewBox="0 0 170 170" className="h-[170px] w-[170px] animate-spin [animation-duration:2.4s] motion-reduce:animate-none" aria-hidden>
-            <circle cx="85" cy="85" r="72" fill="none" stroke="var(--line)" strokeWidth="10" />
-            <circle cx="85" cy="85" r="72" fill="none" stroke="var(--blue)" strokeWidth="10" strokeLinecap="round"
-              strokeDasharray="452" strokeDashoffset="330" />
-          </svg>
+          {offer ? (
+            <svg viewBox="0 0 170 170" className="h-[170px] w-[170px] -rotate-90" aria-hidden>
+              <circle cx="85" cy="85" r="72" fill="none" stroke="var(--line)" strokeWidth="10" />
+              <circle cx="85" cy="85" r="72" fill="none" stroke="var(--blue)" strokeWidth="10" strokeLinecap="round"
+                strokeDasharray={circumference} strokeDashoffset={circumference * (1 - leftMs / windowMs)}
+                className="transition-[stroke-dashoffset] duration-1000 ease-linear motion-reduce:transition-none" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 170 170" className="h-[170px] w-[170px] animate-spin [animation-duration:2.4s] motion-reduce:animate-none" aria-hidden>
+              <circle cx="85" cy="85" r="72" fill="none" stroke="var(--line)" strokeWidth="10" />
+              <circle cx="85" cy="85" r="72" fill="none" stroke="var(--blue)" strokeWidth="10" strokeLinecap="round"
+                strokeDasharray="452" strokeDashoffset="330" />
+            </svg>
+          )}
           <div className="absolute inset-0 grid place-items-center">
-            <div>
-              <b className="block text-[30px] text-navy tabular-nums">{mins}:{secs}</b>
-              <small className="text-ds-2xs font-bold uppercase tracking-[0.06em] text-muted">Waiting</small>
-            </div>
+            {offer ? (
+              <div>
+                <b className="block text-[30px] text-navy tabular-nums">{mins}:{secs}</b>
+                <small className="text-ds-2xs font-bold uppercase tracking-[0.06em] text-muted">to accept</small>
+              </div>
+            ) : (
+              <small className="text-ds-2xs font-bold uppercase tracking-[0.06em] text-muted">Searching</small>
+            )}
           </div>
         </div>
 
-        <h1 className="mt-7 text-ds-xl font-bold text-navy">Finding your provider</h1>
+        <h1 className="mt-7 text-ds-xl font-bold text-navy">{who ? `Waiting for ${who}` : "Finding your provider"}</h1>
         <p className="mt-2.5 max-w-[300px] text-ds-sm text-muted">
-          We&apos;re matching you with the nearest available healthcare professional. This usually takes under a minute.
+          {who
+            ? "Each provider has 2 minutes to accept. If they decline, we offer the next nearest available provider so you are never left waiting."
+            : "We're matching you with the nearest available healthcare professional. This usually takes under a minute."}
         </p>
       </div>
 
@@ -129,7 +181,10 @@ export default function FindingProviderPage({ params }: { params: { id: string }
           ))}
         </ol>
       </Card>
-      {/* TODO(design): "Cancel request" needs a cancel endpoint, and the 2 minute countdown needs the acceptance deadline. */}
+      {cancelError && <p className="mt-4 text-center text-ds-sm font-semibold text-danger">{cancelError}</p>}
+      <Button variant="secondary" block className="mt-5" onClick={cancelRequest} disabled={cancelling}>
+        {cancelling ? "Cancelling…" : "Cancel request"}
+      </Button>
     </div>
   );
 }
