@@ -46,7 +46,7 @@ async function loadProviders(service: ServiceType): Promise<BookableProvider[]> 
     );
 }
 
-const sentenceCase = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
+const sentenceCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
 export default async function SelectProviderPage({
   params,

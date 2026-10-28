@@ -55,7 +55,7 @@ const SOON = [
   { icon: FileText, title: "Care plans", text: "Ongoing programmes for long term conditions" },
 ];
 
-const sentence = (s: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : s);
+const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
 
 function greeting(now: Date) {
   const hour = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hour12: false, timeZone: "Africa/Lagos" }).format(now));

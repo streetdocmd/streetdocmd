@@ -28,11 +28,19 @@ function turnaround(hours: number | null) {
 
 export default function LabInvestigationClient({
   catalogue,
+  preselect = [],
 }: {
   catalogue: CatalogueItem[];
+  /** Test names from a visit record ("Book home sample collection") */
+  preselect?: string[];
 }) {
   const router = useRouter();
-  const [selected, setSelected] = useState<SelectedTest[]>([]);
+  const [selected, setSelected] = useState<SelectedTest[]>(() => {
+    const wanted = preselect.map(n => n.toLowerCase());
+    return catalogue
+      .filter(i => wanted.some(w => w === i.test_name.toLowerCase() || w === (i.test_code ?? "").toLowerCase()))
+      .map(i => ({ catalogue_id: i.id, test_name: i.test_name, test_code: i.test_code, price: i.price }));
+  });
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");

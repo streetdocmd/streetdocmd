@@ -1,37 +1,68 @@
 "use client";
-import Link from "next/link";
+import { CalendarPlus, Check, FileDown, FlaskConical, Pill as PillIcon, Star, TriangleAlert } from "lucide-react";
+import { SERVICE_LABELS } from "@/lib/shared";
+import { Avatar, Button, Card, Pill, TopBar } from "@/components/ds";
+import RateForm from "@/app/dashboard/book/rate/[id]/RateForm";
 
-const FLAG_COLORS: Record<string, string> = {
-  "Blood Pressure": "text-orange-700",
-  "Pulse Rate": "text-orange-700",
-  "Temperature": "text-orange-700",
-  "Oxygen Saturation": "text-orange-700",
-};
-
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-2">
-      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</h3>
-      {children}
-    </div>
-  );
+export interface VisitExtras {
+  bookingId: string | null;
+  serviceType: string | null;
+  providerId: string | null;
+  providerSpecialty: string | null;
+  providerPhoto: string | null;
+  completed: boolean;
+  vitals: { label: string; value: string; unit: string }[];
+  referrals: { id: string; hospital: string; reason: string | null; status: string }[];
+  myRating: number | null;
+  prescriptionOrderId: string | null;
+  followUpHref: string;
+  patientId: string;
 }
 
 function generateICS(date: string, providerName: string): string {
   const d = new Date(date);
   const stamp = d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-  return `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART;VALUE=DATE:${date.replace(/-/g, "")}\nDTEND;VALUE=DATE:${date.replace(/-/g, "")}\nSUMMARY:StreetdocMD Follow-up with ${providerName}\nDESCRIPTION:Follow-up appointment scheduled from your StreetdocMD visit.\nDTSTAMP:${stamp}\nEND:VEVENT\nEND:VCALENDAR`;
+  return `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART;VALUE=DATE:${date.replace(/-/g, "")}\nDTEND;VALUE=DATE:${date.replace(/-/g, "")}\nSUMMARY:StreetdocMD Follow up with ${providerName}\nDESCRIPTION:Follow up appointment scheduled from your StreetdocMD visit.\nDTSTAMP:${stamp}\nEND:VEVENT\nEND:VCALENDAR`;
 }
 
-export default function VisitSummaryClient({ summary }: { summary: any }) {
+const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-[26px]">
+      <h2 className="mb-3 text-[17px] font-bold text-navy">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function RxRow({ icon, tint, title, text }: { icon: React.ReactNode; tint: string; title: string; text?: string | null }) {
+  return (
+    <div className="flex items-center gap-3 border-b border-line py-3.5 last:border-b-0">
+      <span className={`grid h-10 w-10 flex-none place-items-center rounded-[13px] text-navy ${tint}`}>{icon}</span>
+      <div className="min-w-0">
+        <b className="block text-ds-sm text-ink">{title}</b>
+        {text && <small className="text-ds-xs text-muted">{text}</small>}
+      </div>
+    </div>
+  );
+}
+
+export default function VisitSummaryClient({ summary, extras }: { summary: any; extras: VisitExtras }) {
   const abnormal: any[] = summary.abnormal_vitals ?? [];
   const medications: any[] = summary.medications ?? [];
   const investigations: any[] = summary.investigations ?? [];
   const diagnoses: string[] = summary.plain_diagnosis?.split(",").map((d: string) => d.trim()).filter(Boolean) ?? [];
+  const plan: string[] = (summary.recommendations ?? "").split(".").map((s: string) => s.trim()).filter(Boolean);
+  const providerName: string = summary.provider_name ?? "Your provider";
+  const serviceLabel = extras.serviceType ? sentence((SERVICE_LABELS as Record<string, string>)[extras.serviceType] ?? "") : null;
+  const date = summary.visit_date
+    ? new Date(summary.visit_date).toLocaleDateString("en-NG", { weekday: "short", day: "numeric", month: "short" })
+    : null;
 
   const addToCalendar = () => {
     if (!summary.follow_up_date) return;
-    const content = generateICS(summary.follow_up_date, summary.provider_name ?? "Your Doctor");
+    const content = generateICS(summary.follow_up_date, providerName);
     const blob = new Blob([content], { type: "text/calendar" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -39,136 +70,159 @@ export default function VisitSummaryClient({ summary }: { summary: any }) {
     URL.revokeObjectURL(url);
   };
 
-  const downloadPDF = async () => {
-    window.print();
-  };
+  const medsParam = encodeURIComponent(medications.map(m => m.name).filter(Boolean).join("|"));
+  const testsParam = encodeURIComponent(investigations.map(t => t.test_name).filter(Boolean).join("|"));
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4 pb-8">
-      {/* Card 1 — Header */}
-      <div className="bg-teal-600 text-white rounded-2xl p-6">
-        <p className="text-xs font-semibold uppercase tracking-widest text-teal-200 mb-1">StreetdocMD Home Visit Summary</p>
-        <h1 className="text-xl font-bold">{summary.provider_name ?? "Your Doctor"}</h1>
-        <p className="text-teal-200 text-sm mt-0.5">
-          {summary.visit_date
-            ? new Date(summary.visit_date).toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
-            : "Visit date"}
-        </p>
-      </div>
+    <div className="mx-auto max-w-2xl pb-4">
+      <TopBar title="Visit record" backHref="/dashboard/visits" className="-mx-5 -mt-2 md:mx-0 print:hidden" />
 
-      {/* Card 2 — Reason for visit */}
-      <Card title="Why we visited">
-        <p className="text-base text-gray-800 leading-relaxed">{summary.reason_for_visit ?? "—"}</p>
-      </Card>
-
-      {/* Card 3 — Diagnosis */}
-      <Card title="What was found">
-        {diagnoses.length > 1 ? (
-          <ol className="space-y-1">
-            {diagnoses.map((d, i) => (
-              <li key={i} className="text-lg text-gray-900 font-semibold">{i + 1}. {d}</li>
-            ))}
-          </ol>
-        ) : (
-          <p className="text-xl font-bold text-gray-900">{diagnoses[0] ?? "—"}</p>
-        )}
-      </Card>
-
-      {/* Card 4 — Abnormal Vitals */}
-      {abnormal.length > 0 && (
-        <div className="bg-amber-50 border border-amber-300 rounded-2xl p-5 space-y-3">
-          <h3 className="text-xs font-bold text-amber-700 uppercase tracking-widest">Important Readings</h3>
-          {abnormal.map((v: any, i: number) => (
-            <div key={i} className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <span className="text-amber-600">⚠</span>
-                <span className="font-semibold text-amber-800">{v.vital}: {v.value}</span>
-              </div>
-              <p className="text-sm text-amber-700 ml-5">{v.message}</p>
-            </div>
-          ))}
+      <Card className="p-4">
+        <div className="flex items-center gap-3">
+          <Avatar name={providerName} src={extras.providerPhoto} size="sm" />
+          <div className="min-w-0 flex-1">
+            <b className="block truncate text-ds-control text-ink">{providerName}</b>
+            <span className="text-ds-sm text-muted">{[date, serviceLabel].filter(Boolean).join(" · ")}</span>
+          </div>
+          {extras.completed && <Pill tone="ok">Completed</Pill>}
         </div>
-      )}
-
-      {/* Card 5 — What was done */}
-      <Card title="What happened during your visit">
-        <p className="text-base text-gray-700 leading-relaxed">{summary.what_was_done ?? "—"}</p>
       </Card>
 
-      {/* Card 6 — Medications */}
-      {medications.length > 0 && (
-        <Card title="Your medications">
-          <div className="space-y-3">
-            {medications.map((m: any, i: number) => (
-              <div key={i} className="border border-gray-100 rounded-xl p-3 space-y-1">
-                <p className="font-semibold text-gray-900 text-base">{m.name}</p>
-                {m.what_it_treats && <p className="text-sm text-gray-500">For: {m.what_it_treats}</p>}
-                <p className="text-sm text-gray-700">How to take: <span className="font-medium">{m.how_to_take}</span></p>
-                {m.duration && <p className="text-sm text-gray-600">Duration: {m.duration}</p>}
+      {extras.vitals.length > 0 && (
+        <Section title="Vitals">
+          <div className="grid grid-cols-2 gap-2.5">
+            {extras.vitals.map(v => (
+              <div key={v.label} className="rounded-[18px] border border-line bg-surface p-3.5">
+                <small className="block text-ds-xs font-semibold text-muted">{v.label}</small>
+                <b className="text-ds-xl text-navy tabular-nums">
+                  {v.value}<span className="ml-1 text-ds-xs font-semibold text-muted">{v.unit}</span>
+                </b>
               </div>
             ))}
           </div>
-        </Card>
+        </Section>
       )}
 
-      {/* Card 7 — Investigations */}
-      {investigations.length > 0 && (
-        <Card title="Tests ordered">
-          <div className="space-y-2">
-            {investigations.map((inv: any, i: number) => (
-              <div key={i} className="flex items-start gap-3">
-                <span className="text-blue-500 mt-0.5">🔬</span>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">{inv.test_name}</p>
-                  {inv.expected_timeline && <p className="text-xs text-gray-500">{inv.expected_timeline}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* Card 8 — Recommendations */}
-      {summary.recommendations && (
-        <Card title="What to do next">
-          <ul className="space-y-1">
-            {summary.recommendations.split(".").filter((s: string) => s.trim()).map((s: string, i: number) => (
-              <li key={i} className="text-sm text-gray-700 flex gap-2">
-                <span className="text-teal-500 mt-0.5">•</span>
-                <span>{s.trim()}.</span>
+      {abnormal.length > 0 && (
+        <div className="mt-3 rounded-ds-sm bg-warn-bg p-4">
+          <p className="mb-2 flex items-center gap-2 text-ds-sm font-bold text-ink">
+            <TriangleAlert size={18} className="text-warn" aria-hidden /> Important readings
+          </p>
+          <ul className="space-y-1.5">
+            {abnormal.map((v: any, i: number) => (
+              <li key={i} className="text-ds-sm text-ink">
+                <b>{v.vital}: {v.value}.</b> {v.message}
               </li>
             ))}
           </ul>
-        </Card>
-      )}
-
-      {/* Card 9 — Follow-up */}
-      {summary.follow_up_date && (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-5 space-y-3">
-          <h3 className="text-xs font-bold text-green-700 uppercase tracking-widest">Your Next Appointment</h3>
-          <p className="text-xl font-bold text-green-800">
-            {new Date(summary.follow_up_date).toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-          </p>
-          <button
-            onClick={addToCalendar}
-            className="inline-flex items-center gap-2 bg-white border border-green-300 text-green-700 rounded-xl px-4 py-2 text-sm font-medium hover:bg-green-50 transition-colors"
-          >
-            📅 Add to Calendar
-          </button>
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex gap-3">
-        <button
-          onClick={downloadPDF}
-          className="flex-1 bg-gray-800 text-white py-3 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-colors"
-        >
-          📄 Download as PDF
-        </button>
-        <Link href="/dashboard/visits" className="flex-1 border border-gray-200 text-gray-700 py-3 rounded-xl text-sm font-semibold text-center hover:bg-gray-50 transition-colors">
-          ← Back to My Visits
-        </Link>
+      <Section title="Visit notes">
+        <Card className="space-y-3 text-ds-sm leading-[1.6] text-ink/85">
+          {summary.reason_for_visit && <p><b className="text-ink">Why we visited.</b> {summary.reason_for_visit}</p>}
+          {diagnoses.length > 0 && <p><b className="text-ink">What was found.</b> {diagnoses.join(", ")}</p>}
+          {summary.what_was_done && <p><b className="text-ink">What happened.</b> {summary.what_was_done}</p>}
+          {!summary.reason_for_visit && diagnoses.length === 0 && !summary.what_was_done && <p className="text-muted">No notes were added.</p>}
+        </Card>
+      </Section>
+
+      {plan.length > 0 && (
+        <Section title="Treatment plan">
+          <Card>
+            <ol className="list-decimal space-y-1.5 pl-[18px] text-ds-sm leading-[1.6] text-ink/85">
+              {plan.map((s, i) => <li key={i}>{s}.</li>)}
+            </ol>
+          </Card>
+        </Section>
+      )}
+
+      {medications.length > 0 && (
+        <Section title="Prescriptions">
+          <Card padded={false} className="px-4 py-1">
+            {medications.map((m: any, i: number) => (
+              <RxRow key={i} tint="bg-sky" icon={<PillIcon size={18} aria-hidden />} title={m.name}
+                text={[m.how_to_take, m.duration, m.what_it_treats && `for ${m.what_it_treats}`].filter(Boolean).join(" · ")} />
+            ))}
+          </Card>
+          {extras.prescriptionOrderId ? (
+            <Button href={`/dashboard/medications/${extras.prescriptionOrderId}`} block className="mt-3 print:hidden">
+              Track your medicine order
+            </Button>
+          ) : (
+            <Button href={`/dashboard/book/medication?add=${medsParam}`} block className="mt-3 print:hidden">
+              Send to a pharmacy
+            </Button>
+          )}
+        </Section>
+      )}
+
+      {investigations.length > 0 && (
+        <Section title="Lab orders">
+          <Card padded={false} className="px-4 py-1">
+            {investigations.map((t: any, i: number) => (
+              <RxRow key={i} tint="bg-tint-mint" icon={<FlaskConical size={18} aria-hidden />} title={t.test_name} text={t.expected_timeline} />
+            ))}
+          </Card>
+          <Button href={`/dashboard/book/lab-investigations/custom?add=${testsParam}`} variant="secondary" block className="mt-3 print:hidden">
+            Book home sample collection
+          </Button>
+        </Section>
+      )}
+
+      {extras.referrals.length > 0 && (
+        <Section title="Referral">
+          <div className="space-y-2.5">
+            {extras.referrals.map(r => (
+              <div key={r.id} className="rounded-ds-lg border border-line bg-surface p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <b className="text-ds-control text-ink">{r.hospital}</b>
+                  <Pill tone={r.status === "pending" ? "idle" : "info"}>{sentence(r.status.replace(/_/g, " "))}</Pill>
+                </div>
+                {r.reason && <p className="mt-1.5 text-ds-sm text-muted">{r.reason}</p>}
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {summary.follow_up_date && (
+        <Section title="Your next appointment">
+          <Card className="flex items-center justify-between gap-3">
+            <b className="text-ds-md text-navy">
+              {new Date(summary.follow_up_date).toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}
+            </b>
+            <Button variant="secondary" onClick={addToCalendar} className="min-h-11 px-4 print:hidden">
+              <CalendarPlus size={16} aria-hidden /> Add to calendar
+            </Button>
+          </Card>
+        </Section>
+      )}
+
+      {extras.completed && extras.bookingId && extras.providerId && (
+        <Section title="Rate your visit">
+          {extras.myRating ? (
+            <Card>
+              <div className="flex gap-1.5" aria-label={`You rated this visit ${extras.myRating} out of 5`}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <Star key={n} size={28} className={n <= extras.myRating! ? "fill-amber-500 text-amber-500" : "fill-line text-amber-500"} aria-hidden />
+                ))}
+              </div>
+              <p className="mt-2 flex items-center gap-1.5 text-ds-sm text-muted">
+                <Check size={14} aria-hidden /> Thank you. Your rating helps other patients choose.
+              </p>
+            </Card>
+          ) : (
+            <RateForm bookingId={extras.bookingId} providerId={extras.providerId} patientId={extras.patientId} inline />
+          )}
+        </Section>
+      )}
+
+      <div className="mt-6 space-y-2.5 print:hidden">
+        <Button href={extras.followUpHref} block>Book a follow up</Button>
+        <Button variant="secondary" block onClick={() => window.print()}>
+          <FileDown size={18} aria-hidden /> Download as PDF
+        </Button>
       </div>
     </div>
   );

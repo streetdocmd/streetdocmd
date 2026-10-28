@@ -15,7 +15,9 @@ interface CatalogueItem {
   price: number;
 }
 
-export default function MedicationPicker() {
+// preselect: medicine names from a visit record ("Send to a pharmacy"); matching
+// catalogue items start with a quantity of 1 once the nearest pharmacy loads.
+export default function MedicationPicker({ preselect = [] }: { preselect?: string[] }) {
   const router = useRouter();
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState("");
@@ -38,7 +40,13 @@ export default function MedicationPicker() {
       const json = await res.json();
       if (!res.ok) { setCatalogueError(json.error ?? "Could not load nearby pharmacy"); setLoadingCatalogue(false); return; }
       setPharmacyName(json.pharmacy.name);
-      setItems(json.items ?? []);
+      const loaded: CatalogueItem[] = json.items ?? [];
+      setItems(loaded);
+      if (preselect.length) {
+        const wanted = preselect.map(n => n.toLowerCase());
+        const matches = loaded.filter(i => wanted.some(w => w.includes(i.drug_name.toLowerCase()) || i.drug_name.toLowerCase().includes(w)));
+        if (matches.length) setQuantities(Object.fromEntries(matches.map(m => [m.id, 1])));
+      }
     } catch {
       setCatalogueError("Could not reach the server. Check your connection and try again.");
     }

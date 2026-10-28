@@ -1,7 +1,7 @@
 import { createServerSupabase } from "@/lib/supabase-server";
 import LabInvestigationClient from "./LabInvestigationClient";
 
-export default async function CustomLabInvestigationsPage() {
+export default async function CustomLabInvestigationsPage({ searchParams }: { searchParams?: { add?: string } }) {
   const supabase = await createServerSupabase();
 
   const { data: catalogue } = await supabase
@@ -11,5 +11,5 @@ export default async function CustomLabInvestigationsPage() {
     .eq("active", true)
     .order("test_name");
 
-  return <LabInvestigationClient catalogue={catalogue ?? []} />;
+  return <LabInvestigationClient catalogue={catalogue ?? []} preselect={searchParams?.add?.split("|").filter(Boolean) ?? []} />;
 }

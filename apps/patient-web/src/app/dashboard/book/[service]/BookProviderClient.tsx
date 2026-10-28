@@ -300,7 +300,7 @@ export default function BookProviderClient({
 // Regulator that licenses each profession; every listed provider is verified against it
 const REGULATOR: Record<string, string> = { doctor: "MDCN", nurse: "NMCN", physiotherapist: "MRTB" };
 
-const sentence = (s: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : s);
+const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
 
 function Rating({ provider }: { provider: BookableProvider }) {
   return provider.rating > 0 ? (

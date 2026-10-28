@@ -3,7 +3,7 @@ import PreferredProviderClient from "./PreferredProviderClient";
 export default function PreferredProviderPage({
   searchParams,
 }: {
-  searchParams: { retarget?: string };
+  searchParams: { retarget?: string; code?: string };
 }) {
   return (
     <div>
@@ -16,7 +16,7 @@ export default function PreferredProviderPage({
         </p>
       </div>
 
-      <PreferredProviderClient retargetBookingId={searchParams.retarget ?? null} />
+      <PreferredProviderClient retargetBookingId={searchParams.retarget ?? null} initialCode={searchParams.code ?? ""} />
     </div>
   );
 }

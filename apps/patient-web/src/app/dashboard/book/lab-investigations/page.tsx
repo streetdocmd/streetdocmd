@@ -13,7 +13,7 @@ const STATUS_LABELS: Record<string, string> = {
   resulted: "Results Ready",
 };
 
-const sentence = (s: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : s);
+const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
 
 export default async function LabInvestigationsPage() {
   const supabase = await createServerSupabase();

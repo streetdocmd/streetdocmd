@@ -17,9 +17,9 @@ interface ProviderInfo {
   total_visits: number;
 }
 
-export default function PreferredProviderClient({ retargetBookingId }: { retargetBookingId: string | null }) {
+export default function PreferredProviderClient({ retargetBookingId, initialCode = "" }: { retargetBookingId: string | null; initialCode?: string }) {
   const router = useRouter();
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(initialCode);
   const [looking, setLooking] = useState(false);
   const [provider, setProvider] = useState<ProviderInfo | null>(null);
   const [error, setError] = useState("");
