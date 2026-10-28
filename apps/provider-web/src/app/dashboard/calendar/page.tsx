@@ -1,105 +1,89 @@
 import Link from "next/link";
-import { CalendarDays } from "lucide-react";
-import EmptyState from "@/components/EmptyState";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS } from "@streetdocmd/shared";
+import { Card } from "@/components/ds";
+import { hoursSummary, weeklyHoursOf } from "@/lib/hours";
+import CalendarClient, { type CalendarVisit } from "./CalendarClient";
 
 const ACTIVE_STATUSES = ["accepted", "en_route", "arrived", "in_progress"];
+const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+
+// The area part of an address: drop the house number and street
+function area(address: string | null) {
+  const parts = (address ?? "").split(",").map(s => s.trim()).filter(Boolean);
+  return parts.length > 1 ? parts[1] : parts[0] ?? "";
+}
 
 export default async function CalendarPage() {
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: provider } = await supabase.from("providers").select("id").eq("user_id", user!.id).single();
+  // select("*") so weekly_hours (migration 060) is read when it exists
+  const { data: provider } = await supabase.from("providers").select("*").eq("user_id", user!.id).single();
   if (!provider) return null;
 
-  const { data: bookings } = await supabase
-    .from("bookings")
-    .select("id, service_type, status, patient_address, scheduled_at, accepted_at, duration_minutes, patients:users!patient_id(name)")
-    .eq("provider_id", provider.id)
-    .in("status", ACTIVE_STATUSES)
-    .order("scheduled_at", { ascending: true, nullsFirst: false })
-    .order("accepted_at", { ascending: true });
+  const [{ data: bookings }, timeOffRes] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select("id, service_type, status, patient_address, scheduled_at, accepted_at, patients:users!patient_id(name)")
+      .eq("provider_id", provider.id)
+      .in("status", ACTIVE_STATUSES)
+      .order("scheduled_at", { ascending: true, nullsFirst: false }),
+    supabase
+      .from("provider_time_off")
+      .select("day")
+      .eq("provider_id", provider.id)
+      .gte("day", new Date(Date.now() - 31 * 86_400_000).toISOString().slice(0, 10)),
+  ]);
 
-  const list = bookings ?? [];
+  // A visit occupies the day it was scheduled for, or the day an ASAP visit was accepted
+  const visits: CalendarVisit[] = ((bookings ?? []) as any[])
+    .filter(b => b.scheduled_at ?? b.accepted_at)
+    .map(b => ({
+      id: b.id,
+      at: b.scheduled_at ?? b.accepted_at,
+      service: sentence((SERVICE_LABELS as Record<string, string>)[b.service_type] ?? b.service_type),
+      patient: b.patients?.name ?? "Patient",
+      area: area(b.patient_address),
+      asap: !b.scheduled_at,
+    }));
 
-  // Group by the date this visit actually occupies — scheduled_at if the
-  // patient picked a slot, otherwise accepted_at for an ASAP visit already
-  // underway/committed to.
-  const groups = new Map<string, typeof list>();
-  for (const b of list) {
-    const at = b.scheduled_at ?? b.accepted_at;
-    if (!at) continue;
-    const dateKey = new Date(at).toLocaleDateString("en-CA"); // YYYY-MM-DD, stable sort key
-    if (!groups.has(dateKey)) groups.set(dateKey, []);
-    groups.get(dateKey)!.push(b);
-  }
-
-  const sortedDates = Array.from(groups.keys()).sort();
+  const hours = hoursSummary(weeklyHoursOf(provider));
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight">Calendar</h1>
-        <p className="text-muted text-sm mt-0.5">Your upcoming and in-progress visits</p>
+    <div className="mx-auto max-w-2xl">
+      <div className="pb-4">
+        <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Calendar</h1>
+        <small className="text-[13px] font-semibold text-muted">Bookings and time off</small>
       </div>
 
-      {sortedDates.length === 0 ? (
-        <EmptyState
-          icon={CalendarDays}
-          title="Nothing scheduled"
-          description="Accepted and scheduled visits will appear here, grouped by day."
-        />
-      ) : (
-        <div className="space-y-6">
-          {sortedDates.map(dateKey => {
-            const dayBookings = groups.get(dateKey)!;
-            const dateLabel = new Date(dateKey + "T00:00:00").toLocaleDateString("en-NG", {
-              weekday: "long", day: "numeric", month: "long",
-              year: new Date(dateKey).getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
-            });
+      <CalendarClient
+        providerId={provider.id}
+        visits={visits}
+        timeOff={((timeOffRes.data ?? []) as { day: string }[]).map(t => t.day)}
+        timeOffAvailable={!timeOffRes.error}
+      />
 
-            return (
-              <div key={dateKey}>
-                <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">{dateLabel}</h2>
-                <div className="space-y-2">
-                  {dayBookings.map((b: any) => {
-                    const at = b.scheduled_at ?? b.accepted_at;
-                    const timeLabel = new Date(at).toLocaleTimeString("en-NG", { hour: "numeric", minute: "2-digit" });
-                    const endLabel = new Date(new Date(at).getTime() + b.duration_minutes * 60000)
-                      .toLocaleTimeString("en-NG", { hour: "numeric", minute: "2-digit" });
-
-                    return (
-                      <Link
-                        key={b.id}
-                        href={`/dashboard/active/${b.id}`}
-                        className="card p-4 flex items-center gap-4 hover:shadow-card-md transition-all"
-                      >
-                        <div className="text-center shrink-0 w-16">
-                          <p className="text-sm font-bold text-navy">{timeLabel}</p>
-                          <p className="text-xs text-muted">–{endLabel}</p>
-                        </div>
-                        <div className="w-px self-stretch bg-pending-bg" />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold text-ink">
-                              {(SERVICE_LABELS as Record<string, string>)[b.service_type]}
-                            </p>
-                            {!b.scheduled_at && (
-                              <span className="badge bg-amber-100 text-amber-800 text-xs">ASAP</span>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted truncate">{b.patients?.name} · {b.patient_address}</p>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+      <section className="mt-[26px]">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-[17px] font-bold text-navy">Working hours</h2>
+          <Link href="/dashboard/profile#availability" className="text-[13px] font-bold text-accent">Change</Link>
         </div>
-      )}
+        <Card padded={false} className="px-5 py-1">
+          {hours.length ? (
+            <dl>
+              {hours.map(h => (
+                <div key={h.label} className="flex items-center justify-between gap-4 border-b border-line py-2.5 text-ds-sm last:border-b-0">
+                  <dt className="text-muted">{h.label}</dt>
+                  <dd className="font-bold text-ink">{h.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="py-3 text-ds-sm text-muted">You haven&apos;t set working hours yet.</p>
+          )}
+        </Card>
+      </section>
     </div>
   );
 }
