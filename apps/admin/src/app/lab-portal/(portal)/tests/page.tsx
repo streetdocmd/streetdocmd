@@ -13,7 +13,7 @@ export default async function LabTestMenuPage() {
     // Includes inactive rows, which catalogue RLS hides from lab staff
     const { data, error } = await createAdminSupabase()
       .from("investigation_catalogue")
-      .select("id, test_name, test_code, price, turnaround_hours, sample_type, home_collection, active")
+      .select("*")
       .eq("lab_partner_id", access.partnerId)
       .order("test_name");
     tests = (data ?? []) as TestRow[];

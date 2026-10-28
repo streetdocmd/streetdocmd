@@ -12,6 +12,7 @@ interface CatalogueItem {
   price: number;
   turnaround_hours: number | null;
   sample_type: string | null;
+  preparation?: string | null;
 }
 
 interface SelectedTest {
@@ -121,6 +122,7 @@ export default function LabInvestigationClient({
               <div className="min-w-0 flex-1">
                 <b className="block text-ds-sm text-ink">{item.test_name}</b>
                 {details && <small className="block text-ds-xs text-muted">{details}</small>}
+                {item.preparation && <small className="mt-1 block text-ds-xs text-ink/80">{item.preparation}</small>}
               </div>
               <div className="text-right">
                 <div className="text-ds-sm font-extrabold text-navy tabular-nums">{formatNaira(item.price)}</div>

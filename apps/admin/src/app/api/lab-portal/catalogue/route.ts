@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
       turnaround_hours: turnaround,
       sample_type: String(body.sample_type ?? "").trim() || null,
       home_collection: Boolean(body.home_collection),
-      active: true,
+      preparation: String(body.preparation ?? "").trim().slice(0, 500) || null,
+      active: body.active === undefined ? true : Boolean(body.active),
     })
     .select("id")
     .single();

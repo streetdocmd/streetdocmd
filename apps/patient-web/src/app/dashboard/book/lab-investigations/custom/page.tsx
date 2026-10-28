@@ -6,7 +6,7 @@ export default async function CustomLabInvestigationsPage({ searchParams }: { se
 
   const { data: catalogue } = await supabase
     .from("investigation_catalogue")
-    .select("id, test_name, test_code, price, turnaround_hours, sample_type")
+    .select("id, test_name, test_code, price, turnaround_hours, sample_type, preparation")
     .eq("scope", "platform")
     .eq("active", true)
     .order("test_name");

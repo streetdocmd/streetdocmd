@@ -4,7 +4,7 @@ import { getPortalApiAccess } from "@/components/portal/access";
 
 export const dynamic = "force-dynamic";
 
-// Update price / turnaround / availability of a test on the caller's own menu.
+// Update a test on the caller's own menu. A price change is dated (price_updated_at).
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await getPortalApiAccess("lab");
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
@@ -18,7 +18,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const price = Number(body.price);
     if (!Number.isFinite(price) || price <= 0) return NextResponse.json({ error: "Enter a price greater than ₦0." }, { status: 400 });
     patch.price = price;
+    patch.price_updated_at = new Date().toISOString();
   }
+  if ("test_name" in body) {
+    const name = String(body.test_name ?? "").trim();
+    if (!name) return NextResponse.json({ error: "Enter the test name." }, { status: 400 });
+    patch.test_name = name.slice(0, 200);
+  }
+  if ("sample_type" in body) patch.sample_type = String(body.sample_type ?? "").trim() || null;
+  if ("test_code" in body) patch.test_code = String(body.test_code ?? "").trim() || null;
+  if ("preparation" in body) patch.preparation = String(body.preparation ?? "").trim().slice(0, 500) || null;
   if ("turnaround_hours" in body) {
     const t = body.turnaround_hours === "" || body.turnaround_hours == null ? null : Number(body.turnaround_hours);
     if (t !== null && (!Number.isInteger(t) || t <= 0)) return NextResponse.json({ error: "Turnaround must be a whole number of hours." }, { status: 400 });
