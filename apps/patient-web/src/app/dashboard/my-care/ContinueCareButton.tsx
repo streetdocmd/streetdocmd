@@ -26,21 +26,21 @@ export default function ContinueCareButton({
   // and patients should never be locked out of choosing someone else
   // regardless. The follow-up booking still links back to this episode.
   return (
-    <div className="mt-4 pt-4 border-t border-gray-100">
+    <div className="mt-4 border-t border-line pt-4">
       {available ? (
         <>
-          <p className="text-sm text-gray-600 mb-2">
-            <span className="font-medium text-gray-900">{providerName}</span> is available for your next visit.
+          <p className="mb-2 text-ds-sm text-muted">
+            <span className="font-bold text-ink">{providerName}</span> is available for your next visit.
           </p>
-          <Link href={href} className="text-sm text-blue-brand font-medium hover:underline">
-            Continue your care with {providerName.split(" ")[0]} →
+          <Link href={href} className="text-ds-sm font-bold text-accent hover:underline">
+            Continue your care with {providerName.split(" ")[0]}
           </Link>
         </>
       ) : (
         <>
-          <p className="text-sm text-gray-500 mb-2">{providerName} isn't available right now.</p>
-          <Link href={href} className="text-sm text-blue-brand font-medium hover:underline">
-            Book with an available provider →
+          <p className="mb-2 text-ds-sm text-muted">{providerName} isn't available right now.</p>
+          <Link href={href} className="text-ds-sm font-bold text-accent hover:underline">
+            Book with an available provider
           </Link>
         </>
       )}

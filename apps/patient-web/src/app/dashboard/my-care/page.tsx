@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { HeartHandshake } from "lucide-react";
+import { Check, CreditCard, HeartHandshake, Pill as PillIcon, Star, Video } from "lucide-react";
+import { Avatar, Button, Card, Pill, cx, focusRing, type PillTone } from "@/components/ds";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { CARE_EPISODE_STATUS_LABELS, PROFESSION_LABELS, CARE_TASK_TYPE_LABELS, FOLLOW_UP_TYPE_LABELS } from "@/lib/shared";
 import type { Profession, ServiceType } from "@/lib/shared";
@@ -15,190 +16,324 @@ const DEFAULT_SERVICE_BY_PROFESSION: Record<Profession, ServiceType> = {
   lab_scientist: "general_consultation",
 };
 
-const STATUS_STYLES: Record<string, string> = {
-  active: "bg-blue-100 text-blue-700",
-  monitoring: "bg-teal-100 text-teal-700",
-  follow_up_due: "bg-amber-100 text-amber-700",
-  overdue: "bg-red-100 text-red-700",
-  referred: "bg-purple-100 text-purple-700",
-  resolved: "bg-green-100 text-green-700",
-  closed: "bg-gray-100 text-gray-500",
-  escalated: "bg-red-100 text-red-700",
+const PROGRESS_STEPS = ["active", "monitoring", "follow_up_due", "resolved"];
+const STEP_LABELS: Record<string, string> = {
+  active: "Assessment and treatment",
+  monitoring: "Monitoring",
+  follow_up_due: "Follow up",
+  resolved: "Recovery",
 };
 
-const PROGRESS_STEPS = ["active", "monitoring", "follow_up_due", "resolved"];
+const RESULT_LABELS: Record<string, [string, PillTone]> = {
+  ordered: ["Ordered", "idle"],
+  confirmed: ["Confirmed", "idle"],
+  sample_collector_dispatched: ["Collector on the way", "info"],
+  sample_collected: ["Sample collected", "info"],
+  processing: ["Processing", "idle"],
+  resulted: ["Ready", "ok"],
+};
+
+const ORDER_LABELS: Record<string, [string, PillTone]> = {
+  pending_payment: ["Awaiting payment", "warn"],
+  sent: ["Sent to pharmacy", "info"],
+  confirmed: ["Confirmed", "info"],
+  dispensing: ["Being packed", "info"],
+  dispatched: ["On the way", "info"],
+  delivered: ["Delivered", "ok"],
+  cancelled: ["Cancelled", "idle"],
+};
+
+const SOON = [
+  { icon: Video, title: "Video consultation", text: "Talk to a doctor from your phone" },
+  { icon: Star, title: "Ratings and reviews", text: "Read and write reviews in one place" },
+  { icon: CreditCard, title: "Saved addresses and cards", text: "Faster checkout next time" },
+];
+
+const day = (iso: string) => new Date(iso).toLocaleDateString("en-NG", { day: "numeric", month: "short", timeZone: "Africa/Lagos" });
+
+function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className="mt-[26px]">
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2 className="text-[17px] font-bold text-navy">{title}</h2>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Row({ href, title, sub, pill }: { href?: string; title: string; sub: string; pill: React.ReactNode }) {
+  const body = (
+    <>
+      <div className="min-w-0 flex-1">
+        <b className="block truncate text-ds-sm text-ink">{title}</b>
+        <small className="text-ds-xs text-muted">{sub}</small>
+      </div>
+      {pill}
+    </>
+  );
+  return href ? (
+    <Link href={href} className={cx("flex items-center gap-3 border-b border-line py-3.5 last:border-b-0", focusRing)}>{body}</Link>
+  ) : (
+    <div className="flex items-center gap-3 border-b border-line py-3.5 last:border-b-0">{body}</div>
+  );
+}
 
 export default async function MyCarePage() {
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: episodes } = await supabase
-    .from("care_episodes")
-    .select("*")
-    .eq("patient_id", user.id)
-    .order("updated_at", { ascending: false });
+  const [{ data: episodes }, { data: labOrders }, { data: medOrders }] = await Promise.all([
+    supabase.from("care_episodes").select("*").eq("patient_id", user.id).order("updated_at", { ascending: false }),
+    supabase
+      .from("investigation_orders")
+      .select("id, status, ordered_at, tests, lab_partners(name)")
+      .eq("patient_id", user.id)
+      .order("ordered_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("prescription_orders")
+      .select("id, status, drugs, created_at, pharmacy_partners(name)")
+      .eq("patient_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5),
+  ]);
 
   const activeEpisode = (episodes ?? []).find(e => !["closed", "resolved"].includes(e.status)) ?? null;
 
-  if (!activeEpisode) {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">My Care</h1>
-        <div className="card p-12 text-center">
-          <div className="w-14 h-14 rounded-full bg-blue-light flex items-center justify-center mx-auto mb-4">
-            <HeartHandshake size={26} className="text-blue-brand" />
-          </div>
-          <p className="font-semibold text-gray-700">No active care episode</p>
-          <p className="text-sm text-gray-400 mt-1">
-            You don't have any ongoing coordinated care right now — your visits so far have each stood on their own.
-            If a provider starts a care plan with you, it'll show up here.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const [{ data: team }, { data: plan }, { data: tasks }, { data: pendingFollowUp }] = await Promise.all([
-    supabase
-      .from("care_team_members")
-      .select("id, is_lead, provider:providers(id, name, profession, credentials, available)")
-      .eq("care_episode_id", activeEpisode.id)
-      .eq("active", true),
-    supabase.from("care_plans").select("*").eq("care_episode_id", activeEpisode.id).maybeSingle(),
-    supabase.from("care_tasks").select("*").eq("care_episode_id", activeEpisode.id).order("due_date", { ascending: true, nullsFirst: false }),
-    supabase
-      .from("follow_ups")
-      // follow_ups has two FKs to providers (continuing_provider_id and
-      // created_by) — PostgREST can't infer which one "providers(...)"
-      // means without the explicit !constraint_name hint, and errors
-      // (silently, from this call site's point of view) without it.
-      .select("id, reason, follow_up_date, follow_up_type, continuing_provider:providers!follow_ups_continuing_provider_id_fkey(id, name, profession, available)")
-      .eq("care_episode_id", activeEpisode.id)
-      .eq("status", "scheduled")
-      .order("follow_up_date", { ascending: true })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  const [{ data: team }, { data: plan }, { data: tasks }, { data: pendingFollowUp }] = activeEpisode
+    ? await Promise.all([
+        supabase
+          .from("care_team_members")
+          .select("id, is_lead, provider:providers(id, name, profession, credentials, available)")
+          .eq("care_episode_id", activeEpisode.id)
+          .eq("active", true),
+        supabase.from("care_plans").select("*").eq("care_episode_id", activeEpisode.id).maybeSingle(),
+        supabase.from("care_tasks").select("*").eq("care_episode_id", activeEpisode.id).order("due_date", { ascending: true, nullsFirst: false }),
+        supabase
+          .from("follow_ups")
+          // follow_ups has two FKs to providers (continuing_provider_id and
+          // created_by) — PostgREST can't infer which one "providers(...)"
+          // means without the explicit !constraint_name hint, and errors
+          // (silently, from this call site's point of view) without it.
+          .select("id, reason, follow_up_date, follow_up_type, continuing_provider:providers!follow_ups_continuing_provider_id_fkey(id, name, profession, available)")
+          .eq("care_episode_id", activeEpisode.id)
+          .eq("status", "scheduled")
+          .order("follow_up_date", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+      ])
+    : [{ data: [] }, { data: null }, { data: [] }, { data: null }];
 
   const teamList = (team ?? []) as any[];
   const lead = teamList.find(t => t.is_lead)?.provider ?? teamList[0]?.provider ?? null;
-  const openTasks = (tasks ?? []).filter(t => t.status !== "completed" && t.status !== "cancelled");
+  const openTasks = ((tasks ?? []) as any[]).filter(t => t.status !== "completed" && t.status !== "cancelled");
   const nextTask = openTasks[0] ?? null;
-  const progressIndex = PROGRESS_STEPS.indexOf(activeEpisode.status);
+  const progressIndex = activeEpisode ? PROGRESS_STEPS.indexOf(activeEpisode.status) : -1;
   const followUp = pendingFollowUp as any;
   const followUpProvider = followUp?.continuing_provider;
   const followUpBookHref = followUp && followUpProvider
     ? `/dashboard/book/${DEFAULT_SERVICE_BY_PROFESSION[followUpProvider.profession as Profession]}?follow_up_id=${followUp.id}`
     : null;
+  const pct = progressIndex >= 0 ? Math.round(((progressIndex + 1) / PROGRESS_STEPS.length) * 100) : 0;
+  const circumference = 132;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">My Care</h1>
-
-      {/* Episode summary */}
-      <div className="card p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="font-bold text-gray-900 text-lg">{activeEpisode.title}</h2>
-            {activeEpisode.reason && <p className="text-sm text-gray-500 mt-0.5">{activeEpisode.reason}</p>}
-          </div>
-          <span className={`badge ${STATUS_STYLES[activeEpisode.status] ?? ""} shrink-0`}>
-            {(CARE_EPISODE_STATUS_LABELS as Record<string, string>)[activeEpisode.status]}
-          </span>
-        </div>
-
-        {progressIndex >= 0 && (
-          <div className="flex items-center gap-1.5 mt-4">
-            {PROGRESS_STEPS.map((step, i) => (
-              <div key={step} className={`h-1.5 flex-1 rounded-full ${i <= progressIndex ? "bg-blue-brand" : "bg-gray-100"}`} />
-            ))}
-          </div>
-        )}
+    <div className="mx-auto max-w-2xl">
+      <div className="pb-4">
+        <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Your care</h1>
+        <small className="text-[13px] font-semibold text-muted">Journey, results and medicines</small>
       </div>
 
-      {/* Care team + continuity */}
-      <div className="card p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Your Care Team</h3>
-        <div className="space-y-3">
-          {teamList.map((t: any) => (
-            <div key={t.id} className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  {t.provider?.name}
-                  {t.is_lead && <span className="ml-1.5 text-xs text-amber-600 font-medium">Lead</span>}
-                </p>
-                <p className="text-xs text-gray-400">{(PROFESSION_LABELS as Record<string, string>)[t.provider?.profession]}</p>
+      {activeEpisode ? (
+        <>
+          <div className="flex items-center gap-3.5 rounded-ds-lg border border-line bg-surface p-4">
+            {progressIndex >= 0 && (
+              <div className="relative h-[52px] w-[52px] flex-none" role="img" aria-label={`Care journey ${pct}% complete`}>
+                <svg viewBox="0 0 52 52" className="h-[52px] w-[52px] -rotate-90" aria-hidden>
+                  <circle cx="26" cy="26" r="21" fill="none" stroke="var(--line)" strokeWidth="5" />
+                  <circle cx="26" cy="26" r="21" fill="none" stroke="var(--teal)" strokeWidth="5" strokeLinecap="round"
+                    strokeDasharray={circumference} strokeDashoffset={circumference * (1 - pct / 100)} />
+                </svg>
+                <b className="absolute inset-0 grid place-items-center text-[13px] text-navy">{pct}%</b>
               </div>
-              {t.provider?.available && (
-                <span className="text-xs text-green-600 font-medium">● Available</span>
-              )}
+            )}
+            <div className="min-w-0 flex-1">
+              <b className="block text-ds-sm text-ink">{activeEpisode.title}</b>
+              <p className="text-ds-sm text-muted">
+                {progressIndex >= 0
+                  ? `Step ${progressIndex + 1} of ${PROGRESS_STEPS.length}: ${STEP_LABELS[activeEpisode.status]}`
+                  : (CARE_EPISODE_STATUS_LABELS as Record<string, string>)[activeEpisode.status]}
+              </p>
             </div>
-          ))}
-          {teamList.length === 0 && <p className="text-sm text-gray-400">No team members yet.</p>}
-        </div>
-
-        {lead && (
-          <ContinueCareButton
-            providerName={lead.name}
-            profession={lead.profession}
-            available={!!lead.available}
-            careEpisodeId={activeEpisode.id}
-          />
-        )}
-      </div>
-
-      {/* Current tasks */}
-      {openTasks.length > 0 && (
-        <div className="card p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Current Tasks</h3>
-          <div className="space-y-2">
-            {openTasks.map((t: any) => (
-              <div key={t.id} className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">{t.description}</span>
-                <span className="text-xs text-gray-400">
-                  {(CARE_TASK_TYPE_LABELS as Record<string, string>)[t.task_type]}
-                  {t.due_date && ` · ${new Date(t.due_date).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}`}
-                </span>
-              </div>
-            ))}
           </div>
-        </div>
+
+          {progressIndex >= 0 && (
+            <Card className="mt-3.5">
+              <ol>
+                {PROGRESS_STEPS.map((step, i) => {
+                  const state = i < progressIndex ? "done" : i === progressIndex ? "now" : "todo";
+                  return (
+                    <li key={step} className="relative flex items-center gap-3.5 pb-4 last:pb-0">
+                      {i < PROGRESS_STEPS.length - 1 && (
+                        <span aria-hidden className={`absolute left-[13px] top-7 h-[calc(100%-24px)] w-0.5 ${state === "done" ? "bg-success" : "bg-line"}`} />
+                      )}
+                      <span className={`relative grid h-7 w-7 flex-none place-items-center rounded-full ${
+                        state === "done" ? "bg-success text-white" : state === "now" ? "bg-accent-soft ring-2 ring-accent" : "border-2 border-line bg-surface"
+                      }`}>
+                        {state === "done" && <Check size={14} strokeWidth={3} aria-hidden />}
+                        {state === "now" && <span className="h-2.5 w-2.5 rounded-full bg-accent" aria-hidden />}
+                      </span>
+                      <b className={`text-ds-sm ${state === "todo" ? "text-muted" : "text-ink"}`}>{STEP_LABELS[step]}</b>
+                    </li>
+                  );
+                })}
+              </ol>
+            </Card>
+          )}
+
+          <Section title="Your care team">
+            <Card>
+              {activeEpisode.reason && <p className="mb-3 text-ds-sm text-muted">{activeEpisode.reason}</p>}
+              <div className="space-y-3">
+                {teamList.map((t: any) => (
+                  <div key={t.id} className="flex items-center gap-3">
+                    <Avatar name={t.provider?.name ?? "Provider"} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <b className="block text-ds-sm text-ink">
+                        {t.provider?.name}
+                        {t.is_lead && <span className="ml-1.5 text-ds-xs font-bold text-warn">Lead</span>}
+                      </b>
+                      <small className="text-ds-xs text-muted">{(PROFESSION_LABELS as Record<string, string>)[t.provider?.profession]}</small>
+                    </div>
+                    {t.provider?.available && <Pill tone="ok">Available</Pill>}
+                  </div>
+                ))}
+                {teamList.length === 0 && <p className="text-ds-sm text-muted">No team members yet.</p>}
+              </div>
+              {lead && (
+                <ContinueCareButton
+                  providerName={lead.name}
+                  profession={lead.profession}
+                  available={!!lead.available}
+                  careEpisodeId={activeEpisode.id}
+                />
+              )}
+            </Card>
+          </Section>
+
+          {openTasks.length > 0 && (
+            <Section title="Current tasks">
+              <Card padded={false} className="px-4 py-1">
+                {openTasks.map((t: any) => (
+                  <Row key={t.id} title={t.description}
+                    sub={[(CARE_TASK_TYPE_LABELS as Record<string, string>)[t.task_type], t.due_date && day(t.due_date)].filter(Boolean).join(" · ")}
+                    pill={null} />
+                ))}
+              </Card>
+            </Section>
+          )}
+
+          <Section title="What's next">
+            <Card>
+              {followUp ? (
+                <div>
+                  <p className="text-ds-sm text-ink">
+                    Follow up with {followUpProvider?.name ?? "your care team"}
+                    {followUp.follow_up_type && (
+                      <span className="text-muted"> · {(FOLLOW_UP_TYPE_LABELS as Record<string, string>)[followUp.follow_up_type]}</span>
+                    )}
+                  </p>
+                  <b className="mt-0.5 block text-ds-md text-navy">
+                    {new Date(followUp.follow_up_date).toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                  </b>
+                  {followUp.reason && <p className="mt-1 text-ds-xs text-muted">{followUp.reason}</p>}
+                  {followUpBookHref && <Button href={followUpBookHref} className="mt-4">Book follow up</Button>}
+                </div>
+              ) : nextTask ? (
+                <p className="text-ds-sm text-ink">{nextTask.description}</p>
+              ) : (
+                <p className="text-ds-sm text-muted">Nothing scheduled right now. Your care team will let you know when there&apos;s a next step.</p>
+              )}
+              {plan?.instructions && (
+                <div className="mt-3 border-t border-line pt-3">
+                  <p className="mb-1 text-ds-xs font-bold text-muted">Instructions</p>
+                  <p className="text-ds-sm text-ink">{plan.instructions}</p>
+                </div>
+              )}
+            </Card>
+          </Section>
+        </>
+      ) : (
+        <Card className="px-5 py-6 text-center">
+          <span className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-[18px] bg-sky text-brand">
+            <HeartHandshake size={24} aria-hidden />
+          </span>
+          <b className="text-ink">No active care journey</b>
+          <p className="mt-1.5 text-ds-sm text-muted">
+            Your visits so far have each stood on their own. If a provider starts a care plan with you, it shows up here.
+          </p>
+        </Card>
       )}
 
-      {/* Next step / follow-up */}
-      <div className="card p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-2">What's Next</h3>
-        {followUp ? (
-          <div>
-            <p className="text-sm text-gray-700">
-              Follow-up with {followUpProvider?.name ?? "your care team"}
-              {followUp.follow_up_type && (
-                <span className="text-gray-400"> · {(FOLLOW_UP_TYPE_LABELS as Record<string, string>)[followUp.follow_up_type]}</span>
-              )}
-            </p>
-            <p className="text-sm font-semibold text-gray-900 mt-0.5">
-              {new Date(followUp.follow_up_date).toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-            </p>
-            {followUp.reason && <p className="text-xs text-gray-500 mt-1">{followUp.reason}</p>}
-            {followUpBookHref && (
-              <Link href={followUpBookHref} className="btn-primary inline-flex mt-4 text-sm">
-                Book Follow-up
-              </Link>
-            )}
-          </div>
-        ) : nextTask ? (
-          <p className="text-sm text-gray-700">{nextTask.description}</p>
+      <Section title="Results" action={<Link href="/dashboard/book/lab-investigations" className="text-[13px] font-bold text-accent">All</Link>}>
+        {(labOrders ?? []).length > 0 ? (
+          <Card padded={false} className="px-4 py-1">
+            {(labOrders as any[]).map(o => {
+              const [label, tone] = RESULT_LABELS[o.status] ?? [o.status, "idle" as PillTone];
+              return (
+                <Row key={o.id} href={`/dashboard/book/lab-investigations/tracking/${o.id}`}
+                  title={(o.tests as any[])?.map(t => t.test_name).join(", ") || "Lab tests"}
+                  sub={[o.lab_partners?.name, day(o.ordered_at)].filter(Boolean).join(" · ")}
+                  pill={<Pill tone={tone}>{label}</Pill>} />
+              );
+            })}
+          </Card>
         ) : (
-          <p className="text-sm text-gray-400">Nothing scheduled right now — your care team will let you know when there's a next step.</p>
+          <p className="text-ds-sm text-muted">No lab results yet. Tests you order appear here with a Ready, Processing or Pending label.</p>
         )}
-        {plan?.instructions && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Instructions</p>
-            <p className="text-sm text-gray-700">{plan.instructions}</p>
-          </div>
+      </Section>
+
+      <Section title="Medicines">
+        {(medOrders ?? []).length > 0 && (
+          <Card padded={false} className="px-4 py-1">
+            {(medOrders as any[]).map(o => {
+              const [label, tone] = ORDER_LABELS[o.status] ?? [o.status, "idle" as PillTone];
+              const names = (o.drugs as any[])?.map(d => d.drug_name).join(", ") || "Medicine order";
+              return (
+                <Row key={o.id}
+                  href={o.status === "pending_payment" ? `/dashboard/book/medication/payment/${o.id}` : `/dashboard/medications/${o.id}`}
+                  title={names}
+                  sub={[o.pharmacy_partners?.name, day(o.created_at)].filter(Boolean).join(" · ")}
+                  pill={<Pill tone={tone}>{label}</Pill>} />
+              );
+            })}
+          </Card>
         )}
-      </div>
+        <Button href="/dashboard/book/medication" block className="mt-3">
+          <PillIcon size={18} aria-hidden /> Buy medication
+        </Button>
+      </Section>
+
+      <Section title="Coming soon">
+        <div className="grid gap-2.5">
+          {SOON.map(({ icon: Icon, title, text }) => (
+            <div key={title} aria-disabled="true"
+              className="flex select-none items-center gap-3 rounded-[18px] border border-dashed border-muted/40 bg-surface px-3.5 py-3 opacity-70">
+              <span className="grid h-[38px] w-[38px] flex-none place-items-center rounded-xl bg-pending-bg text-pending">
+                <Icon size={20} aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <b className="block text-ds-sm text-pending">{title}</b>
+                <small className="block text-ds-xs text-muted">{text}</small>
+              </span>
+              <span className="rounded-md bg-pending-bg px-2 py-0.5 text-ds-2xs font-bold uppercase tracking-[0.04em] text-pending">Soon</span>
+            </div>
+          ))}
+        </div>
+      </Section>
     </div>
   );
 }
