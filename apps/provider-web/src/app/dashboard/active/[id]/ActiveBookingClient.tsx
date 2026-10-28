@@ -2,19 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Navigation, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { getEncounterRoute, type Profession } from "@streetdocmd/shared";
+import { Button } from "@/components/ds";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type BookingStatus = "accepted" | "en_route" | "arrived" | "in_progress" | "completed";
 
-const STEPS: { status: BookingStatus; label: string; action: string }[] = [
-  { status: "accepted",    label: "Request accepted",    action: "I'm on my way"  },
-  { status: "en_route",   label: "En route to patient",  action: "I've arrived"   },
-  { status: "arrived",    label: "Arrived at patient",   action: "Start visit"    },
-  { status: "in_progress", label: "Visit in progress",   action: "Continue →"     },
-  { status: "completed",  label: "Visit completed",      action: ""               },
+// The visit's stages, as the design's step bar shows them
+const STAGES: { status: BookingStatus; label: string; action: string }[] = [
+  { status: "accepted",    label: "Accepted",   action: "I'm on my way" },
+  { status: "en_route",    label: "On the way", action: "I've arrived" },
+  { status: "arrived",     label: "Arrived",    action: "Start visit notes" },
+  { status: "in_progress", label: "Visit",      action: "Continue visit notes" },
+  { status: "completed",   label: "Complete",   action: "" },
 ];
 
 const NEXT_STATUS: Partial<Record<BookingStatus, BookingStatus>> = {
@@ -36,6 +39,7 @@ export default function ActiveBookingClient({
   currentStatus,
   patientPhone,
   profession,
+  directionsUrl,
 }: {
   bookingId: string;
   currentStatus: BookingStatus;
@@ -43,6 +47,8 @@ export default function ActiveBookingClient({
   patientId: string;
   providerId: string;
   profession: Profession;
+  /** Maps link to the patient's address */
+  directionsUrl: string | null;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -51,9 +57,9 @@ export default function ActiveBookingClient({
   const [status, setStatus]   = useState<BookingStatus>(currentStatus);
   const [loading, setLoading] = useState(false);
 
-  const stepIndex   = STEPS.findIndex(s => s.status === status);
-  const currentStep = STEPS[stepIndex];
-  const nextStatus  = NEXT_STATUS[status];
+  const stageIndex = STAGES.findIndex(s => s.status === status);
+  const stage      = STAGES[stageIndex];
+  const nextStatus = NEXT_STATUS[status];
 
   // ─── Advance (non-completion status transitions) ──────────────────────────
   // "arrived" hands off to the clinical note wizard, which is what actually
@@ -77,60 +83,38 @@ export default function ActiveBookingClient({
     setLoading(false);
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
-
-      {/* Progress steps */}
-      <div className="card p-5">
-        <div className="space-y-3">
-          {STEPS.filter(s => s.status !== "completed" || status === "completed").map((step, i) => {
-            const idx    = STEPS.findIndex(s => s.status === status);
-            const done   = i < idx;
-            const active = i === idx;
-            return (
-              <div key={step.status} className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                  done   ? "bg-teal-deep text-white" :
-                  active ? "bg-accent text-white" :
-                           "bg-pending-bg text-muted"
-                }`}>
-                  {done ? "✓" : i + 1}
-                </div>
-                <span className={`text-sm ${active ? "font-semibold text-ink" : done ? "text-muted" : "text-line"}`}>
-                  {step.label}
-                </span>
-              </div>
-            );
-          })}
+    <>
+      {/* Step bar */}
+      <div className="-mt-1">
+        <div className="flex gap-1.5" aria-hidden>
+          {STAGES.map((s, i) => (
+            <span key={s.status} className={`h-[5px] flex-1 rounded ${i <= stageIndex ? "bg-teal-deep" : "bg-line"}`} />
+          ))}
+        </div>
+        <div className="mt-2 flex items-center justify-between">
+          <span className="text-ds-sm text-muted">Step {stageIndex + 1} of {STAGES.length}</span>
+          <b className="text-ds-sm text-navy">{stage.label}</b>
         </div>
       </div>
 
-      {/* Call patient */}
-      <a href={`tel:${patientPhone}`} className="card p-4 flex items-center gap-3 hover:shadow-card-md transition-shadow">
-        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl">📞</div>
-        <div>
-          <p className="font-semibold text-ink">Call patient</p>
-          <p className="text-sm text-muted">{patientPhone}</p>
+      <div className="grid grid-cols-2 gap-2.5">
+        <Button variant="secondary" href={`tel:${patientPhone}`}><Phone size={18} aria-hidden /> Call</Button>
+        {directionsUrl
+          ? <Button variant="secondary" href={directionsUrl} target="_blank" rel="noopener noreferrer"><Navigation size={18} aria-hidden /> Directions</Button>
+          : <Button variant="secondary" disabled><Navigation size={18} aria-hidden /> Directions</Button>}
+      </div>
+
+      {status !== "completed" && (
+        <div className="sticky bottom-[76px] z-20 rounded-ds-lg border border-line bg-surface/95 p-3.5 shadow-ds backdrop-blur md:bottom-4">
+          {status === "arrived" || status === "in_progress" ? (
+            <Button href={encounterHref} block>{stage.action}</Button>
+          ) : nextStatus ? (
+            <Button block onClick={advance} disabled={loading}>{loading ? "Updating…" : stage.action}</Button>
+          ) : null}
+          <p className="mt-2 text-center text-ds-xs text-muted">Notes save as you go and become the patient&apos;s visit record.</p>
         </div>
-      </a>
-
-      {/* Continue visit note (arrived or in_progress — provider navigated back) */}
-      {(status === "arrived" || status === "in_progress") && (
-        <a href={encounterHref}
-          className="w-full py-3 rounded-xl font-semibold text-white bg-teal-deep hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
-          📋 Continue Visit Note →
-        </a>
       )}
-
-      {/* Advance button (non-completion steps) */}
-      {status !== "completed" && nextStatus && status !== "arrived" && status !== "in_progress" && (
-        <button onClick={advance} disabled={loading}
-          className="w-full py-3 rounded-xl font-semibold text-white transition-colors disabled:opacity-50 bg-accent hover:bg-accent-hover">
-          {loading ? "Updating…" : currentStep.action}
-        </button>
-      )}
-
-    </div>
+    </>
   );
 }
