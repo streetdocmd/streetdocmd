@@ -1,6 +1,9 @@
 import type { Config } from "tailwindcss";
+import designPreset from "./src/design/tailwind-preset";
 
 const config: Config = {
+  // Design system tokens (packages/design), light theme only
+  presets: [designPreset],
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
@@ -24,9 +27,6 @@ const config: Config = {
         teal: {
           brand: "#00B5A3",
         },
-      },
-      fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
       },
       boxShadow: {
         card: "0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06)",

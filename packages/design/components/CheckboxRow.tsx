@@ -1,0 +1,64 @@
+"use client";
+
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { cx, focusRing } from "./cx";
+
+interface CheckboxRowProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  children: ReactNode;
+  /** Opens the full text in a sheet or modal. Takes precedence over readHref. */
+  onRead?: () => void;
+  /** Opens the full text in a new tab. */
+  readHref?: string;
+  readLabel?: string;
+  name?: string;
+  required?: boolean;
+  disabled?: boolean;
+  className?: string;
+}
+
+/**
+ * A checkbox with its label and an optional Read link, used for legal consent.
+ * It never starts ticked by itself: `checked` is always controlled by the caller.
+ */
+export function CheckboxRow({
+  checked,
+  onChange,
+  children,
+  onRead,
+  readHref,
+  readLabel = "Read",
+  name,
+  required,
+  disabled,
+  className,
+}: CheckboxRowProps) {
+  const readClass = cx("ml-1 font-bold text-accent no-underline hover:underline rounded-sm", focusRing);
+  return (
+    <label className={cx("flex items-start gap-3 py-3 text-ds-sm leading-[1.45] text-ink", disabled && "opacity-60", className)}>
+      <input
+        type="checkbox"
+        name={name}
+        required={required}
+        disabled={disabled}
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-px h-[22px] w-[22px] flex-none accent-accent cursor-pointer disabled:cursor-not-allowed"
+      />
+      <span>
+        {children}
+        {onRead ? (
+          <button type="button" onClick={onRead} className={readClass}>
+            {readLabel}
+          </button>
+        ) : readHref ? (
+          <Link href={readHref} target="_blank" rel="noopener noreferrer" className={readClass}>
+            {readLabel}
+          </Link>
+        ) : null}
+      </span>
+    </label>
+  );
+}

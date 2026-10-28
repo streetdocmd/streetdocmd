@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "../design/tokens.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,7 +7,7 @@
   * { box-sizing: border-box; }
   body {
     @apply bg-gray-50 text-gray-900 antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font);
   }
 }
 
