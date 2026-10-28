@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { Button } from "@/components/ds";
 
 export default function CancelButton({ bookingId }: { bookingId: string }) {
   const router = useRouter();
@@ -17,8 +18,8 @@ export default function CancelButton({ bookingId }: { bookingId: string }) {
   }
 
   return (
-    <button onClick={cancel} disabled={loading} className="btn-danger text-xs px-3 py-1.5">
-      {loading ? "…" : "Cancel"}
-    </button>
+    <Button variant="secondary" onClick={cancel} disabled={loading} className="min-h-10 px-4 text-ds-sm text-danger hover:border-danger hover:text-danger">
+      {loading ? "Cancelling…" : "Cancel"}
+    </Button>
   );
 }

@@ -1,28 +1,122 @@
 ﻿import Link from "next/link";
-import { ClipboardList, Star, CheckCircle2, ArrowRight } from "lucide-react";
+import { ArrowRight, CalendarDays, Check, ChevronRight, Star, Stethoscope } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { formatNaira, SERVICE_LABELS, BOOKING_STATUS_LABELS } from "@/lib/shared";
+import { Avatar, Button, Card, Pill, cx, focusRing, type PillTone } from "@/components/ds";
 import CancelButton from "./CancelButton";
 import ProviderDeclinedActions from "./ProviderDeclinedActions";
-
-// Deliberately few, consistent hues rather than one per status: anything
-// still progressing toward the visit reads as "in progress" (blue) with
-// the exact stage conveyed by the label text, not a rainbow of colors.
-const STATUS_COLORS: Record<string, string> = {
-  pending_payment: "bg-amber-100 text-amber-800",
-  paid: "bg-blue-100 text-blue-800",
-  pending: "bg-blue-100 text-blue-800",
-  accepted: "bg-blue-100 text-blue-800",
-  en_route: "bg-blue-100 text-blue-800",
-  arrived: "bg-blue-100 text-blue-800",
-  in_progress: "bg-blue-100 text-blue-800",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-gray-100 text-gray-600",
-  expired: "bg-gray-100 text-gray-600",
-  provider_declined: "bg-red-100 text-red-800",
-};
+import VisitsTabs from "./VisitsTabs";
 
 const ACTIVE = ["accepted", "en_route", "arrived", "in_progress"];
+const PAST = ["completed", "cancelled", "expired"];
+
+// Few, consistent tones: anything still progressing toward the visit is "info",
+// with the exact stage in the label text.
+const TONE: Record<string, PillTone> = {
+  pending_payment: "warn",
+  provider_declined: "bad",
+  completed: "ok",
+  cancelled: "idle",
+  expired: "idle",
+};
+
+const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+const tz = "Africa/Lagos";
+
+function VisitCard({ b }: { b: any }) {
+  const isActive = ACTIVE.includes(b.status);
+  const isRated = (b.reviews?.length ?? 0) > 0;
+  const service = sentence((SERVICE_LABELS as Record<string, string>)[b.service_type] ?? "");
+  const when = new Date(b.scheduled_at ?? b.created_at);
+  const href = b.status === "pending_payment" ? `/dashboard/book/payment/${b.id}`
+    : isActive || ["pending", "paid"].includes(b.status) ? `/dashboard/book/tracking/${b.id}`
+    : b.status === "completed" ? `/dashboard/journey/${b.id}`
+    : null;
+  const providerName = b.providers?.name ?? null;
+  const bookAgain = b.providers?.referral_code
+    ? `/dashboard/book/preferred-provider?code=${encodeURIComponent(b.providers.referral_code)}`
+    : `/dashboard/book/${b.service_type}`;
+
+  const head = (
+    <>
+      <div className="flex items-center justify-between gap-3">
+        <Pill tone={TONE[b.status] ?? "info"} icon={b.status === "completed" ? Check : CalendarDays}>
+          {b.status === "completed" || !b.scheduled_at
+            ? sentence((BOOKING_STATUS_LABELS as Record<string, string>)[b.status] ?? b.status)
+            : when.toLocaleDateString("en-NG", { weekday: "short", day: "numeric", month: "short", timeZone: tz })}
+        </Pill>
+        <span className="text-ds-sm text-muted">
+          {b.scheduled_at && b.status !== "completed"
+            ? when.toLocaleTimeString("en-NG", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz })
+            : when.toLocaleDateString("en-NG", { day: "numeric", month: "short", timeZone: tz })}
+        </span>
+      </div>
+      <div className="mt-3 flex items-center gap-3">
+        {providerName ? <Avatar name={providerName} src={b.providers?.photo_url} size="sm" /> : (
+          <span className="grid h-10 w-10 flex-none place-items-center rounded-[13px] bg-sky text-brand"><Stethoscope size={18} aria-hidden /></span>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-ds-control font-extrabold text-navy">{providerName ?? service}</div>
+          <div className="mt-0.5 truncate text-[13px] text-muted">
+            {[providerName ? service : "Provider not assigned yet", b.family_members && `for ${b.family_members.name}`].filter(Boolean).join(" · ")}
+          </div>
+        </div>
+        {href && <ChevronRight size={20} className="text-muted" aria-hidden />}
+      </div>
+    </>
+  );
+
+  return (
+    <div className="mb-3 rounded-ds-lg border border-line bg-surface p-4 shadow-ds-sm">
+      {href ? (
+        <Link href={href} className={cx("block rounded-ds-sm", focusRing)}>{head}</Link>
+      ) : head}
+
+      {b.follow_up_of_booking_id && (
+        <p className="mt-2 text-ds-xs font-semibold text-accent">Recommended by your provider as a follow up visit</p>
+      )}
+      {b.status === "provider_declined" && (
+        <p className="mt-2 text-ds-xs font-semibold text-danger">The provider you requested wasn&apos;t able to accept this booking.</p>
+      )}
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-ds-sm font-extrabold text-navy tabular-nums">{formatNaira(b.fee)}</span>
+        <div className="flex flex-wrap items-center gap-2">
+          {b.status === "pending_payment" && (
+            <Button href={`/dashboard/book/payment/${b.id}`} className="min-h-10 px-4 text-ds-sm">Pay now <ArrowRight size={14} aria-hidden /></Button>
+          )}
+          {isActive && (
+            <Button href={`/dashboard/book/tracking/${b.id}`} className="min-h-10 px-4 text-ds-sm">Track <ArrowRight size={14} aria-hidden /></Button>
+          )}
+          {b.status === "completed" && !isRated && (
+            <Button href={`/dashboard/book/rate/${b.id}?providerId=${b.provider_id}`} variant="secondary" className="min-h-10 px-4 text-ds-sm">
+              <Star size={14} aria-hidden /> Rate visit
+            </Button>
+          )}
+          {b.status === "completed" && isRated && <span className="text-ds-xs font-semibold text-muted">Rated</span>}
+          {b.status === "completed" && (
+            <Button href={bookAgain} variant="secondary" className="min-h-10 px-4 text-ds-sm">Book again</Button>
+          )}
+          {b.status === "pending" && <CancelButton bookingId={b.id} />}
+        </div>
+      </div>
+      {b.status === "provider_declined" && <ProviderDeclinedActions bookingId={b.id} />}
+    </div>
+  );
+}
+
+function Empty({ title, text, cta }: { title: string; text: string; cta: string }) {
+  return (
+    <Card className="px-5 py-6 text-center">
+      <span className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-[18px] bg-sky text-brand">
+        <Stethoscope size={24} aria-hidden />
+      </span>
+      <b className="text-ink">{title}</b>
+      <p className="mb-3.5 mt-1.5 text-ds-sm text-muted">{text}</p>
+      <Button href="/dashboard">{cta}</Button>
+    </Card>
+  );
+}
 
 export default async function BookingsPage() {
   const supabase = await createServerSupabase();
@@ -30,97 +124,35 @@ export default async function BookingsPage() {
 
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("*, providers!bookings_provider_id_fkey(name, specialty), reviews(id), family_members(name, relationship)")
+    .select("*, providers!bookings_provider_id_fkey(name, specialty, photo_url, referral_code), reviews(id), family_members(name, relationship)")
     .eq("patient_id", user!.id)
     .order("created_at", { ascending: false });
 
   const list = bookings ?? [];
+  const upcoming = list.filter((b: any) => !PAST.includes(b.status));
+  const past = list.filter((b: any) => PAST.includes(b.status));
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">My Bookings</h1>
+    <div className="mx-auto max-w-2xl">
+      <div className="pb-4">
+        <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Your visits</h1>
+        <small className="text-[13px] font-semibold text-muted">Upcoming care and past records</small>
+      </div>
 
-      {list.length === 0 ? (
-        <div className="card p-12 text-center">
-          <div className="w-14 h-14 rounded-full bg-blue-light flex items-center justify-center mx-auto mb-4">
-            <ClipboardList size={26} className="text-blue-brand" />
-          </div>
-          <p className="font-semibold text-gray-700 text-lg">No bookings yet</p>
-          <p className="text-gray-400 text-sm mt-1">Your booking history will appear here.</p>
-          <Link href="/dashboard" className="btn-primary inline-flex mt-4">Book a Service</Link>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {list.map((b: any) => {
-            const isActive = ACTIVE.includes(b.status);
-            const isRated = (b.reviews?.length ?? 0) > 0;
-            return (
-              <div key={b.id} className="card p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-gray-900">{(SERVICE_LABELS as Record<string, string>)[b.service_type]}</h3>
-                      <span className={`badge ${STATUS_COLORS[b.status]}`}>
-                        {(BOOKING_STATUS_LABELS as Record<string, string>)[b.status]}
-                      </span>
-                    </div>
-                    {b.providers && (
-                      <p className="text-sm text-gray-500 mt-0.5">{b.providers.name} · {b.providers.specialty}</p>
-                    )}
-                    {b.family_members && (
-                      <p className="text-xs text-gray-400 mt-0.5">For {b.family_members.name} ({b.family_members.relationship})</p>
-                    )}
-                    {b.follow_up_of_booking_id && (
-                      <p className="text-xs text-blue-brand mt-1">Recommended by your provider as a follow-up visit</p>
-                    )}
-                    {b.status === "provider_declined" && (
-                      <p className="text-xs text-red-600 mt-1">
-                        The provider you requested wasn't able to accept this booking.
-                      </p>
-                    )}
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="text-blue-brand font-bold text-sm">{formatNaira(b.fee)}</span>
-                      <span className="text-gray-400 text-xs">
-                        {new Date(b.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 items-end shrink-0">
-                    {b.status === "pending_payment" && (
-                      <Link href={`/dashboard/book/payment/${b.id}`} className="btn-primary text-xs px-3 py-1.5 whitespace-nowrap inline-flex items-center gap-1">
-                        Pay Now <ArrowRight size={13} />
-                      </Link>
-                    )}
-                    {isActive && (
-                      <Link href={`/dashboard/book/tracking/${b.id}`} className="btn-primary text-xs px-3 py-1.5 inline-flex items-center gap-1">
-                        Track <ArrowRight size={13} />
-                      </Link>
-                    )}
-                    {b.status === "completed" && (
-                      <Link href={`/dashboard/journey/${b.id}`} className="btn-success text-xs px-3 py-1.5 whitespace-nowrap inline-flex items-center gap-1">
-                        Care Journey <ArrowRight size={13} />
-                      </Link>
-                    )}
-                    {b.status === "completed" && !isRated && (
-                      <Link href={`/dashboard/book/rate/${b.id}?providerId=${b.provider_id}`} className="btn-secondary text-xs px-3 py-1.5 inline-flex items-center gap-1 whitespace-nowrap">
-                        <Star size={13} /> Rate Visit
-                      </Link>
-                    )}
-                    {b.status === "completed" && isRated && (
-                      <span className="text-xs text-green-600 font-medium inline-flex items-center gap-1">
-                        <CheckCircle2 size={13} /> Rated
-                      </span>
-                    )}
-                    {b.status === "pending" && <CancelButton bookingId={b.id} />}
-                  </div>
-                </div>
-                {b.status === "provider_declined" && <ProviderDeclinedActions bookingId={b.id} />}
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <VisitsTabs
+        startOnPast={upcoming.length === 0 && past.length > 0}
+        upcoming={
+          <>
+            {upcoming.map((b: any) => <VisitCard key={b.id} b={b} />)}
+            <Empty title="Need another visit?" text="Book a verified provider in a few taps." cta="Find care" />
+          </>
+        }
+        past={
+          past.length > 0
+            ? past.map((b: any) => <VisitCard key={b.id} b={b} />)
+            : <Empty title="No past visits yet" text="Your completed visits and their records appear here." cta="Book your first visit" />
+        }
+      />
     </div>
   );
 }
