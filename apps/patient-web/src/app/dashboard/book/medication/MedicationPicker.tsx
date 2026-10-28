@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Plus, Minus, ShoppingCart, Pill } from "lucide-react";
+import { Search, ShoppingCart } from "lucide-react";
+import { Avatar, Button, Card, Notice, Pill, Stepper, VerifiedBadge, cx, focusRing } from "@/components/ds";
 import { formatNaira } from "@/lib/shared";
 import LocationPicker from "@/components/LocationPicker";
 
@@ -101,97 +102,105 @@ export default function MedicationPicker() {
       <LocationPicker onReady={onLocationReady} onReset={resetLocation} />
 
       {coords && loadingCatalogue && (
-        <div className="card p-6 text-center text-gray-500 text-sm">Finding the nearest pharmacy…</div>
+        <Card className="text-center text-ds-sm text-muted">Finding the nearest pharmacy…</Card>
       )}
 
-      {coords && catalogueError && (
-        <div className="card p-6 text-center border border-red-200 bg-red-50 text-red-600 text-sm">{catalogueError}</div>
-      )}
+      {coords && catalogueError && <Notice tone="danger">{catalogueError}</Notice>}
 
       {coords && !loadingCatalogue && !catalogueError && items.length > 0 && (
         <>
-          <div className="card p-4">
-            <p className="text-xs text-gray-400 mb-0.5">Fulfilled by</p>
-            <p className="text-sm font-semibold text-gray-900">{pharmacyName}</p>
+          {/* Pharmacy header */}
+          <div>
+            <Avatar name={pharmacyName} size="lg" tint="var(--tint-yellow)" />
+            <h2 className="mt-3 text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{pharmacyName}</h2>
+            <p className="mt-1 text-ds-sm text-muted">Pharmacy · Nearest to you</p>
+            <VerifiedBadge className="mt-2.5">Verified partner pharmacy</VerifiedBadge>
+            {/* TODO(design): opening hours, delivery time and regulator rows need those fields from /api/pharmacy/catalogue. */}
           </div>
 
-          <div className="relative">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              className="input pl-10"
-              placeholder="Search medication…"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-            />
-          </div>
+          <section>
+            <div className="mb-3 flex items-baseline justify-between">
+              <h3 className="text-[17px] font-bold text-navy">Medicines in stock</h3>
+              <span className="text-ds-sm text-muted">Prices in Naira</span>
+            </div>
+            <label className="mb-1.5 flex h-[54px] items-center gap-2.5 rounded-[18px] border-[1.5px] border-line bg-surface px-4 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent-soft">
+              <Search size={20} className="flex-none text-navy" aria-hidden />
+              <input
+                className="min-w-0 flex-1 bg-transparent text-ds-control text-ink outline-none placeholder:text-muted"
+                placeholder="Search a medicine"
+                aria-label="Search a medicine"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+              />
+            </label>
 
-          <div className="space-y-2 max-h-[28rem] overflow-y-auto">
-            {filtered.map(item => {
-              const qty = quantities[item.id] ?? 0;
-              return (
-                <div key={item.id} className="card p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-light flex items-center justify-center shrink-0">
-                    <Pill size={18} className="text-blue-brand" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{item.drug_name}</p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {[item.strength, item.formulation].filter(Boolean).join(" · ") || item.generic_name}
-                    </p>
-                    <p className="text-sm font-bold text-blue-brand mt-0.5">{formatNaira(item.price)}</p>
-                  </div>
-                  {qty === 0 ? (
-                    <button onClick={() => changeQty(item.id, 1)} className="btn-secondary text-xs px-3 py-1.5 shrink-0">
-                      Add
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => changeQty(item.id, -1)}
-                        aria-label="Decrease quantity"
-                        className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
-                      >
-                        <Minus size={14} />
-                      </button>
-                      <span className="text-sm font-semibold w-4 text-center">{qty}</span>
-                      <button
-                        onClick={() => changeQty(item.id, 1)}
-                        aria-label="Increase quantity"
-                        className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
-                      >
-                        <Plus size={14} />
-                      </button>
+            <Card padded={false} className="px-4 py-1">
+              {filtered.map(item => {
+                const qty = quantities[item.id] ?? 0;
+                return (
+                  <div key={item.id} className="flex items-center gap-3 border-b border-line py-3.5 last:border-b-0">
+                    <div className="min-w-0 flex-1">
+                      <b className="block truncate text-ds-sm text-ink">{item.drug_name}</b>
+                      <small className="block truncate text-ds-xs text-muted">
+                        {[item.strength, item.formulation].filter(Boolean).join(" · ") || item.generic_name}
+                      </small>
+                      {/* The catalogue only lists items in stock. TODO(design): "Low, N left" needs stock_quantity in the API response. */}
+                      <div className="mt-1.5"><Pill tone="ok">In stock</Pill></div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-            {filtered.length === 0 && (
-              <p className="text-sm text-gray-400 text-center py-6">No medication matches your search.</p>
-            )}
-          </div>
+                    <div className="text-right">
+                      <div className="text-ds-sm font-extrabold text-navy tabular-nums">{formatNaira(item.price)}</div>
+                      <div className="mt-1.5">
+                        {qty === 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => changeQty(item.id, 1)}
+                            className={cx("min-h-9 rounded-xl border-[1.5px] border-accent bg-surface px-3 text-[13px] font-bold text-accent", focusRing)}
+                          >
+                            Add
+                          </button>
+                        ) : (
+                          <Stepper
+                            label={`Quantity of ${item.drug_name}`}
+                            value={qty}
+                            min={0}
+                            size="sm"
+                            onChange={v => changeQty(item.id, v - qty)}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {filtered.length === 0 && (
+                <p className="py-[18px] text-center text-ds-sm text-muted">No medicine by that name here.</p>
+              )}
+            </Card>
+          </section>
 
           {selectedEntries.length > 0 && (
-            <div className="card p-4 sticky bottom-2 shadow-card-md border-blue-mid">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-gray-500 inline-flex items-center gap-1.5">
-                  <ShoppingCart size={15} /> {selectedEntries.length} item{selectedEntries.length > 1 ? "s" : ""}
-                </span>
-                <span className="text-base font-bold text-blue-brand">{formatNaira(total)}</span>
+            <div className="sticky bottom-[76px] z-20 rounded-ds-lg border border-line bg-surface/95 p-3.5 shadow-ds backdrop-blur md:bottom-4">
+              {error && <Notice tone="danger" className="mb-3">{error}</Notice>}
+              <div className="flex items-center gap-3.5">
+                <div>
+                  <small className="inline-flex items-center gap-1 text-ds-2xs font-bold text-muted">
+                    <ShoppingCart size={12} aria-hidden /> {selectedEntries.length} item{selectedEntries.length > 1 ? "s" : ""}
+                  </small>
+                  <b className="block text-[20px] tracking-[-0.01em] text-navy tabular-nums">{formatNaira(total)}</b>
+                </div>
+                <Button className="flex-1" onClick={placeOrder} disabled={submitting}>
+                  {submitting ? "Placing order…" : "Continue order"}
+                </Button>
               </div>
-              {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
-              <button onClick={placeOrder} disabled={submitting} className="btn-primary w-full">
-                {submitting ? "Placing order…" : `Place Order · ${formatNaira(total)}`}
-              </button>
             </div>
           )}
         </>
       )}
 
       {coords && !loadingCatalogue && !catalogueError && items.length === 0 && (
-        <div className="card p-6 text-center text-gray-400 text-sm">
-          No over-the-counter medication is currently listed for the pharmacy nearest you.
-        </div>
+        <Card className="text-center text-ds-sm text-muted">
+          No over the counter medication is currently listed for the pharmacy nearest you.
+        </Card>
       )}
     </div>
   );

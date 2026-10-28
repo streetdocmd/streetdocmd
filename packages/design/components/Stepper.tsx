@@ -12,17 +12,21 @@ interface StepperProps {
   max?: number;
   step?: number;
   disabled?: boolean;
+  /** "sm" fits inside a list row (36px buttons) */
+  size?: "md" | "sm";
   className?: string;
 }
 
-export function Stepper({ value, onChange, label, min = 0, max = Infinity, step = 1, disabled, className }: StepperProps) {
+export function Stepper({ value, onChange, label, min = 0, max = Infinity, step = 1, disabled, size = "md", className }: StepperProps) {
+  const sm = size === "sm";
   const btn = cx(
-    "grid place-items-center w-11 h-11 rounded-[14px] border-[1.5px] border-line bg-surface text-navy",
+    "grid place-items-center border-[1.5px] border-line bg-surface text-navy",
+    sm ? "w-9 h-9 rounded-xl" : "w-11 h-11 rounded-[14px]",
     "hover:border-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-line",
     focusRing,
   );
   return (
-    <div role="group" aria-label={label} className={cx("flex items-center gap-2.5", className)}>
+    <div role="group" aria-label={label} className={cx("flex items-center", sm ? "gap-1.5" : "gap-2.5", className)}>
       <button
         type="button"
         className={btn}
@@ -30,9 +34,9 @@ export function Stepper({ value, onChange, label, min = 0, max = Infinity, step 
         disabled={disabled || value - step < min}
         onClick={() => onChange(Math.max(min, value - step))}
       >
-        <Minus size={18} strokeWidth={2.4} aria-hidden />
+        <Minus size={sm ? 15 : 18} strokeWidth={2.4} aria-hidden />
       </button>
-      <output aria-live="polite" className="min-w-[42px] text-center text-ds-lg font-bold text-navy tabular-nums">
+      <output aria-live="polite" className={cx("text-center font-bold text-navy tabular-nums", sm ? "min-w-6 text-ds-sm" : "min-w-[42px] text-ds-lg")}>
         {value}
       </output>
       <button
@@ -42,7 +46,7 @@ export function Stepper({ value, onChange, label, min = 0, max = Infinity, step 
         disabled={disabled || value + step > max}
         onClick={() => onChange(Math.min(max, value + step))}
       >
-        <Plus size={18} strokeWidth={2.4} aria-hidden />
+        <Plus size={sm ? 15 : 18} strokeWidth={2.4} aria-hidden />
       </button>
     </div>
   );
