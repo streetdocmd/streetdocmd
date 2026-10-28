@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import PayPanel from "@/components/PayPanel";
 
 declare global {
   interface Window {
@@ -78,20 +79,14 @@ export default function PaystackButton({
     document.head.appendChild(script);
   }
 
-  const formatted = new Intl.NumberFormat("en-NG", {
-    style: "currency", currency: "NGN", minimumFractionDigits: 0,
-  }).format(amount);
-
   return (
-    <div className="space-y-3">
-      <button
-        onClick={pay}
-        disabled={loading}
-        className="btn-primary w-full text-center text-base py-3"
-      >
-        {loading ? "Processing…" : `Pay ${formatted}`}
-      </button>
-      {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-    </div>
+    <PayPanel
+      total={amount}
+      onPay={pay}
+      loading={loading}
+      loadingLabel="Processing…"
+      error={error}
+      note="Your provider is dispatched once payment is confirmed."
+    />
   );
 }

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { formatNaira } from "@/lib/shared";
+import { Card, TopBar } from "@/components/ds";
 import PayForMedicationButton from "./PayForMedicationButton";
 
 export default async function MedicationPaymentPage({ params }: { params: { id: string } }) {
@@ -21,33 +22,41 @@ export default async function MedicationPaymentPage({ params }: { params: { id: 
   const drugs = (order.drugs as any[]) ?? [];
 
   return (
-    <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Complete Payment</h1>
+    <div className="mx-auto max-w-lg">
+      <TopBar title="Review and pay" className="-mx-5 -mt-2 md:mx-0" />
+      <div className="mb-4 flex gap-1.5" aria-hidden>
+        <span className="h-[5px] flex-1 rounded bg-accent" />
+        <span className="h-[5px] flex-1 rounded bg-accent" />
+        <span className="h-[5px] flex-1 rounded bg-line" />
+      </div>
 
-      <div className="card p-6 mb-4">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Order Summary</h2>
-        <p className="text-sm text-gray-500 mb-3">{order.pharmacy_partners?.name}</p>
-        <dl className="space-y-2 mb-3">
-          {drugs.map((d, i) => (
-            <div key={i} className="flex justify-between text-sm">
-              <dt className="text-gray-600">{d.drug_name} × {d.quantity}</dt>
-              <dd className="font-medium text-gray-900">{formatNaira(d.price)}</dd>
-            </div>
-          ))}
+      <Card padded={false} className="px-5 py-1">
+        <dl>
+          <Row label="Order" value="Medicine order" />
+          {order.pharmacy_partners?.name && <Row label="Pharmacy" value={order.pharmacy_partners.name} />}
         </dl>
-        <div className="border-t border-gray-100 pt-3 flex justify-between">
-          <span className="text-sm text-gray-500">Total</span>
-          <span className="text-base font-bold text-blue-brand">{formatNaira(order.total_amount)}</span>
-        </div>
-      </div>
+      </Card>
 
-      <div className="card p-6 mb-6 bg-amber-50 border-amber-100">
-        <p className="text-sm text-amber-700">
-          <span className="font-semibold">Note:</span> Payment is collected upfront. Your order will be prepared and dispatched for delivery once payment is confirmed.
-        </p>
-      </div>
+      <Card className="mt-3">
+        <h2 className="mb-1 text-ds-control font-bold text-navy">Price</h2>
+        <dl>
+          {drugs.map((d, i) => (
+            <Row key={i} label={`${d.drug_name} × ${d.quantity}`} value={formatNaira(d.price)} />
+          ))}
+          <Row label="Total" value={formatNaira(order.total_amount)} bold />
+        </dl>
+      </Card>
 
-      <PayForMedicationButton orderId={params.id} />
+      <PayForMedicationButton orderId={params.id} total={order.total_amount} />
+    </div>
+  );
+}
+
+function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
+  return (
+    <div className={`flex items-center justify-between gap-4 border-b border-line py-2.5 text-ds-sm last:border-b-0 ${bold ? "text-ds-md" : ""}`}>
+      <dt className="text-muted">{label}</dt>
+      <dd className={`text-right ${bold ? "font-extrabold text-navy" : "font-bold text-ink"} tabular-nums`}>{value}</dd>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, formatNaira } from "@/lib/shared";
+import { Card, TopBar } from "@/components/ds";
 import PaystackButton from "./PaystackButton";
 
 export default async function PaymentPage({ params }: { params: { id: string } }) {
@@ -20,27 +21,36 @@ export default async function PaymentPage({ params }: { params: { id: string } }
 
   const { data: profile } = await supabase.from("users").select("email, name").eq("id", user.id).single();
 
+  const when = booking.scheduled_at
+    ? new Date(booking.scheduled_at).toLocaleString("en-NG", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Africa/Lagos" })
+    : "Now";
+
   return (
-    <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Complete Payment</h1>
+    <div className="mx-auto max-w-lg">
+      <TopBar title="Review and pay" className="-mx-5 -mt-2 md:mx-0" />
+      <div className="mb-4 flex gap-1.5" aria-hidden>
+        <span className="h-[5px] flex-1 rounded bg-accent" />
+        <span className="h-[5px] flex-1 rounded bg-accent" />
+        <span className="h-[5px] flex-1 rounded bg-line" />
+      </div>
 
-      <div className="card p-6 mb-4">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Booking Summary</h2>
-        <dl className="space-y-3">
-          <Row label="Service" value={(SERVICE_LABELS as Record<string, string>)[booking.service_type]} />
-          {booking.providers && <Row label="Provider" value={`${booking.providers.name} · ${booking.providers.specialty}`} />}
-          <Row label="Platform fee (20%)" value={formatNaira(booking.commission)} />
-          <div className="border-t border-gray-100 pt-3">
-            <Row label="Total" value={formatNaira(booking.fee)} bold />
-          </div>
+      <Card padded={false} className="px-5 py-1">
+        <dl>
+          <Row label="Booking" value={(SERVICE_LABELS as Record<string, string>)[booking.service_type]} />
+          {booking.providers && <Row label="Provider" value={booking.providers.name} />}
+          <Row label="For" value={booking.family_member_id ? "A family member" : "Me"} />
+          <Row label="When" value={when} />
+          {booking.patient_address && <Row label="Where" value={booking.patient_address} />}
         </dl>
-      </div>
+      </Card>
 
-      <div className="card p-6 mb-6 bg-amber-50 border-amber-100">
-        <p className="text-sm text-amber-700">
-          <span className="font-semibold">Note:</span> Payment is collected upfront. Your provider will be dispatched once payment is confirmed.
-        </p>
-      </div>
+      <Card className="mt-3">
+        <h2 className="mb-1 text-ds-control font-bold text-navy">Price</h2>
+        <dl>
+          <Row label="Platform fee (20%)" value={formatNaira(booking.commission)} />
+          <Row label="Total" value={formatNaira(booking.fee)} bold />
+        </dl>
+      </Card>
 
       <PaystackButton
         bookingId={params.id}
@@ -54,9 +64,9 @@ export default async function PaymentPage({ params }: { params: { id: string } }
 
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <div className="flex justify-between">
-      <dt className="text-sm text-gray-500">{label}</dt>
-      <dd className={`text-sm ${bold ? "font-bold text-blue-brand text-base" : "font-medium text-gray-900"}`}>{value}</dd>
+    <div className={`flex items-center justify-between gap-4 border-b border-line py-2.5 text-ds-sm last:border-b-0 ${bold ? "text-ds-md" : ""}`}>
+      <dt className="text-muted">{label}</dt>
+      <dd className={`text-right ${bold ? "font-extrabold text-navy" : "font-bold text-ink"} tabular-nums`}>{value}</dd>
     </div>
   );
 }

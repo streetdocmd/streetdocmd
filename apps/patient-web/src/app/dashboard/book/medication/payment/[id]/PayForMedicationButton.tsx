@@ -1,7 +1,8 @@
 "use client";
+import PayPanel from "@/components/PayPanel";
 import { useState } from "react";
 
-export default function PayForMedicationButton({ orderId }: { orderId: string }) {
+export default function PayForMedicationButton({ orderId, total }: { orderId: string; total: number }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -28,13 +29,13 @@ export default function PayForMedicationButton({ orderId }: { orderId: string })
   }
 
   return (
-    <div>
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">{error}</div>
-      )}
-      <button onClick={pay} disabled={loading} className="btn-primary w-full text-base py-3">
-        {loading ? "Redirecting to payment…" : "Pay Now"}
-      </button>
-    </div>
+    <PayPanel
+      total={total}
+      onPay={pay}
+      loading={loading}
+      loadingLabel="Redirecting to payment…"
+      error={error}
+      note="Your order is prepared and dispatched once payment is confirmed."
+    />
   );
 }
