@@ -7,7 +7,7 @@ export default function SocialLinks({ variant = "light", className = "" }: { var
   const dark = variant === "dark";
   return (
     <div className={`flex items-center justify-between gap-3 ${className}`}>
-      <span className={`text-xs font-medium ${dark ? "text-blue-200/70" : "text-gray-500"}`}>Follow us</span>
+      <span className={`text-xs font-medium ${dark ? "text-blue-200/70" : "text-muted"}`}>Follow us</span>
       <div className="flex items-center gap-1">
         {SOCIAL_LINKS.map(s => (
           <a
@@ -18,7 +18,7 @@ export default function SocialLinks({ variant = "light", className = "" }: { var
             aria-label={`StreetdocMD on ${s.label} (${s.handle})`}
             title={`${s.label} · ${s.handle}`}
             className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-              dark ? "text-blue-200 hover:text-white hover:bg-white/10" : "text-gray-500 hover:text-blue-brand hover:bg-blue-light"
+              dark ? "text-blue-200 hover:text-white hover:bg-white/10" : "text-muted hover:text-accent hover:bg-accent-soft"
             }`}
           >
             <SocialIcon id={s.id} />

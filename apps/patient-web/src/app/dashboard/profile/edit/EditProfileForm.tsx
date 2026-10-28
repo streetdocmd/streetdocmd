@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
+import { Button, Chip, Notice, fieldLabelClass, inputClass } from "@/components/ds";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -57,17 +58,17 @@ export default function EditProfileForm({ userId, profile }: { userId: string; p
 
   return (
     <form onSubmit={save} className="space-y-6" noValidate>
-      <div className="card p-6 space-y-4">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">About You</h2>
+      <div className="space-y-4 rounded-ds-lg border border-line bg-surface p-5 shadow-ds-sm">
+        <h2 className="text-ds-control font-bold text-navy">About you</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="label" htmlFor="dob">Date of birth</label>
-            <input id="dob" type="date" className="input" value={dob} onChange={e => setDob(e.target.value)}
+            <label className={fieldLabelClass} htmlFor="dob">Date of birth</label>
+            <input id="dob" type="date" className={inputClass()} value={dob} onChange={e => setDob(e.target.value)}
               min="1900-01-01" max={new Date().toISOString().split("T")[0]} />
           </div>
           <div>
-            <label className="label" htmlFor="gender">Gender</label>
-            <select id="gender" className="input" value={gender} onChange={e => setGender(e.target.value)}>
+            <label className={fieldLabelClass} htmlFor="gender">Gender</label>
+            <select id="gender" className={inputClass(false, "appearance-none")} value={gender} onChange={e => setGender(e.target.value)}>
               <option value="">Select</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -77,70 +78,61 @@ export default function EditProfileForm({ userId, profile }: { userId: string; p
         </div>
       </div>
 
-      <div className="card p-6">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Blood Group</h2>
+      <div className="rounded-ds-lg border border-line bg-surface p-5 shadow-ds-sm">
+        <h2 className="mb-3 text-ds-control font-bold text-navy">Blood group</h2>
         <div className="flex flex-wrap gap-2">
           {BLOOD_GROUPS.map(bg => (
-            <button
-              key={bg}
-              type="button"
-              onClick={() => setBloodGroup(bg === bloodGroup ? "" : bg)}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                bloodGroup === bg
-                  ? "bg-blue-brand text-white border-blue-brand"
-                  : "bg-white text-gray-700 border-gray-200 hover:border-blue-brand hover:text-blue-brand"
-              }`}
-            >
+            <Chip key={bg} selected={bloodGroup === bg} onClick={() => setBloodGroup(bg === bloodGroup ? "" : bg)}>
               {bg}
-            </button>
+            </Chip>
           ))}
         </div>
       </div>
 
-      <div className="card p-6 space-y-4">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Medical History</h2>
+      <div className="space-y-4 rounded-ds-lg border border-line bg-surface p-5 shadow-ds-sm">
+        <h2 className="text-ds-control font-bold text-navy">Medical history</h2>
         <div>
-          <label className="label">Known Conditions <span className="text-gray-400 font-normal">(comma-separated)</span></label>
-          <input className="input" value={conditions} onChange={e => setConditions(e.target.value)}
+          <label className={fieldLabelClass}>Known conditions <span className="font-normal text-muted">(separate with commas)</span></label>
+          <input className={inputClass()} value={conditions} onChange={e => setConditions(e.target.value)}
             placeholder="e.g. Hypertension, Diabetes" />
         </div>
         <div>
-          <label className="label">Allergies</label>
-          <input className="input" value={allergies} onChange={e => setAllergies(e.target.value)}
+          <label className={fieldLabelClass}>Allergies</label>
+          <input className={inputClass()} value={allergies} onChange={e => setAllergies(e.target.value)}
             placeholder="e.g. Penicillin, Peanuts" />
         </div>
         <div>
-          <label className="label">Current Medications</label>
-          <input className="input" value={medications} onChange={e => setMedications(e.target.value)}
+          <label className={fieldLabelClass}>Current medications</label>
+          <input className={inputClass()} value={medications} onChange={e => setMedications(e.target.value)}
             placeholder="e.g. Lisinopril 10mg, Metformin 500mg" />
         </div>
       </div>
 
-      <div className="card p-6 space-y-4">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Emergency Contact</h2>
+      <div className="space-y-4 rounded-ds-lg border border-line bg-surface p-5 shadow-ds-sm">
+        <h2 className="text-ds-control font-bold text-navy">Emergency contact</h2>
         <div>
-          <label className="label">Full name</label>
-          <input className="input" value={emergencyName} onChange={e => setEmergencyName(e.target.value)} placeholder="Contact name" />
+          <label className={fieldLabelClass}>Full name</label>
+          <input className={inputClass()} value={emergencyName} onChange={e => setEmergencyName(e.target.value)} placeholder="Contact name" />
         </div>
         <div>
-          <label className="label">Phone number</label>
-          <input type="tel" inputMode="tel" className="input" value={emergencyPhone} onChange={e => setEmergencyPhone(e.target.value)} placeholder="08012345678" />
+          <label className={fieldLabelClass}>Phone number</label>
+          <input type="tel" inputMode="tel" className={inputClass()} value={emergencyPhone} onChange={e => setEmergencyPhone(e.target.value)} placeholder="08012345678" />
         </div>
         <div>
-          <label className="label">Relationship</label>
-          <input className="input" value={emergencyRel} onChange={e => setEmergencyRel(e.target.value)} placeholder="e.g. Spouse, Parent" />
+          <label className={fieldLabelClass}>Relationship</label>
+          <input className={inputClass()} value={emergencyRel} onChange={e => setEmergencyRel(e.target.value)} placeholder="e.g. Spouse, Parent" />
         </div>
       </div>
 
       {error && (
-        <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
+        <Notice tone="danger">{error}</Notice>
       )}
 
       <div className="flex gap-3">
-        <button type="submit" disabled={saving} className="btn-primary">
-          {saving ? "Saving…" : "Save Changes"}
-        </button>
-        <button type="button" onClick={() => router.back()} className="btn-secondary">Cancel</button>
+        <Button type="submit" disabled={saving} className="flex-1">
+          {saving ? "Saving…" : "Save changes"}
+        </Button>
+        <Button variant="secondary" onClick={() => router.back()}>Cancel</Button>
       </div>
     </form>
   );
