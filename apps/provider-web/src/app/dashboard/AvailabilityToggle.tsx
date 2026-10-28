@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Radio } from "lucide-react";
+import { Toggle } from "@/components/ds";
 import { createClient } from "@/lib/supabase";
 
 function locationErrorMessage(err: unknown): string {
@@ -82,40 +82,31 @@ export default function AvailabilityToggle({
   }
 
   return (
-    <div className={`card p-4 sm:p-5 space-y-2 ${available ? "border-green-200" : ""}`}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5 min-w-0">
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${available ? "bg-green-50" : "bg-pending-bg"}`}>
-            <Radio size={20} className={available ? "text-green-online" : "text-muted"} />
-          </div>
+    <div>
+      <div
+        className="relative overflow-hidden rounded-[26px] p-[18px] text-white shadow-[0_16px_34px_rgba(0,127,115,0.25)]"
+        style={{ background: "linear-gradient(140deg, var(--navy) 0%, var(--teal-deep) 100%)" }}
+      >
+        <span aria-hidden className="absolute -right-[70px] -top-[70px] h-[170px] w-[170px] rounded-full bg-white/[0.08]" />
+        <div className="relative flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <p className="font-semibold text-ink">{available ? "You're online" : "You're offline"}</p>
-            <p className="text-sm text-muted mt-0.5">
+            <h2 className="text-[19px] font-bold text-white">{available ? "You are online" : "You are offline"}</h2>
+            <p className="mt-0.5 text-[13px] text-teal-soft">
               {loading
                 ? (available ? "Going offline…" : "Getting your location…")
-                : available ? "Accepting home-visit requests near you" : "Not receiving requests"}
+                : available ? "Patients nearby can book you now" : "Hidden from patients until you switch on"}
             </p>
           </div>
-        </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={available}
-          aria-label={available ? "Go offline" : "Go online"}
-          onClick={toggle}
-          disabled={loading}
-          className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:opacity-50 ${
-            available ? "bg-green-online" : "bg-line"
-          }`}
-        >
-          <span
-            className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition duration-200 ${
-              available ? "translate-x-5" : "translate-x-0"
-            }`}
+          <Toggle
+            checked={available}
+            onChange={() => toggle()}
+            label={available ? "Go offline" : "Go online"}
+            disabled={loading}
+            surface="dark"
           />
-        </button>
+        </div>
       </div>
-      {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
+      {error && <p role="alert" className="mt-2 text-ds-xs font-semibold text-danger">{error}</p>}
     </div>
   );
 }

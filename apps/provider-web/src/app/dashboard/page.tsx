@@ -1,12 +1,14 @@
 import Link from "next/link";
 import {
-  ArrowRight, CheckCircle2, Circle, Inbox, Star, Users, Wallet, Activity, MessageSquareHeart, UserPlus,
+  ArrowRight, CalendarDays, CheckCircle2, Circle, Clock, Check, Inbox, MessageSquareHeart, Stethoscope, UserPlus, Users, Wallet,
+  type LucideIcon,
 } from "lucide-react";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
-import { SERVICE_LABELS, BOOKING_STATUS_LABELS, formatNaira } from "@streetdocmd/shared";
+import { SERVICE_LABELS, BOOKING_STATUS_LABELS, formatNaira, getDistanceKm } from "@streetdocmd/shared";
 import { hasCurrentAgreement } from "@/lib/onboarding";
 import AgreementAcceptCard from "@/components/AgreementAcceptCard";
 import { ComingSoonItem } from "@/components/ComingSoonBadge";
+import { Card, Notice, Pill, cx, focusRing } from "@/components/ds";
 import DispatchCard from "./DispatchCard";
 import AvailabilityToggle from "./AvailabilityToggle";
 import ReferralCodeCard from "./ReferralCodeCard";
@@ -14,6 +16,22 @@ import RealtimeDispatch from "./RealtimeDispatch";
 import LocationBroadcaster from "@/components/LocationBroadcaster";
 
 export const revalidate = 0;
+
+const TZ = "Africa/Lagos";
+const DAY_MS = 86_400_000;
+const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+const lagosDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);
+
+function ageFrom(dob: string | null) {
+  if (!dob) return null;
+  const y = Math.floor((Date.now() - new Date(`${dob}T00:00:00`).getTime()) / (365.25 * DAY_MS));
+  return y >= 0 ? y : null;
+}
+
+function greeting() {
+  const h = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hour12: false, timeZone: TZ }).format(new Date()));
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+}
 
 export default async function DashboardPage({
   searchParams,
@@ -33,8 +51,20 @@ export default async function DashboardPage({
   if (!provider) return null;
 
   const needsServices = provider.profession !== "doctor";
+  const now = new Date();
+  const since14 = new Date(now.getTime() - 14 * DAY_MS).toISOString();
+  const since30 = new Date(now.getTime() - 30 * DAY_MS).toISOString();
+  const admin = createAdminSupabase();
 
-  const [{ data: activeBooking }, { count: activeServices }] = await Promise.all([
+  const [
+    { data: activeBooking },
+    { count: activeServices },
+    { data: recentCompleted },
+    { data: upcoming },
+    { count: reviewCount },
+    { data: responses },
+    { data: dispatchQueue },
+  ] = await Promise.all([
     supabase
       .from("bookings")
       .select("id, service_type, status, patient_address, fee, net_payout")
@@ -50,20 +80,106 @@ export default async function DashboardPage({
           .eq("provider_id", provider.id)
           .eq("active", true)
       : Promise.resolve({ count: null }),
+    // Earnings: completed visits in the last two weeks (this week vs last week, and the chart)
+    supabase
+      .from("bookings")
+      .select("net_payout, completed_at")
+      .eq("provider_id", provider.id)
+      .eq("status", "completed")
+      .gte("completed_at", since14),
+    // Today's schedule: visits accepted or underway, and today's completed ones
+    supabase
+      .from("bookings")
+      .select("id, service_type, status, scheduled_at, accepted_at, completed_at, users!bookings_patient_id_fkey(name)")
+      .eq("provider_id", provider.id)
+      .in("status", ["accepted", "en_route", "arrived", "in_progress", "completed"])
+      .gte("updated_at", new Date(now.getTime() - 2 * DAY_MS).toISOString())
+      .order("scheduled_at", { ascending: true, nullsFirst: true })
+      .limit(20),
+    supabase.from("reviews").select("id", { count: "exact", head: true }).eq("provider_id", provider.id),
+    // Acceptance rate over the last 30 days of offers
+    admin
+      .from("dispatch_queue")
+      .select("response")
+      .eq("provider_id", provider.id)
+      .not("response", "is", null)
+      .gte("sent_at", since30),
+    // Use admin client for dispatch queue so booking details are always readable
+    // regardless of the bookings RLS policy on pending (provider_id = NULL) bookings
+    admin
+      .from("dispatch_queue")
+      .select("id, booking_id, sent_at, expires_at, bookings(service_type, patient_address, fee, net_payout, notes, patient_lat, patient_lng, patient_id)")
+      .eq("provider_id", provider.id)
+      .is("response", null)
+      .gt("expires_at", now.toISOString())
+      .order("sent_at", { ascending: true }),
   ]);
 
-  // Use admin client for dispatch queue so booking details are always readable
-  // regardless of the bookings RLS policy on pending (provider_id = NULL) bookings
-  const admin = createAdminSupabase();
-  const { data: dispatchQueue } = await admin
-    .from("dispatch_queue")
-    .select("id, booking_id, expires_at, bookings(service_type, patient_address, fee, net_payout, notes)")
-    .eq("provider_id", provider.id)
-    .is("response", null)
-    .gt("expires_at", new Date().toISOString())
-    .order("sent_at", { ascending: true });
+  // Requests show the patient's first name, age and allergies only (full details after accepting)
+  const rawRequests = (dispatchQueue ?? []) as any[];
+  const patientIds = [...new Set(rawRequests.map(r => r.bookings?.patient_id).filter(Boolean))];
+  const { data: patientRows } = patientIds.length
+    ? await admin.from("users").select("id, name, dob, allergies").in("id", patientIds)
+    : { data: [] };
+  const patientsById = new Map(((patientRows ?? []) as any[]).map(p => [p.id, p]));
+  const requests = rawRequests.map(r => {
+    const b = r.bookings;
+    const p = b ? patientsById.get(b.patient_id) : null;
+    const distance = b && provider.lat != null && provider.lng != null && b.patient_lat != null && b.patient_lng != null
+      ? getDistanceKm(provider.lat, provider.lng, b.patient_lat, b.patient_lng)
+      : null;
+    return {
+      ...r,
+      distance_km: distance,
+      bookings: b ? {
+        ...b,
+        patient: p ? { first_name: String(p.name ?? "").split(" ")[0] || "Patient", age: ageFrom(p.dob), allergies: p.allergies ?? [] } : null,
+      } : null,
+    };
+  });
 
-  const requests = (dispatchQueue ?? []) as any[];
+  // KPIs
+  const completed = (recentCompleted ?? []) as { net_payout: number; completed_at: string }[];
+  const weekStart = (() => { const d = new Date(now); const dow = (d.getDay() + 6) % 7; d.setHours(0, 0, 0, 0); return new Date(d.getTime() - dow * DAY_MS); })();
+  const lastWeekStart = new Date(weekStart.getTime() - 7 * DAY_MS);
+  const sum = (from: Date, to: Date) => completed
+    .filter(c => { const t = new Date(c.completed_at).getTime(); return t >= from.getTime() && t < to.getTime(); })
+    .reduce((s, c) => s + Number(c.net_payout ?? 0), 0);
+  const earnedThisWeek = sum(weekStart, new Date(now.getTime() + DAY_MS));
+  const earnedLastWeek = sum(lastWeekStart, weekStart);
+  const weekTrend = earnedLastWeek > 0 ? Math.round(((earnedThisWeek - earnedLastWeek) / earnedLastWeek) * 100) : null;
+
+  const todayKey = lagosDay(now);
+  const schedule = ((upcoming ?? []) as any[])
+    .filter(b => {
+      const when = b.scheduled_at ?? b.accepted_at ?? b.completed_at;
+      return when && lagosDay(new Date(when)) === todayKey;
+    })
+    .map(b => ({
+      id: b.id as string,
+      time: new Date(b.scheduled_at ?? b.accepted_at ?? b.completed_at)
+        .toLocaleTimeString("en-NG", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: TZ }).toLowerCase(),
+      who: String(b.users?.name ?? "Patient").split(" ")[0],
+      what: sentence((SERVICE_LABELS as Record<string, string>)[b.service_type] ?? b.service_type),
+      state: b.status === "completed" ? "done" : "open",
+    }));
+  const nextIndex = schedule.findIndex(s => s.state === "open");
+  const visitsToday = schedule.length;
+
+  const resp = ((responses ?? []) as { response: string }[]);
+  const acceptRate = resp.length >= 3 ? Math.round((resp.filter(r => r.response === "accepted").length / resp.length) * 100) : null;
+
+  // Last 7 days of earnings for the chart
+  const chart = Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(now.getTime() - (6 - i) * DAY_MS);
+    const key = lagosDay(day);
+    return {
+      label: day.toLocaleDateString("en-GB", { weekday: "short", timeZone: TZ }).slice(0, 1),
+      value: completed.filter(c => lagosDay(new Date(c.completed_at)) === key).reduce((s, c) => s + Number(c.net_payout ?? 0), 0),
+      today: i === 6,
+    };
+  });
+  const chartMax = Math.max(1, ...chart.map(c => c.value));
 
   // First-arrival checklist — every item is something the provider can do
   // right now, and each one links straight to where it's done.
@@ -96,176 +212,175 @@ export default async function DashboardPage({
       href: "#availability",
     },
   ];
-  const completed = checklist.filter(c => c.done).length;
-  const allDone = completed === checklist.length;
+  const completedSteps = checklist.filter(c => c.done).length;
+  const allDone = completedSteps === checklist.length;
   const firstName = (provider.name as string).replace(/^(dr|mr|mrs|ms|nurse)\.?\s+/i, "").split(" ")[0];
-  const greetingName = /^dr\.?\s/i.test(provider.name) ? `Dr. ${firstName}` : firstName;
+
+  const quick: { icon: LucideIcon; label: string; href: string }[] = [
+    { icon: Users, label: "Patients", href: "/dashboard/patients" },
+    { icon: CalendarDays, label: "Block time", href: "/dashboard/calendar#block" },
+    needsServices
+      ? { icon: Stethoscope, label: "Services", href: "/dashboard/services" }
+      : { icon: Stethoscope, label: "Visits", href: "/dashboard/bookings" },
+    { icon: Wallet, label: "Wallet", href: "/dashboard/earnings" },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-[1.65rem] leading-tight font-bold text-ink tracking-tight">
-          Hello, {greetingName} <span aria-hidden>👋</span>
-        </h1>
-        <p className="text-muted mt-1 text-[15px] leading-snug">
-          {provider.available
-            ? "You're online — new visit requests will appear below."
-            : "Go online when you're ready to receive home-visit requests."}
-        </p>
+    <div className="mx-auto max-w-3xl">
+      <div className="pb-4">
+        <small className="text-[13px] font-semibold text-muted">Today{provider.specialty ? ` · ${provider.specialty}` : ""}</small>
+        <h1 className="mt-0.5 text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{greeting()}, {firstName}</h1>
       </div>
 
       {searchParams.notice === "note_submitted" && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-          <CheckCircle2 size={20} className="text-green-600 shrink-0" />
-          <div>
-            <p className="text-sm font-semibold text-green-800">Clinical note submitted</p>
-            <p className="text-xs text-green-600">The visit is marked complete and your payout has been credited.</p>
-          </div>
-        </div>
+        <Notice tone="success" title="Clinical note submitted." className="mb-4">
+          The visit is marked complete and your payout has been credited.
+        </Notice>
       )}
 
       {!hasCurrentAgreement(provider.agreement_version) && (
-        <AgreementAcceptCard updated={!!provider.agreement_version} />
+        <div className="mb-4"><AgreementAcceptCard updated={!!provider.agreement_version} /></div>
       )}
 
-      {/* Active booking banner */}
       {activeBooking && (
         <Link
           href={`/dashboard/active/${activeBooking.id}`}
-          className="card p-4 flex items-center gap-3.5 border-teal-deep/30 bg-teal-soft hover:shadow-card-md transition-all group"
+          className={cx("mb-4 flex items-center gap-3 rounded-[20px] border-2 border-teal-deep bg-surface p-3.5", focusRing)}
         >
-          <div className="w-11 h-11 rounded-xl bg-teal-deep flex items-center justify-center shrink-0">
-            <Activity size={20} className="text-white" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-teal-deep uppercase tracking-wide">Active visit</p>
-            <p className="text-sm font-semibold text-ink truncate">
-              {(SERVICE_LABELS as Record<string, string>)[activeBooking.service_type]}
-            </p>
-            <p className="text-xs text-muted truncate">
+          <span className="grid h-10 w-10 flex-none place-items-center rounded-[13px] bg-teal-soft text-teal-deep"><Clock size={20} aria-hidden /></span>
+          <span className="min-w-0 flex-1">
+            <small className="block text-ds-2xs font-bold uppercase tracking-[0.05em] text-teal-deep">Visit in progress</small>
+            <b className="block truncate text-ds-sm text-ink">{sentence((SERVICE_LABELS as Record<string, string>)[activeBooking.service_type] ?? "")}</b>
+            <span className="block truncate text-ds-xs text-muted">
               {(BOOKING_STATUS_LABELS as Record<string, string>)[activeBooking.status]} · {activeBooking.patient_address}
-            </p>
-          </div>
-          <span className="hidden sm:inline-flex btn-teal text-sm items-center gap-1">
-            Continue <ArrowRight size={15} />
+            </span>
           </span>
-          <ArrowRight size={18} className="sm:hidden text-teal-deep shrink-0" />
+          <ArrowRight size={18} className="text-teal-deep" aria-hidden />
         </Link>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
-        <div className="space-y-6 min-w-0">
-          {/* Availability toggle + location broadcaster */}
-          <div id="availability" className="scroll-mt-24">
-            <AvailabilityToggle providerId={provider.id} initialAvailable={provider.available} />
-          </div>
-          {provider.available && <LocationBroadcaster providerId={provider.id} />}
-
-          {/* Dispatch requests */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-muted uppercase tracking-wide">
-                Incoming requests
-              </h2>
-              <RealtimeDispatch providerId={provider.id} />
-            </div>
-
-            {requests.length === 0 ? (
-              <div className="card p-10 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-accent-soft flex items-center justify-center mx-auto mb-3">
-                  <Inbox size={22} className="text-accent" />
-                </div>
-                <p className="font-semibold text-ink">No pending requests</p>
-                <p className="text-sm text-muted mt-1 max-w-xs mx-auto">
-                  {provider.available
-                    ? "New requests will appear here automatically — keep this page open."
-                    : "Go online above to start receiving requests from patients near you."}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {requests.map((r: any) => (
-                  <DispatchCard key={r.id} request={r} />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <aside className="space-y-4 min-w-0">
-          {/* Stats */}
-          <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
-            <Stat icon={Users} label="Total visits" value={String(provider.total_visits ?? 0)} />
-            <Stat icon={Star} label="Rating" value={provider.rating > 0 ? Number(provider.rating).toFixed(1) : "—"} />
-            <Stat icon={Wallet} label="Wallet" value={formatNaira(provider.wallet_balance ?? 0)} href="/dashboard/earnings" accent />
-          </div>
-
-          {!allDone && (
-            <div className="card p-5">
-              <div className="flex items-center justify-between mb-1">
-                <p className="font-semibold text-ink">Get ready for your first visit</p>
-                <span className="text-xs font-semibold text-accent">{completed}/{checklist.length}</span>
-              </div>
-              <div className="h-1.5 rounded-full bg-pending-bg overflow-hidden mb-4">
-                <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${(completed / checklist.length) * 100}%` }} />
-              </div>
-              <ul className="space-y-1">
-                {checklist.map(item => (
-                  <li key={item.label}>
-                    <Link
-                      href={item.href}
-                      className={`flex items-start gap-2.5 rounded-lg px-2 py-2 -mx-2 text-sm transition-colors ${
-                        item.done ? "text-muted" : "text-ink hover:bg-page"
-                      }`}
-                    >
-                      {item.done
-                        ? <CheckCircle2 size={17} className="text-green-600 shrink-0 mt-px" />
-                        : <Circle size={17} className="text-line shrink-0 mt-px" />}
-                      <span className={item.done ? "line-through" : ""}>{item.label}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {provider.referral_code && <ReferralCodeCard code={provider.referral_code} />}
-
-          <div className="space-y-3">
-            <h2 className="text-sm font-semibold text-muted uppercase tracking-wide">On the way</h2>
-            <ComingSoonItem
-              icon={MessageSquareHeart}
-              title="Ratings & reviews"
-              description="Read what patients say after each visit and reply to feedback."
-            />
-            <ComingSoonItem
-              icon={UserPlus}
-              title="Refer a colleague"
-              description="Invite licensed colleagues to join the StreetdocMD provider network."
-            />
-          </div>
-        </aside>
+      <div id="availability" className="scroll-mt-24">
+        <AvailabilityToggle providerId={provider.id} initialAvailable={provider.available} />
       </div>
+      {provider.available && <LocationBroadcaster providerId={provider.id} />}
+
+      <div className="mt-3.5">
+        <div className="mb-2 flex items-center justify-end"><RealtimeDispatch providerId={provider.id} /></div>
+        {requests.length > 0 ? (
+          <div className="space-y-3">{requests.map((r: any) => <DispatchCard key={r.id} request={r} />)}</div>
+        ) : (
+          <div className="rounded-[20px] border border-dashed border-muted/40 bg-surface px-5 py-[18px] text-center text-ds-sm text-muted">
+            <Inbox size={20} className="mx-auto mb-1.5 text-muted" aria-hidden />
+            {provider.available ? "No requests right now. New ones appear here automatically." : "Switch on to receive new requests."}
+          </div>
+        )}
+      </div>
+
+      <section className="mt-[18px] grid grid-cols-2 gap-2.5">
+        {[
+          { label: "Earned this week", value: formatNaira(earnedThisWeek), trend: weekTrend != null ? `${weekTrend >= 0 ? "+" : ""}${weekTrend}% vs last week` : "Your first week", down: (weekTrend ?? 0) < 0 },
+          { label: "Visits today", value: String(visitsToday), trend: nextIndex >= 0 ? "More later today" : visitsToday ? "All done" : "None booked yet" },
+          { label: "Rating", value: provider.rating > 0 ? Number(provider.rating).toFixed(1) : "New", trend: `${reviewCount ?? 0} review${reviewCount === 1 ? "" : "s"}`, muted: true },
+          { label: "Accepted", value: acceptRate != null ? `${acceptRate}%` : "New", trend: acceptRate == null ? "Last 30 days" : acceptRate >= 80 ? "Excellent response" : "Last 30 days", muted: acceptRate == null || acceptRate < 80 },
+        ].map(k => (
+          <div key={k.label} className="rounded-[20px] border border-line bg-surface p-3.5 shadow-ds-sm">
+            <small className="text-ds-xs font-bold text-muted">{k.label}</small>
+            <b className="mt-1 block text-[20px] tracking-[-0.01em] text-navy tabular-nums">{k.value}</b>
+            <div className={`mt-0.5 text-ds-xs font-bold ${k.muted ? "font-semibold text-muted" : k.down ? "text-danger" : "text-success"}`}>{k.trend}</div>
+          </div>
+        ))}
+      </section>
+
+      <Card className="mt-[26px]">
+        <div className="flex items-center justify-between">
+          <h2 className="text-ds-control font-bold text-navy">Earnings this week</h2>
+          <span className="text-ds-sm text-muted">Naira</span>
+        </div>
+        <div className="mb-[22px] mt-3 flex h-[90px] items-end gap-2" role="img"
+          aria-label={`Earnings for the last 7 days: ${chart.map(c => formatNaira(c.value)).join(", ")}`}>
+          {chart.map((c, i) => (
+            <div key={i} className="relative flex-1 rounded-[8px_8px_4px_4px]"
+              style={{ height: `${Math.max(6, Math.round((c.value / chartMax) * 100))}%`, background: c.today ? "linear-gradient(180deg, var(--teal), var(--teal-deep))" : "#D9EEEB" }}>
+              <small className="absolute -bottom-5 left-0 right-0 text-center text-ds-2xs font-bold text-muted">{c.label}</small>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <section className="mt-[26px]">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-[17px] font-bold text-navy">Today&apos;s schedule</h2>
+          <Link href="/dashboard/calendar" className="text-[13px] font-bold text-accent">See all</Link>
+        </div>
+        {schedule.length > 0 ? (
+          <div className="grid gap-2.5">
+            {schedule.map((s, i) => (
+              <Link key={s.id} href={s.state === "done" ? "/dashboard/bookings" : `/dashboard/active/${s.id}`}
+                className={cx(
+                  "flex items-stretch gap-3 rounded-[18px] bg-surface px-3.5 py-3",
+                  i === nextIndex ? "border-2 border-teal-deep" : "border border-line",
+                  s.state === "done" && "opacity-60",
+                  focusRing,
+                )}>
+                <span className="w-[66px] flex-none pt-0.5 text-[13px] font-extrabold text-navy">{s.time}</span>
+                <span className="min-w-0 flex-1">
+                  <b className="block text-ds-sm text-ink">{s.who}</b>
+                  <small className="text-ds-xs text-muted">{s.what}</small>
+                </span>
+                {i === nextIndex ? <Pill tone="teal" icon={Clock}>Next</Pill> : s.state === "done" ? <Pill tone="ok" icon={Check}>Done</Pill> : null}
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-ds-sm text-muted">Nothing booked for today yet.</p>
+        )}
+      </section>
+
+      <section className="mt-[26px]">
+        <h2 className="mb-3 text-[17px] font-bold text-navy">Quick actions</h2>
+        <div className="grid grid-cols-4 gap-2">
+          {quick.map(({ icon: Icon, label, href }) => (
+            <Link key={label} href={href}
+              className={cx("grid justify-items-center gap-1.5 rounded-[18px] border border-line bg-surface px-1 py-3 text-ds-2xs font-bold text-navy", focusRing)}>
+              <span className="grid h-10 w-10 place-items-center rounded-[13px] bg-teal-soft text-teal-deep"><Icon size={20} aria-hidden /></span>
+              {label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {!allDone && (
+        <Card className="mt-[26px]">
+          <div className="mb-1 flex items-center justify-between">
+            <b className="text-ink">Get ready for your first visit</b>
+            <span className="text-ds-xs font-bold text-accent">{completedSteps}/{checklist.length}</span>
+          </div>
+          <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-pending-bg">
+            <div className="h-full rounded-full bg-accent" style={{ width: `${(completedSteps / checklist.length) * 100}%` }} />
+          </div>
+          <ul className="space-y-1">
+            {checklist.map(item => (
+              <li key={item.label}>
+                <Link href={item.href}
+                  className={cx("-mx-2 flex items-start gap-2.5 rounded-lg px-2 py-2 text-ds-sm", item.done ? "text-muted" : "text-ink hover:bg-page", focusRing)}>
+                  {item.done
+                    ? <CheckCircle2 size={17} className="mt-px flex-none text-success" aria-hidden />
+                    : <Circle size={17} className="mt-px flex-none text-line" aria-hidden />}
+                  <span className={item.done ? "line-through" : ""}>{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {provider.referral_code && <div className="mt-[26px]"><ReferralCodeCard code={provider.referral_code} /></div>}
+
+      <section className="mt-[26px] space-y-3">
+        <h2 className="text-[17px] font-bold text-navy">Coming soon</h2>
+        <ComingSoonItem icon={MessageSquareHeart} title="Reply to reviews" description="Read what patients say after each visit and reply to feedback." />
+        <ComingSoonItem icon={UserPlus} title="Refer a colleague" description="Invite licensed colleagues to join the StreetdocMD provider network." />
+      </section>
     </div>
   );
-}
-
-function Stat({
-  icon: Icon, label, value, href, accent = false,
-}: { icon: typeof Users; label: string; value: string; href?: string; accent?: boolean }) {
-  const body = (
-    <>
-      <div className={`hidden lg:flex w-10 h-10 rounded-xl items-center justify-center shrink-0 ${accent ? "bg-teal-soft" : "bg-accent-soft"}`}>
-        <Icon size={19} className={accent ? "text-teal-deep" : "text-accent"} />
-      </div>
-      <div className="min-w-0 text-center lg:text-left">
-        <p className={`text-lg sm:text-xl font-bold truncate ${accent ? "text-teal-deep" : "text-ink"}`}>{value}</p>
-        <p className="text-xs text-muted">{label}</p>
-      </div>
-    </>
-  );
-  const cls = "card p-3 sm:p-4 flex flex-col lg:flex-row items-center lg:items-center gap-3";
-  return href
-    ? <Link href={href} className={`${cls} hover:shadow-card-md transition-shadow`}>{body}</Link>
-    : <div className={cls}>{body}</div>;
 }
