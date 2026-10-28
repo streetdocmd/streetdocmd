@@ -58,6 +58,11 @@ export default function PaymentScreen() {
     );
   }
 
+  // Patients pay the fee plus the service charge (migration 056; 0 on older bookings).
+  // The server charges this same total.
+  const serviceCharge = Number(booking.service_charge ?? 0);
+  const total = Number(booking.fee) + serviceCharge;
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -65,8 +70,9 @@ export default function PaymentScreen() {
         <Row label="Service" value={(SERVICE_LABELS as Record<string, string>)[booking.service_type] ?? booking.service_type} />
         <Row label="Provider" value={booking.providers?.name} />
         <Row label="Consultation fee" value={formatNaira(booking.fee)} />
+        {serviceCharge > 0 && <Row label="Service charge" value={formatNaira(serviceCharge)} />}
         <View style={styles.divider} />
-        <Row label="Total" value={formatNaira(booking.fee)} bold />
+        <Row label="Total" value={formatNaira(total)} bold />
       </View>
 
       <View style={styles.methodCard}>
@@ -82,7 +88,7 @@ export default function PaymentScreen() {
         disabled={paying}
       >
         <Text style={styles.payBtnText}>
-          {paying ? "Opening Paystack…" : `Pay ${formatNaira(booking.fee)}`}
+          {paying ? "Opening Paystack…" : `Pay ${formatNaira(total)}`}
         </Text>
       </TouchableOpacity>
 

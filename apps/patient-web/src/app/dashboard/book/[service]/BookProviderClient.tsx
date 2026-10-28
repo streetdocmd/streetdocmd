@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Star, Search, Zap, Clock } from "lucide-react";
 import { SERVICE_LABELS, SERVICE_PROFESSION, formatNaira } from "@/lib/shared";
+import { serviceChargeFor } from "@/lib/service-charge";
 import type { ServiceType } from "@/lib/shared";
 import FamilyMemberPicker from "./FamilyMemberPicker";
 import SchedulePicker from "./SchedulePicker";
@@ -34,7 +35,10 @@ export default function BookProviderClient({
   followUpId,
   title,
   subtitle,
+  serviceChargeRate,
 }: {
+  /** Patient service charge rate (platform_settings); the server applies the same rate */
+  serviceChargeRate: number;
   /** Page heading, shown above the provider list only */
   title: string;
   subtitle: string;
@@ -111,6 +115,7 @@ export default function BookProviderClient({
       <ProviderProfile
         provider={viewing}
         regulator={REGULATOR[SERVICE_PROFESSION[service]]}
+        serviceChargeRate={serviceChargeRate}
         onBack={() => setViewing(null)}
         onBook={() => setChoice(viewing)}
       />
@@ -273,9 +278,9 @@ export default function BookProviderClient({
       <div className="sticky bottom-[76px] z-20 mt-6 rounded-ds-lg border border-line bg-surface/95 p-3.5 shadow-ds backdrop-blur md:bottom-4">
         <div className="flex items-center gap-3.5">
           <div>
-            <small className="block text-ds-2xs font-bold text-muted">{chosen ? "Visit fee" : "Price"}</small>
+            <small className="block text-ds-2xs font-bold text-muted">{chosen ? "Total with service charge" : "Price"}</small>
             <b className="text-[20px] tracking-[-0.01em] text-navy tabular-nums">
-              {chosen ? formatNaira(chosen.price) : "Before you pay"}
+              {chosen ? formatNaira(chosen.price + serviceChargeFor(chosen.price, serviceChargeRate)) : "Before you pay"}
             </b>
           </div>
           <Button className="flex-1" onClick={book} disabled={booking || !ready} aria-busy={booking}>
@@ -292,7 +297,6 @@ export default function BookProviderClient({
               : "We'll match you with the nearest available provider. Payment due after confirmation."}
         </p>
       </div>
-      {/* TODO(design): "Total with service charge" needs the patient service fee, which isn't implemented. */}
     </div>
   );
 }
@@ -320,9 +324,10 @@ function AvailabilityPill({ available }: { available: boolean }) {
 }
 
 // Design screen "Provider profile", built from the data the list already has.
-function ProviderProfile({ provider: p, regulator, onBack, onBook }: {
+function ProviderProfile({ provider: p, regulator, serviceChargeRate, onBack, onBook }: {
   provider: BookableProvider;
   regulator: string;
+  serviceChargeRate: number;
   onBack: () => void;
   onBook: () => void;
 }) {
@@ -369,11 +374,16 @@ function ProviderProfile({ provider: p, regulator, onBack, onBook }: {
       <section className="mt-[26px]">
         <h2 className="mb-3 text-[17px] font-bold text-navy">Home visit fee</h2>
         <Card>
-          <div className="flex items-center justify-between text-ds-sm">
-            <span className="text-muted">Visit fee</span>
-            <b className="text-ink tabular-nums">{formatNaira(p.price)}</b>
-          </div>
-          {/* TODO(design): service charge and travel lines need the patient service fee, which isn't implemented. */}
+          {[
+            ["Visit fee", formatNaira(p.price)],
+            ["Service charge", formatNaira(serviceChargeFor(p.price, serviceChargeRate))],
+            ["Total", formatNaira(p.price + serviceChargeFor(p.price, serviceChargeRate))],
+          ].map(([k, v], i) => (
+            <div key={k} className={`flex items-center justify-between border-b border-line py-2.5 text-ds-sm last:border-b-0 ${i === 2 ? "font-extrabold" : ""}`}>
+              <span className={i === 2 ? "text-ink" : "text-muted"}>{k}</span>
+              <b className="text-ink tabular-nums">{v}</b>
+            </div>
+          ))}
         </Card>
       </section>
 
@@ -386,6 +396,7 @@ function ProviderProfile({ provider: p, regulator, onBack, onBook }: {
         <div>
           <small className="block text-ds-2xs font-bold text-muted">Home visit</small>
           <b className="text-[20px] tracking-[-0.01em] text-navy tabular-nums">{formatNaira(p.price)}</b>
+          <small className="block text-ds-2xs text-muted">plus {formatNaira(serviceChargeFor(p.price, serviceChargeRate))} service charge</small>
         </div>
         <Button className="flex-1" onClick={onBook}>Book visit</Button>
       </div>

@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 async function confirmBooking(admin: ReturnType<typeof createAdminSupabase>, bookingId: string, paidNaira: number) {
   const { data: booking, error: fetchError } = await admin
     .from("bookings")
-    .select("fee, status")
+    .select("*") // fee, status and (after migration 056) service_charge
     .eq("id", bookingId)
     .single();
 
@@ -71,10 +71,12 @@ async function confirmBooking(admin: ReturnType<typeof createAdminSupabase>, boo
   // already flipped and does nothing.
   if (!booking || booking.status !== "pending_payment") return;
 
-  if (paidNaira !== booking.fee) {
+  // Patients pay the fee plus the service charge (migration 056; 0 for older bookings)
+  const expected = Number(booking.fee) + Number(booking.service_charge ?? 0);
+  if (paidNaira !== expected) {
     // Amount mismatch — do not confirm. Leave at pending_payment; it'll either
     // get a correct follow-up webhook or expire and show up for admin review.
-    console.warn(`[payments/webhook] amount mismatch for booking ${bookingId}: paid ₦${paidNaira}, expected ₦${booking.fee}`);
+    console.warn(`[payments/webhook] amount mismatch for booking ${bookingId}: paid ₦${paidNaira}, expected ₦${expected}`);
     return;
   }
 

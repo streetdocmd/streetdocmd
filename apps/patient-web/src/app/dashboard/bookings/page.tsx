@@ -2,6 +2,7 @@
 import { ArrowRight, CalendarDays, Check, ChevronRight, Star, Stethoscope } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { formatNaira, SERVICE_LABELS, BOOKING_STATUS_LABELS } from "@/lib/shared";
+import { bookingTotal } from "@/lib/service-charge";
 import { Avatar, Button, Card, Pill, cx, focusRing, type PillTone } from "@/components/ds";
 import CancelButton from "./CancelButton";
 import ProviderDeclinedActions from "./ProviderDeclinedActions";
@@ -80,7 +81,7 @@ function VisitCard({ b }: { b: any }) {
       )}
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-ds-sm font-extrabold text-navy tabular-nums">{formatNaira(b.fee)}</span>
+        <span className="text-ds-sm font-extrabold text-navy tabular-nums">{formatNaira(bookingTotal(b))}</span>
         <div className="flex flex-wrap items-center gap-2">
           {b.status === "pending_payment" && (
             <Button href={`/dashboard/book/payment/${b.id}`} size="sm">Pay now <ArrowRight size={14} aria-hidden /></Button>

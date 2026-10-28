@@ -1,4 +1,5 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
+import { getServiceChargeRate, serviceChargeFor } from "@/lib/service-charge";
 import { createAdminSupabase, getRequestSupabase } from "@/lib/supabase-server";
 import { SERVICE_PRICES, SERVICE_PROFESSION, SERVICE_DURATION_MINUTES } from "@/lib/shared";
 import type { ServiceType, Profession } from "@/lib/shared";
@@ -200,38 +201,46 @@ export async function POST(req: NextRequest) {
     }
 
     const commission = Math.round(fee * 0.2);
+    // Patient service charge on top of the fee (migration 056); the patient pays fee + service_charge
+    const serviceCharge = serviceChargeFor(fee, await getServiceChargeRate(admin));
 
-    const { data: booking, error } = await admin
+    const row = {
+      patient_id: user.id,
+      family_member_id: familyMemberId,
+      wellness_package_id: resolvedWellnessPackageId,
+      service_type,
+      profession: SERVICE_PROFESSION[service_type as ServiceType],
+      care_episode_id: careEpisodeId,
+      is_follow_up: isFollowUp,
+      follow_up_id: resolvedFollowUpId,
+      preferred_provider_id: preferredProviderId,
+      targeted_provider_id: resolvedTargetedProviderId,
+      scheduled_at: resolvedScheduledAt,
+      duration_minutes: SERVICE_DURATION_MINUTES[service_type as ServiceType],
+      patient_lat,
+      patient_lng,
+      patient_address,
+      notes: notes ?? null,
+      fee,
+      commission,
+      net_payout: fee - commission,
+      status: "pending_payment",
+      payment_status: "pending",
+      // provider_id intentionally omitted — set by accept_dispatch() once a provider
+      // accepts, which can only happen after the webhook confirms payment and the
+      // dispatch trigger fires the booking into the provider pool. preferred_provider_id
+      // (if set) only influences dispatch ordering, it does not pin the provider.
+    };
+
+    let { data: booking, error } = await admin
       .from("bookings")
-      .insert({
-        patient_id: user.id,
-        family_member_id: familyMemberId,
-        wellness_package_id: resolvedWellnessPackageId,
-        service_type,
-        profession: SERVICE_PROFESSION[service_type as ServiceType],
-        care_episode_id: careEpisodeId,
-        is_follow_up: isFollowUp,
-        follow_up_id: resolvedFollowUpId,
-        preferred_provider_id: preferredProviderId,
-        targeted_provider_id: resolvedTargetedProviderId,
-        scheduled_at: resolvedScheduledAt,
-        duration_minutes: SERVICE_DURATION_MINUTES[service_type as ServiceType],
-        patient_lat,
-        patient_lng,
-        patient_address,
-        notes: notes ?? null,
-        fee,
-        commission,
-        net_payout: fee - commission,
-        status: "pending_payment",
-        payment_status: "pending",
-        // provider_id intentionally omitted — set by accept_dispatch() once a provider
-        // accepts, which can only happen after the webhook confirms payment and the
-        // dispatch trigger fires the booking into the provider pool. preferred_provider_id
-        // (if set) only influences dispatch ordering, it does not pin the provider.
-      })
+      .insert({ ...row, service_charge: serviceCharge })
       .select("id")
       .single();
+    // Until migration 056 is applied the column doesn't exist: book without the charge
+    if (error && /service_charge/.test(error.message ?? "")) {
+      ({ data: booking, error } = await admin.from("bookings").insert(row).select("id").single());
+    }
 
     if (error || !booking) {
       return NextResponse.json({ error: error?.message ?? "Failed to create booking" }, { status: 500 });

@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
 
   const { data: booking, error } = await supabase
     .from("bookings")
-    .select("id, fee, payment_status, users!patient_id(email, phone)")
+    .select("*, users!patient_id(email, phone)")
     .eq("id", booking_id)
     .single();
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     },
     body: JSON.stringify({
       email,
-      amount: booking.fee * 100, // kobo
+      amount: (Number(booking.fee) + Number(booking.service_charge ?? 0)) * 100, // kobo: fee plus service charge
       reference,
       metadata: { booking_id },
       callback_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://admin.streetdocmd.com"}/api/payments/callback`,
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   await supabase.from("payments").insert({
     booking_id,
     reference,
-    amount: booking.fee,
+    amount: Number(booking.fee) + Number(booking.service_charge ?? 0),
     method: "card",
     status: "pending",
   });

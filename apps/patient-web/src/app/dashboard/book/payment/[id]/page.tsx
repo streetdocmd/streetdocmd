@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, formatNaira } from "@/lib/shared";
+import { bookingTotal } from "@/lib/service-charge";
 import { Card, TopBar } from "@/components/ds";
 import PaystackButton from "./PaystackButton";
 
@@ -47,14 +48,15 @@ export default async function PaymentPage({ params }: { params: { id: string } }
       <Card className="mt-3">
         <h2 className="mb-1 text-ds-control font-bold text-navy">Price</h2>
         <dl>
-          <Row label="Platform fee (20%)" value={formatNaira(booking.commission)} />
-          <Row label="Total" value={formatNaira(booking.fee)} bold />
+          <Row label="Home visit fee" value={formatNaira(booking.fee)} />
+          {Number(booking.service_charge ?? 0) > 0 && <Row label="Service charge" value={formatNaira(booking.service_charge)} />}
+          <Row label="Total" value={formatNaira(bookingTotal(booking))} bold />
         </dl>
       </Card>
 
       <PaystackButton
         bookingId={params.id}
-        amount={booking.fee}
+        amount={bookingTotal(booking)}
         email={profile?.email ?? user.email ?? ""}
         name={profile?.name ?? ""}
       />
