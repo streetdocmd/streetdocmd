@@ -4,7 +4,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
-import { SERVICE_LABELS, BOOKING_STATUS_LABELS, formatNaira, getDistanceKm } from "@streetdocmd/shared";
+import { SERVICE_LABELS, BOOKING_STATUS_LABELS, formatNaira } from "@streetdocmd/shared";
+import { loadOpenOffers } from "@/lib/dispatch";
 import { hasCurrentAgreement } from "@/lib/onboarding";
 import AgreementAcceptCard from "@/components/AgreementAcceptCard";
 import { ComingSoonItem } from "@/components/ComingSoonBadge";
@@ -21,12 +22,6 @@ const TZ = "Africa/Lagos";
 const DAY_MS = 86_400_000;
 const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
 const lagosDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);
-
-function ageFrom(dob: string | null) {
-  if (!dob) return null;
-  const y = Math.floor((Date.now() - new Date(`${dob}T00:00:00`).getTime()) / (365.25 * DAY_MS));
-  return y >= 0 ? y : null;
-}
 
 function greeting() {
   const h = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hour12: false, timeZone: TZ }).format(new Date()));
@@ -63,7 +58,7 @@ export default async function DashboardPage({
     { data: upcoming },
     { count: reviewCount },
     { data: responses },
-    { data: dispatchQueue },
+    requests,
   ] = await Promise.all([
     supabase
       .from("bookings")
@@ -104,39 +99,8 @@ export default async function DashboardPage({
       .eq("provider_id", provider.id)
       .not("response", "is", null)
       .gte("sent_at", since30),
-    // Use admin client for dispatch queue so booking details are always readable
-    // regardless of the bookings RLS policy on pending (provider_id = NULL) bookings
-    admin
-      .from("dispatch_queue")
-      .select("id, booking_id, sent_at, expires_at, bookings(service_type, patient_address, fee, net_payout, notes, patient_lat, patient_lng, patient_id)")
-      .eq("provider_id", provider.id)
-      .is("response", null)
-      .gt("expires_at", now.toISOString())
-      .order("sent_at", { ascending: true }),
+    loadOpenOffers(admin, provider),
   ]);
-
-  // Requests show the patient's first name, age and allergies only (full details after accepting)
-  const rawRequests = (dispatchQueue ?? []) as any[];
-  const patientIds = [...new Set(rawRequests.map(r => r.bookings?.patient_id).filter(Boolean))];
-  const { data: patientRows } = patientIds.length
-    ? await admin.from("users").select("id, name, dob, allergies").in("id", patientIds)
-    : { data: [] };
-  const patientsById = new Map(((patientRows ?? []) as any[]).map(p => [p.id, p]));
-  const requests = rawRequests.map(r => {
-    const b = r.bookings;
-    const p = b ? patientsById.get(b.patient_id) : null;
-    const distance = b && provider.lat != null && provider.lng != null && b.patient_lat != null && b.patient_lng != null
-      ? getDistanceKm(provider.lat, provider.lng, b.patient_lat, b.patient_lng)
-      : null;
-    return {
-      ...r,
-      distance_km: distance,
-      bookings: b ? {
-        ...b,
-        patient: p ? { first_name: String(p.name ?? "").split(" ")[0] || "Patient", age: ageFrom(p.dob), allergies: p.allergies ?? [] } : null,
-      } : null,
-    };
-  });
 
   // KPIs
   const completed = (recentCompleted ?? []) as { net_payout: number; completed_at: string }[];

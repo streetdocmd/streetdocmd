@@ -90,7 +90,7 @@ export default function ProviderBookingCard({
                 href={getEncounterRoute(profession, booking.id)}
                 className="text-sm text-teal-700 border border-teal-200 bg-teal-50 rounded-lg px-3 py-1.5 font-medium hover:bg-teal-100 transition-colors"
               >
-                View Note →
+                View note
               </Link>
             </div>
           ) : visit ? (
@@ -109,13 +109,13 @@ export default function ProviderBookingCard({
               )}
               {visit.follow_up_plan && (
                 <div>
-                  <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Follow-up Plan</p>
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Follow up plan</p>
                   <p className="text-sm text-ink leading-relaxed">{visit.follow_up_plan}</p>
                 </div>
               )}
               {drugs.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Medications Prescribed</p>
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Medications prescribed</p>
                   <div className="space-y-1">
                     {drugs.map((d: any, i: number) => (
                       <div key={i} className="text-sm text-ink">
@@ -135,7 +135,7 @@ export default function ProviderBookingCard({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-teal-50 text-teal-700 border border-teal-200 rounded-lg px-4 py-2 text-sm font-medium hover:bg-teal-100 transition-colors"
                 >
-                  📄 Download Prescription PDF
+                  Download prescription PDF
                 </a>
               )}
             </>
