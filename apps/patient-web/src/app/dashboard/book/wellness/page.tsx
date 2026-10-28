@@ -13,8 +13,8 @@ export default async function WellnessPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Wellness Check</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Choose a package — a provider will be dispatched to collect your samples</p>
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Wellness Check</h1>
+        <p className="text-muted text-sm mt-0.5">Choose a package — a provider will be dispatched to collect your samples</p>
       </div>
 
       <WellnessPackagePicker packages={packages ?? []} />

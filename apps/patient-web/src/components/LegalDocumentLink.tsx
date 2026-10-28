@@ -26,7 +26,7 @@ export default function LegalDocumentLink({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={className ?? "text-sm font-medium text-blue-brand hover:underline"}
+        className={className ?? "text-sm font-medium text-accent hover:underline"}
       >
         {children ?? doc.title}
       </button>

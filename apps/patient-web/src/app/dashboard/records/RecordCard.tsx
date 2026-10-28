@@ -18,15 +18,15 @@ export default function RecordCard({ booking, serviceLabel }: { booking: any; se
     <div className="card overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between p-5 text-left hover:bg-page transition-colors"
       >
         <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-light flex items-center justify-center shrink-0">
-            <ClipboardList size={18} className="text-blue-brand" />
+          <div className="w-10 h-10 rounded-lg bg-accent-soft flex items-center justify-center shrink-0">
+            <ClipboardList size={18} className="text-accent" />
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-gray-900">{serviceLabel}</p>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="font-semibold text-ink">{serviceLabel}</p>
+            <p className="text-sm text-muted mt-0.5">
               {booking.providers?.name} ·{" "}
               {booking.completed_at
                 ? new Date(booking.completed_at).toLocaleDateString("en-NG", {
@@ -51,18 +51,18 @@ export default function RecordCard({ booking, serviceLabel }: { booking: any; se
               <FileText size={12} /> Rx
             </a>
           )}
-          {open ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+          {open ? <ChevronUp size={16} className="text-muted" /> : <ChevronDown size={16} className="text-muted" />}
         </div>
       </button>
 
       {open && (
-        <div className="border-t border-gray-100 bg-gray-50/50">
+        <div className="border-t border-line bg-page/50">
           {summary ? (
             <SummaryView summary={summary} pdfUrl={pdfUrl} />
           ) : visit ? (
             <LegacyView visit={visit} pdfUrl={pdfUrl} />
           ) : (
-            <p className="p-5 text-sm text-gray-400">
+            <p className="p-5 text-sm text-muted">
               Notes for this visit are still being prepared.
             </p>
           )}
@@ -93,12 +93,12 @@ function SummaryView({ summary, pdfUrl }: { summary: any; pdfUrl?: string | null
 
       {diagnoses.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1.5">
             {diagnoses.length > 1 ? "Diagnoses" : "Diagnosis"}
           </p>
           <div className="space-y-0.5">
             {diagnoses.map((d, i) => (
-              <p key={i} className="text-sm font-semibold text-gray-900">{d}</p>
+              <p key={i} className="text-sm font-semibold text-ink">{d}</p>
             ))}
           </div>
         </div>
@@ -124,13 +124,13 @@ function SummaryView({ summary, pdfUrl }: { summary: any; pdfUrl?: string | null
 
       {medications.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Medications</p>
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Medications</p>
           <div className="space-y-2">
             {medications.map((m: any, i: number) => (
-              <div key={i} className="bg-white border border-gray-100 rounded-lg p-3">
-                <p className="text-sm font-semibold text-gray-900">{m.name}</p>
-                {m.how_to_take && <p className="text-sm text-gray-600 mt-0.5">{m.how_to_take}</p>}
-                {m.duration && <p className="text-xs text-gray-400 mt-0.5">Duration: {m.duration}</p>}
+              <div key={i} className="bg-white border border-line rounded-lg p-3">
+                <p className="text-sm font-semibold text-ink">{m.name}</p>
+                {m.how_to_take && <p className="text-sm text-muted mt-0.5">{m.how_to_take}</p>}
+                {m.duration && <p className="text-xs text-muted mt-0.5">Duration: {m.duration}</p>}
               </div>
             ))}
           </div>
@@ -139,12 +139,12 @@ function SummaryView({ summary, pdfUrl }: { summary: any; pdfUrl?: string | null
 
       {investigations.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Tests Ordered</p>
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Tests Ordered</p>
           <div className="space-y-1">
             {investigations.map((inv: any, i: number) => (
-              <p key={i} className="text-sm text-gray-700 inline-flex items-center gap-1.5">
-                <FlaskConical size={14} className="text-gray-400" /> {inv.test_name}
-                {inv.expected_timeline && <span className="text-gray-400"> · {inv.expected_timeline}</span>}
+              <p key={i} className="text-sm text-ink inline-flex items-center gap-1.5">
+                <FlaskConical size={14} className="text-muted" /> {inv.test_name}
+                {inv.expected_timeline && <span className="text-muted"> · {inv.expected_timeline}</span>}
               </p>
             ))}
           </div>
@@ -157,7 +157,7 @@ function SummaryView({ summary, pdfUrl }: { summary: any; pdfUrl?: string | null
 
       {summary.follow_up_date && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-          <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Follow-up Appointment</p>
+          <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Follow up appointment</p>
           <p className="text-sm font-semibold text-green-800">
             {new Date(summary.follow_up_date).toLocaleDateString("en-NG", {
               weekday: "long", day: "numeric", month: "long", year: "numeric",
@@ -168,7 +168,7 @@ function SummaryView({ summary, pdfUrl }: { summary: any; pdfUrl?: string | null
 
       {pdfUrl && (
         <a href={pdfUrl} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm text-blue-700 border border-blue-200 bg-blue-50 rounded-lg px-4 py-2 hover:bg-blue-100 transition-colors font-medium">
+          className="inline-flex items-center gap-2 text-sm text-accent border border-accent/30 bg-accent-soft rounded-lg px-4 py-2 hover:bg-accent-soft transition-colors font-medium">
           <Download size={15} /> Download Prescription PDF
         </a>
       )}
@@ -184,18 +184,18 @@ function LegacyView({ visit, pdfUrl }: { visit: any; pdfUrl?: string | null }) {
     <div className="p-5 space-y-4">
       {visit.diagnosis && <Field label="Diagnosis" value={visit.diagnosis} />}
       {visit.treatment && <Field label="Treatment" value={visit.treatment} />}
-      {visit.follow_up_plan && <Field label="Follow-up Plan" value={visit.follow_up_plan} />}
+      {visit.follow_up_plan && <Field label="Follow up plan" value={visit.follow_up_plan} />}
 
       {drugs.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Medications Prescribed</p>
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Medications Prescribed</p>
           <div className="space-y-1">
             {drugs.map((d: any, i: number) => (
-              <div key={i} className="text-sm text-gray-700">
+              <div key={i} className="text-sm text-ink">
                 <span className="font-medium">{d.name ?? d.drug_name}</span>
-                {(d.dosage ?? d.strength) && <span className="text-gray-500"> · {d.dosage ?? d.strength}</span>}
-                {d.frequency && <span className="text-gray-500"> · {d.frequency}</span>}
-                {d.duration && <span className="text-gray-500"> for {d.duration}</span>}
+                {(d.dosage ?? d.strength) && <span className="text-muted"> · {d.dosage ?? d.strength}</span>}
+                {d.frequency && <span className="text-muted"> · {d.frequency}</span>}
+                {d.duration && <span className="text-muted"> for {d.duration}</span>}
               </div>
             ))}
           </div>
@@ -204,7 +204,7 @@ function LegacyView({ visit, pdfUrl }: { visit: any; pdfUrl?: string | null }) {
 
       {pdfUrl && (
         <a href={pdfUrl} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm text-blue-700 border border-blue-200 bg-blue-50 rounded-lg px-4 py-2 hover:bg-blue-100 transition-colors font-medium">
+          className="inline-flex items-center gap-2 text-sm text-accent border border-accent/30 bg-accent-soft rounded-lg px-4 py-2 hover:bg-accent-soft transition-colors font-medium">
           <Download size={15} /> Download Prescription PDF
         </a>
       )}
@@ -215,8 +215,8 @@ function LegacyView({ visit, pdfUrl }: { visit: any; pdfUrl?: string | null }) {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
-      <p className="text-sm text-gray-700 leading-relaxed">{value}</p>
+      <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">{label}</p>
+      <p className="text-sm text-ink leading-relaxed">{value}</p>
     </div>
   );
 }

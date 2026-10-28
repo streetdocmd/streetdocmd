@@ -40,8 +40,8 @@ export default function ForgotPasswordPage() {
     <AuthShell>
           {sent ? (
             <>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Check your email</h1>
-              <p className="text-gray-500 text-sm mb-6">
+              <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-1">Check your email</h1>
+              <p className="text-muted text-sm mb-6">
                 If an account exists for <span className="font-medium">{email}</span>, we've sent a link to reset your password.
               </p>
               <Link href="/login" className="block w-full text-center btn-primary">
@@ -50,8 +50,8 @@ export default function ForgotPasswordPage() {
             </>
           ) : (
             <>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Forgot password?</h1>
-              <p className="text-gray-500 text-sm mb-6">Enter your email and we'll send you a reset link</p>
+              <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-1">Forgot password?</h1>
+              <p className="text-muted text-sm mb-6">Enter your email and we'll send you a reset link</p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+                  <div className="rounded-ds-sm bg-danger-bg px-4 py-3 text-ds-sm text-ink">
                     {error}
                   </div>
                 )}
@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
               </form>
 
               <div className="mt-6 text-center">
-                <Link href="/login" className="text-sm text-blue-brand font-medium hover:underline">
+                <Link href="/login" className="text-sm text-accent font-bold hover:underline">
                   Back to sign in
                 </Link>
               </div>

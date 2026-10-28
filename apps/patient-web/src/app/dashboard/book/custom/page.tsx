@@ -8,7 +8,7 @@ const SUGGESTIONS = [
   "Post-surgery wound monitoring",
   "Elderly parent needing general health review",
   "IV drip / infusion at home",
-  "Antenatal check-up at home",
+  "Antenatal checkup at home",
 ];
 
 export default function CustomRequestPage() {
@@ -17,8 +17,8 @@ export default function CustomRequestPage() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Custom Request</h1>
-      <p className="text-gray-500 text-sm mb-6">Describe your need so we can match you with the right provider.</p>
+      <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-2">Custom Request</h1>
+      <p className="text-muted text-sm mb-6">Describe your need so we can match you with the right provider.</p>
 
       <div className="card p-6 mb-4">
         <label className="label">What do you need?</label>
@@ -29,17 +29,17 @@ export default function CustomRequestPage() {
           placeholder="e.g. I have a persistent fever and need a doctor to come assess me at home..."
           maxLength={500}
         />
-        <p className="text-xs text-gray-400 text-right mt-1">{description.length}/500</p>
+        <p className="text-xs text-muted text-right mt-1">{description.length}/500</p>
       </div>
 
       <div className="card p-6 mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Common requests</p>
+        <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Common requests</p>
         <div className="space-y-2">
           {SUGGESTIONS.map(s => (
             <button
               key={s}
               onClick={() => setDescription(s)}
-              className="w-full text-left text-sm text-gray-600 bg-gray-50 hover:bg-blue-light hover:text-blue-brand border border-gray-100 rounded-lg px-4 py-2.5 transition-colors"
+              className="w-full text-left text-sm text-muted bg-page hover:bg-accent-soft hover:text-accent border border-line rounded-lg px-4 py-2.5 transition-colors"
             >
               {s}
             </button>

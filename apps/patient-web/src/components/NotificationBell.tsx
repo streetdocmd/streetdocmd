@@ -19,9 +19,9 @@ interface NotificationRow {
 // existing screen most relevant to it. Never invents a destination —
 // every href below is a route that already exists.
 const TYPE_META: Record<string, { icon: typeof Bell; label: string; href: string }> = {
-  follow_up: { icon: CalendarClock, label: "Follow-up reminder", href: "/dashboard/my-care" },
-  follow_up_care: { icon: CalendarClock, label: "Follow-up recommended", href: "/dashboard/my-care" },
-  follow_up_reminder: { icon: CalendarClock, label: "Follow-up reminder", href: "/dashboard/my-care" },
+  follow_up: { icon: CalendarClock, label: "Follow up reminder", href: "/dashboard/my-care" },
+  follow_up_care: { icon: CalendarClock, label: "Follow up recommended", href: "/dashboard/my-care" },
+  follow_up_reminder: { icon: CalendarClock, label: "Follow up reminder", href: "/dashboard/my-care" },
   preferred_provider_declined: { icon: UserX, label: "Provider unavailable", href: "/dashboard/bookings" },
 };
 const DEFAULT_META = { icon: Bell, label: "Notification", href: "/dashboard/bookings" };
@@ -121,11 +121,11 @@ export default function NotificationBell({ patientId }: { patientId: string }) {
       </button>
 
       {open && (
-        <div className="fixed sm:absolute inset-x-3 top-[4.25rem] sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:w-96 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 text-gray-900">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <p className="font-semibold text-gray-900">Notifications</p>
+        <div className="fixed sm:absolute inset-x-3 top-[4.25rem] sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:w-96 bg-white rounded-2xl shadow-xl border border-line overflow-hidden z-50 text-ink">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-line">
+            <p className="font-semibold text-ink">Notifications</p>
             {unreadCount > 0 && (
-              <button onClick={markAllRead} className="flex items-center gap-1 text-xs text-blue-brand font-medium hover:underline">
+              <button onClick={markAllRead} className="flex items-center gap-1 text-xs text-accent font-medium hover:underline">
                 <CheckCheck size={13} /> Mark all as read
               </button>
             )}
@@ -133,19 +133,19 @@ export default function NotificationBell({ patientId }: { patientId: string }) {
 
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
-              <div className="p-8 flex justify-center"><Loader2 size={20} className="animate-spin text-gray-300" /></div>
+              <div className="p-8 flex justify-center"><Loader2 size={20} className="animate-spin text-line" /></div>
             ) : error ? (
               <div className="p-8 text-center">
                 <AlertCircle size={22} className="text-red-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-500 mb-2">Couldn't load notifications.</p>
-                <button onClick={load} className="text-xs text-blue-brand font-medium hover:underline">Try again</button>
+                <p className="text-sm text-muted mb-2">Couldn't load notifications.</p>
+                <button onClick={load} className="text-xs text-accent font-medium hover:underline">Try again</button>
               </div>
             ) : items.length === 0 ? (
               <div className="p-8 text-center">
-                <div className="w-11 h-11 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-2">
-                  <Inbox size={20} className="text-gray-300" />
+                <div className="w-11 h-11 rounded-full bg-page flex items-center justify-center mx-auto mb-2">
+                  <Inbox size={20} className="text-line" />
                 </div>
-                <p className="text-sm text-gray-400">No new notifications</p>
+                <p className="text-sm text-muted">No new notifications</p>
               </div>
             ) : (
               items.map(n => {
@@ -155,19 +155,19 @@ export default function NotificationBell({ patientId }: { patientId: string }) {
                   <button
                     key={n.id}
                     onClick={() => openNotification(n)}
-                    className={`w-full flex items-start gap-3 text-left px-4 py-3 border-b border-gray-50 last:border-0 transition-colors ${
-                      n.is_read ? "hover:bg-gray-50" : "bg-blue-light/50 hover:bg-blue-light"
+                    className={`w-full flex items-start gap-3 text-left px-4 py-3 border-b border-line last:border-0 transition-colors ${
+                      n.is_read ? "hover:bg-page" : "bg-accent-soft/50 hover:bg-accent-soft"
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${n.is_read ? "bg-gray-100 text-gray-400" : "bg-white text-blue-brand"}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${n.is_read ? "bg-pending-bg text-muted" : "bg-white text-accent"}`}>
                       <Icon size={15} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className={`text-sm ${n.is_read ? "font-medium text-gray-700" : "font-semibold text-gray-900"}`}>{meta.label}</p>
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
-                      <p className="text-[11px] text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
+                      <p className={`text-sm ${n.is_read ? "font-medium text-ink" : "font-semibold text-ink"}`}>{meta.label}</p>
+                      <p className="text-xs text-muted mt-0.5 line-clamp-2">{n.message}</p>
+                      <p className="text-[11px] text-muted mt-1">{timeAgo(n.created_at)}</p>
                     </div>
-                    {!n.is_read && <span className="w-2 h-2 rounded-full bg-blue-brand mt-1.5 shrink-0" />}
+                    {!n.is_read && <span className="w-2 h-2 rounded-full bg-accent mt-1.5 shrink-0" />}
                   </button>
                 );
               })

@@ -113,17 +113,17 @@ export default function PreferredProviderClient({ retargetBookingId, initialCode
             {provider.photo_url ? (
               <img src={provider.photo_url} alt={provider.name} className="w-16 h-16 rounded-full object-cover shrink-0" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-brand flex items-center justify-center font-bold text-xl shrink-0">
+              <div className="w-16 h-16 rounded-full bg-accent-soft text-accent flex items-center justify-center font-bold text-xl shrink-0">
                 {provider.name.charAt(0)}
               </div>
             )}
             <div className="min-w-0">
-              <p className="font-bold text-gray-900">{provider.name}</p>
-              <p className="text-sm text-gray-500">{provider.specialty}</p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="font-bold text-ink">{provider.name}</p>
+              <p className="text-sm text-muted">{provider.specialty}</p>
+              <p className="text-xs text-muted mt-1">
                 {provider.rating > 0 ? `★ ${provider.rating.toFixed(1)}` : "New provider"} · {provider.total_visits} visits
               </p>
-              {provider.bio && <p className="text-sm text-gray-600 mt-2">{provider.bio}</p>}
+              {provider.bio && <p className="text-sm text-muted mt-2">{provider.bio}</p>}
             </div>
           </div>
 
@@ -150,7 +150,7 @@ export default function PreferredProviderClient({ retargetBookingId, initialCode
                   <button onClick={confirmNewBooking} disabled={booking || !scheduleReady} className="btn-primary w-full text-base py-3">
                     {booking ? "Sending request…" : `Book Appointment with ${provider.name}`}
                   </button>
-                  <p className="text-xs text-center text-gray-400">
+                  <p className="text-xs text-center text-muted">
                     {provider.name} will be notified and can accept or decline. Payment due before dispatch.
                   </p>
                 </div>

@@ -328,11 +328,11 @@ export default async function CareJourneyPage({ params }: { params: { id: string
     <div className="max-w-2xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <a href="/dashboard/bookings" className="text-sm text-blue-brand hover:underline inline-flex items-center gap-1 mb-4">
+        <a href="/dashboard/bookings" className="text-sm text-accent hover:underline inline-flex items-center gap-1 mb-4">
           ← Back to Bookings
         </a>
-        <h1 className="text-2xl font-bold text-gray-900">My Care Journey</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">My Care Journey</h1>
+        <p className="text-muted mt-1">
           {serviceLabel} · {bookingDate}
         </p>
       </div>

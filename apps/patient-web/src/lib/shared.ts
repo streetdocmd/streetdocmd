@@ -62,7 +62,7 @@ export const SERVICE_DESCRIPTIONS: Record<ServiceType, string> = {
   nursing_care: "Professional nursing care and procedures at home",
   custom_request: "Describe your specific medical need",
   physiotherapy_assessment: "An initial physiotherapy evaluation to assess your condition and plan treatment",
-  physiotherapy_session: "A follow-up physiotherapy treatment or rehabilitation session at home",
+  physiotherapy_session: "A follow up physiotherapy treatment or rehabilitation session at home",
 };
 
 export const SERVICE_PROFESSION: Record<ServiceType, Profession> = {
@@ -90,7 +90,7 @@ export type CareEpisodeStatus =
 export const CARE_EPISODE_STATUS_LABELS: Record<CareEpisodeStatus, string> = {
   active: "Active",
   monitoring: "Monitoring",
-  follow_up_due: "Follow-up Due",
+  follow_up_due: "Follow up due",
   overdue: "Overdue",
   referred: "Referred",
   resolved: "Resolved",
@@ -108,7 +108,7 @@ export const CARE_TASK_TYPE_LABELS: Record<CareTaskType, string> = {
   monitoring: "Monitoring",
   physiotherapy: "Physiotherapy",
   wound_care: "Wound Care",
-  follow_up: "Follow-up",
+  follow_up: "Follow up",
   other: "Other",
 };
 

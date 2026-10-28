@@ -34,13 +34,13 @@ export default function ResetPasswordPage() {
   return (
     <AuthShell subtitle="">
           {status === "checking" && (
-            <p className="text-gray-500 text-sm text-center py-4">Verifying your reset link…</p>
+            <p className="text-muted text-sm text-center py-4">Verifying your reset link…</p>
           )}
 
           {(status === "confirm" || status === "verifying") && (
             <>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Reset your password</h2>
-              <p className="text-gray-500 text-sm mb-6">Tap continue to choose a new password for your account.</p>
+              <h2 className="text-xl font-bold text-ink mb-2">Reset your password</h2>
+              <p className="text-muted text-sm mb-6">Tap continue to choose a new password for your account.</p>
               <button type="button" onClick={continueReset} disabled={status === "verifying"} className="btn-primary w-full text-base py-3">
                 {status === "verifying" ? "Checking your link…" : "Continue"}
               </button>
@@ -49,8 +49,8 @@ export default function ResetPasswordPage() {
 
           {status === "expired" && (
             <>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Link expired</h1>
-              <p className="text-gray-500 text-sm mb-6">
+              <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-1">Link expired</h1>
+              <p className="text-muted text-sm mb-6">
                 {EXPIRED_MESSAGE}
               </p>
               <Link href="/forgot-password" className="block w-full text-center btn-primary">
@@ -61,8 +61,8 @@ export default function ResetPasswordPage() {
 
           {status === "ready" && !done && (
             <>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Set a new password</h1>
-              <p className="text-gray-500 text-sm mb-6">Choose a new password for your account</p>
+              <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-1">Set a new password</h1>
+              <p className="text-muted text-sm mb-6">Choose a new password for your account</p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+                  <div className="rounded-ds-sm bg-danger-bg px-4 py-3 text-ds-sm text-ink">
                     {error}
                   </div>
                 )}
@@ -99,8 +99,8 @@ export default function ResetPasswordPage() {
 
           {done && (
             <>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Password updated</h1>
-              <p className="text-gray-500 text-sm">Taking you to your dashboard…</p>
+              <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-1">Password updated</h1>
+              <p className="text-muted text-sm">Taking you to your dashboard…</p>
             </>
           )}
     </AuthShell>

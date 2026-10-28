@@ -43,11 +43,11 @@ function LoginForm() {
 
   return (
     <AuthShell>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h1>
-      <p className="text-gray-500 text-sm mb-6">Sign in to book care</p>
+      <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-1">Welcome back</h1>
+      <p className="text-muted text-sm mb-6">Sign in to book care</p>
 
       {justRegistered && (
-        <div className="mb-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg px-4 py-3">
+        <div className="mb-4 rounded-ds-sm bg-success-bg px-4 py-3 text-ds-sm text-ink">
           Your account has been created. Sign in to continue.
         </div>
       )}
@@ -69,7 +69,7 @@ function LoginForm() {
         <div>
           <div className="flex items-center justify-between">
             <label className="label" htmlFor="password">Password</label>
-            <Link href="/forgot-password" className="text-xs text-blue-brand font-medium hover:underline mb-1">
+            <Link href="/forgot-password" className="text-xs text-accent font-bold hover:underline mb-1">
               Forgot password?
             </Link>
           </div>
@@ -84,7 +84,7 @@ function LoginForm() {
         </div>
 
         {error && (
-          <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+          <div role="alert" className="rounded-ds-sm bg-danger-bg px-4 py-3 text-ds-sm text-ink">
             {error}
           </div>
         )}
@@ -95,8 +95,8 @@ function LoginForm() {
       </form>
 
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-500 mb-3">New to StreetdocMD?</p>
-        <Link href="/register" className="block w-full border border-blue-brand text-blue-brand font-medium py-2.5 rounded-lg text-sm hover:bg-blue-50 transition-colors">
+        <p className="text-sm text-muted mb-3">New to StreetdocMD?</p>
+        <Link href="/register" className="btn-secondary w-full">
           Create a free account
         </Link>
       </div>

@@ -70,7 +70,7 @@ export default function WellnessPackagePicker({ packages }: { packages: Wellness
         {packages.map(pkg => (
           <label
             key={pkg.id}
-            className="card p-5 flex items-start gap-3 cursor-pointer has-[:checked]:border-blue-brand has-[:checked]:ring-1 has-[:checked]:ring-blue-brand"
+            className="card p-5 flex items-start gap-3 cursor-pointer has-[:checked]:border-accent has-[:checked]:ring-1 has-[:checked]:ring-accent"
           >
             <input
               type="radio"
@@ -81,18 +81,18 @@ export default function WellnessPackagePicker({ packages }: { packages: Wellness
             />
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <p className="font-bold text-gray-900">{pkg.name}</p>
-                <span className="text-blue-brand font-bold">{formatNaira(pkg.price)}</span>
+                <p className="font-bold text-ink">{pkg.name}</p>
+                <span className="text-accent font-bold">{formatNaira(pkg.price)}</span>
               </div>
-              {pkg.description && <p className="text-sm text-gray-500 mt-1">{pkg.description}</p>}
-              <p className="text-xs text-gray-400 mt-2">
+              {pkg.description && <p className="text-sm text-muted mt-1">{pkg.description}</p>}
+              <p className="text-xs text-muted mt-2">
                 {pkg.included_tests.map(t => t.test_name).join(" · ")}
               </p>
             </div>
           </label>
         ))}
         {packages.length === 0 && (
-          <div className="card p-8 text-center text-gray-400">No wellness packages available right now.</div>
+          <div className="card p-8 text-center text-muted">No wellness packages available right now.</div>
         )}
       </div>
 
@@ -129,7 +129,7 @@ export default function WellnessPackagePicker({ packages }: { packages: Wellness
                   `Book Now · ${formatNaira(selectedPackage.price)}`
                 )}
               </button>
-              <p className="text-xs text-center text-gray-400">
+              <p className="text-xs text-center text-muted">
                 We'll match you with the nearest available provider. Payment due after confirmation.
               </p>
             </div>

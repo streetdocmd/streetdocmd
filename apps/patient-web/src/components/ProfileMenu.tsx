@@ -40,18 +40,18 @@ export default function ProfileMenu({ userName }: { userName: string }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 text-gray-900 py-1">
-          <div className="px-3.5 py-2 border-b border-gray-50">
-            <p className="text-sm font-semibold text-gray-900 truncate">{userName}</p>
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-line overflow-hidden z-50 text-ink py-1">
+          <div className="px-3.5 py-2 border-b border-line">
+            <p className="text-sm font-semibold text-ink truncate">{userName}</p>
           </div>
           <Link
             href="/dashboard/profile"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-ink hover:bg-page transition-colors"
           >
-            <User size={15} className="text-gray-400" /> Profile
+            <User size={15} className="text-muted" /> Profile
           </Link>
-          <SocialLinks className="px-3.5 py-2 border-t border-gray-50" />
+          <SocialLinks className="px-3.5 py-2 border-t border-line" />
           <button
             onClick={signOut}
             className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"

@@ -92,17 +92,17 @@ export default async function RecordsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Medical Records</h1>
-        <p className="text-gray-500 mt-1">A summary of your past visits, diagnoses, and prescriptions.</p>
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Medical Records</h1>
+        <p className="text-muted mt-1">A summary of your past visits, diagnoses, and prescriptions.</p>
       </div>
 
       {enriched.length === 0 ? (
         <div className="card p-12 text-center">
-          <div className="w-14 h-14 rounded-full bg-blue-light flex items-center justify-center mx-auto mb-4">
-            <Inbox size={26} className="text-blue-brand" />
+          <div className="w-14 h-14 rounded-full bg-accent-soft flex items-center justify-center mx-auto mb-4">
+            <Inbox size={26} className="text-accent" />
           </div>
-          <p className="font-semibold text-gray-700 text-lg">No records yet</p>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="font-semibold text-ink text-lg">No records yet</p>
+          <p className="text-muted text-sm mt-1">
             Your visit records will appear here after completed visits.
           </p>
         </div>
