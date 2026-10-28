@@ -31,12 +31,12 @@ export default function ProfileMenu({ userName }: { userName: string }) {
       <button
         onClick={() => setOpen(o => !o)}
         aria-label="Account menu"
-        className="flex items-center gap-1 rounded-full hover:bg-white/10 transition-colors p-1 pr-1.5 sm:pr-2"
+        className="flex items-center gap-1 rounded-full hover:bg-page transition-colors p-1 pr-1.5 sm:pr-2"
       >
-        <div className="w-8 h-8 rounded-full bg-blue-brand flex items-center justify-center text-xs font-semibold text-white shrink-0">
+        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-white shrink-0">
           {userName.charAt(0).toUpperCase()}
         </div>
-        <ChevronDown size={14} className={`hidden sm:block text-blue-200 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={14} className={`hidden sm:block text-muted transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (

@@ -110,7 +110,7 @@ export default function NotificationBell({ patientId }: { patientId: string }) {
       <button
         onClick={() => setOpen(o => !o)}
         aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
-        className="relative w-9 h-9 rounded-full flex items-center justify-center text-blue-100 hover:bg-white/10 hover:text-white transition-colors"
+        className="relative w-10 h-10 rounded-full flex items-center justify-center text-navy hover:bg-page transition-colors"
       >
         <Bell size={19} strokeWidth={2} />
         {unreadCount > 0 && (

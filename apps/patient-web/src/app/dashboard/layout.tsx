@@ -38,9 +38,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const neverAccepted = !legal?.terms_accepted_at && !legal?.privacy_acknowledged_at;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-page">
       <Navbar userName={firstName} userId={user.id} />
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8 pb-24 md:pb-8">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-5 pt-5 pb-28 md:pt-8 md:pb-10">
         {needsPolicyReview && <PolicyUpdateBanner firstTime={neverAccepted} />}
         {children}
       </main>
