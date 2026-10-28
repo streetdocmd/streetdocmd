@@ -46,6 +46,8 @@ async function loadProviders(service: ServiceType): Promise<BookableProvider[]> 
     );
 }
 
+const sentenceCase = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
+
 export default async function SelectProviderPage({
   params,
   searchParams,
@@ -62,16 +64,11 @@ export default async function SelectProviderPage({
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{SERVICE_LABELS[service]}</h1>
-        <p className="text-gray-500 text-sm mt-0.5">
-          {isFollowUp
-            ? "Follow-up visit with your provider"
-            : "Choose a provider. Each sets their own price."}
-        </p>
-      </div>
-
       <BookProviderClient
+        title={sentenceCase(SERVICE_LABELS[service])}
+        subtitle={isFollowUp
+          ? "Follow up visit with your provider"
+          : `Verified ${SERVICE_PROFESSION[service]}s who visit you. Each sets their own price.`}
         service={service}
         providers={providers}
         description={searchParams.description}
