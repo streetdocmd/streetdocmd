@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 // Brand moment shown before onboarding. The swinging stethoscope cable is the one
 // brand motion in the app; it stops (and the loader holds still) under reduced motion.
 export default function Splash() {
@@ -18,16 +20,15 @@ export default function Splash() {
 
       <span
         aria-hidden
-        className="relative z-[1] grid place-items-center w-[92px] h-[92px] rounded-[28px] bg-white shadow-[0_20px_40px_rgba(0,0,0,0.25)]"
+        className="relative z-[1] grid place-items-center w-[92px] h-[92px] rounded-[28px] overflow-hidden bg-white shadow-[0_20px_40px_rgba(0,0,0,0.25)]"
       >
-        <svg viewBox="0 0 24 24" className="w-[46px] h-[46px] stroke-brand fill-none" strokeWidth={3} strokeLinecap="round">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
+        <Image src="/mark.jpg" alt="" width={72} height={72} priority className="object-contain" />
       </span>
 
-      <p className="relative z-[1] text-[30px] font-extrabold tracking-[-0.02em] leading-none">
-        Street<span className="text-brand-pale">DocMD</span>
-      </p>
+      {/* The PNG has wide transparent margins; the negative margins pull it to the wordmark's own size */}
+      <h1 className="relative z-[1] -my-6 w-[260px]">
+        <Image src="/logo-white.png" alt="StreetDocMD" width={4167} height={1667} priority className="h-auto w-full" />
+      </h1>
       <p className="relative z-[1] text-ds-control text-brand-mist">Healthcare at your convenience</p>
 
       <span aria-hidden className="relative z-[1] mt-[18px] w-[120px] h-1 rounded overflow-hidden bg-white/20">
