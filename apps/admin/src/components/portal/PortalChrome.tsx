@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { BottomTabBar } from "@/components/ds";
 import { createClient } from "@/lib/supabase";
-import ComingSoonBadge from "./ComingSoonBadge";
 import { PORTALS, SUPPORT_MAILTO, type PortalType } from "./config";
 
 interface NavItem { href: string; label: string; icon: LucideIcon }
@@ -87,7 +86,6 @@ function NavList({ type, pathname, onNavigate }: { type: PortalType; pathname: s
               >
                 <Icon size={17} aria-hidden />
                 <span className="flex-1 truncate">{label}</span>
-                <ComingSoonBadge />
               </span>
             </li>
           ))}
