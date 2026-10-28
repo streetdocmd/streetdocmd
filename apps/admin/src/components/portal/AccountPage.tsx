@@ -1,5 +1,6 @@
 import { Mail } from "lucide-react";
 import ChangePasswordForm from "./ChangePasswordForm";
+import FacilityDetailsForm from "./FacilityDetailsForm";
 import FacilityAgreementRecord from "@/components/legal/FacilityAgreementRecord";
 import { getFacilityAgreementRecord } from "@/lib/facility-agreement-server";
 import { requirePortalAccess } from "./access";
@@ -39,7 +40,7 @@ export default async function AccountPage({ type }: { type: PortalType }) {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <PageHeader title={type === "hospital" ? "Facility & account" : "Account"} description={`Your ${cfg.facilityNoun}'s details on StreetdocMD and your sign-in settings.`} />
+      <PageHeader title="Profile" description={`Your ${cfg.facilityNoun}'s details on StreetdocMD and your sign-in settings.`} />
 
       <Card>
         <CardHeader
@@ -74,6 +75,27 @@ export default async function AccountPage({ type }: { type: PortalType }) {
           )}
         </div>
       </Card>
+
+      {p && !access.isAdmin && (
+        <Card>
+          <CardHeader
+            title="What patients see"
+            description={type === "pharmacy"
+              ? "Your hours and delivery time show on your pharmacy profile and when patients order."
+              : type === "lab" ? "Your hours show on your lab profile." : "Your hours and services show on your hospital profile."}
+          />
+          <div className="p-5">
+            <FacilityDetailsForm
+              type={type}
+              initial={{
+                opening_hours: p.opening_hours ?? null,
+                delivery_eta_minutes: p.delivery_eta_minutes ?? null,
+                services: Array.isArray(p.services) ? p.services : [],
+              }}
+            />
+          </div>
+        </Card>
+      )}
 
       {agreement && (
         <Card>
