@@ -19,16 +19,21 @@ export default async function DocumentsPage() {
 
   if (!provider) redirect("/register/individual");
 
+  // select("*"): review_status arrives with migration 062
   const { data: existingDocs } = await supabase
     .from("provider_documents")
-    .select("document_type")
-    .eq("provider_id", provider.id);
+    .select("*")
+    .eq("provider_id", provider.id)
+    .order("uploaded_at", { ascending: false });
   const uploadedTypes = Array.from(new Set((existingDocs ?? []).map(d => d.document_type as string)));
+  // A document the reviewer flagged (latest upload of its type) needs uploading again
+  const hasFlagged = uploadedTypes.some(t => (existingDocs ?? []).find(d => d.document_type === t)?.review_status === "needs_info");
 
   // Verified / under review / a complete pending application have nothing to
-  // do here. A rejected provider is re-applying and does need the form.
+  // do here. A rejected provider is re-applying and does need the form, and so
+  // does anyone with a flagged document.
   const isRejected = provider.verification_status === "rejected";
-  if (!isRejected) {
+  if (!isRejected && !hasFlagged) {
     const target = onboardingRoute(provider, uploadedTypes);
     if (target !== "/onboarding/documents") redirect(target);
   }

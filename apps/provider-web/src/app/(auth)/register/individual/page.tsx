@@ -1,6 +1,6 @@
 "use client";
 import { legalUrl } from "@streetdocmd/shared";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -31,6 +31,12 @@ export default function RegisterIndividualPage() {
   const [ndpr, setNdpr] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // ?specialty= from the provider type chooser preselects the specialty
+  useEffect(() => {
+    const pre = new URLSearchParams(window.location.search).get("specialty");
+    if (pre && (SPECIALTIES as readonly string[]).includes(pre)) setForm(f => ({ ...f, specialty: pre }));
+  }, []);
 
   const practitionerType = getPractitionerType(form.specialty);
 

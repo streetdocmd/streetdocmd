@@ -1,62 +1,62 @@
 import Link from "next/link";
-import { Stethoscope, Building2, ArrowRight } from "lucide-react";
+import { Activity, Building2, FlaskConical, HeartPulse, Pill, Stethoscope, type LucideIcon } from "lucide-react";
 import AuthBrand from "@/components/AuthBrand";
+import { cx, focusRing } from "@/components/ds";
 
 const FACILITY_REGISTRATION_URL = "https://admin.streetdocmd.com/register/facility";
 
+// The design's six provider types. Individuals register here; facilities on the
+// partner registration form (it opens on the chosen type).
+const ROLES: { label: string; desc: string; reg: string; icon: LucideIcon; href: string }[] = [
+  { label: "Doctor", desc: "Home consultations, prescriptions and referrals.", reg: "MDCN", icon: Stethoscope,
+    href: `/register/individual?specialty=${encodeURIComponent("Medical Doctor (General)")}` },
+  { label: "Nurse", desc: "Dressings, post surgical checks and care at home.", reg: "NMCN", icon: HeartPulse,
+    href: `/register/individual?specialty=${encodeURIComponent("Registered Nurse")}` },
+  { label: "Physiotherapist", desc: "Assessments, exercise plans and follow up sessions.", reg: "MRTB", icon: Activity,
+    href: `/register/individual?specialty=${encodeURIComponent("Physiotherapist")}` },
+  { label: "Pharmacy", desc: "Stock, medicine orders and delivery.", reg: "PCN", icon: Pill,
+    href: `${FACILITY_REGISTRATION_URL}?type=pharmacy` },
+  { label: "Diagnostic lab", desc: "Sample collection, test processing and results.", reg: "MLSCN", icon: FlaskConical,
+    href: `${FACILITY_REGISTRATION_URL}?type=lab` },
+  { label: "Hospital", desc: "Capacity, referrals and specialist clinics.", reg: "Ministry of Health", icon: Building2,
+    href: `${FACILITY_REGISTRATION_URL}?type=hospital` },
+];
+
 export default function RegisterFork() {
   return (
-    <div className="w-full max-w-3xl">
-      <AuthBrand subtitle="How are you joining StreetdocMD?" />
+    <div className="w-full max-w-2xl">
+      <AuthBrand subtitle="Join as a provider" />
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Link
-          href="/register/individual"
-          className="group card p-6 flex flex-col hover:shadow-2xl hover:-translate-y-0.5 transition-all"
-        >
-          <div className="w-11 h-11 rounded-xl bg-accent-soft flex items-center justify-center mb-4">
-            <Stethoscope size={22} className="text-accent" />
-          </div>
-          <h2 className="text-ds-lg font-bold text-navy">Individual practitioner</h2>
-          <p className="text-sm text-muted mt-1.5 flex-1">
-            You personally visit patients at home and get bookings sent directly to you.
-          </p>
-          <ul className="text-xs text-muted mt-4 space-y-1">
-            <li>• Medical Doctor — General or Specialist</li>
-            <li>• Registered Nurse</li>
-            <li>• Physiotherapist</li>
-            <li>• Medical Laboratory Scientist</li>
-          </ul>
-          <span className="btn-primary w-full mt-5 inline-flex items-center justify-center gap-1.5">
-            Register as an individual <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
-          </span>
-        </Link>
+      <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Choose your provider type</h1>
+      <p className="mb-[18px] mt-1.5 text-ds-sm text-muted">
+        We tailor your dashboard and checks to your type, and ask for the right licence.
+      </p>
 
-        <a
-          href={FACILITY_REGISTRATION_URL}
-          className="group card p-6 flex flex-col hover:shadow-2xl hover:-translate-y-0.5 transition-all"
-        >
-          <div className="w-11 h-11 rounded-xl bg-teal-soft flex items-center justify-center mb-4">
-            <Building2 size={22} className="text-teal-deep" />
-          </div>
-          <h2 className="text-ds-lg font-bold text-navy">Organization</h2>
-          <p className="text-sm text-muted mt-1.5 flex-1">
-            Your business partners with StreetdocMD — a hospital, laboratory, or pharmacy.
-          </p>
-          <ul className="text-xs text-muted mt-4 space-y-1">
-            <li>• Hospital</li>
-            <li>• Medical Laboratory</li>
-            <li>• Pharmacy</li>
-          </ul>
-          <span className="btn-teal w-full mt-5 inline-flex items-center justify-center gap-1.5">
-            Register an organization <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
-          </span>
-        </a>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {ROLES.map(({ label, desc, reg, icon: Icon, href }) => {
+          const className = cx(
+            "grid min-w-0 content-start gap-3 rounded-ds-lg border-[1.5px] border-line bg-surface px-3.5 py-4 text-left transition-colors hover:border-teal-deep hover:bg-[#F0FBF9]",
+            focusRing,
+          );
+          const body = (
+            <>
+              <span className="grid h-[46px] w-[46px] place-items-center rounded-ds bg-teal-soft text-teal-deep"><Icon size={22} aria-hidden /></span>
+              <span>
+                <b className="block text-ds-control text-navy">{label}</b>
+                <small className="mt-0.5 block text-ds-xs leading-snug text-muted">{desc}</small>
+              </span>
+              <span className="justify-self-start rounded-pill bg-teal-tint px-2.5 py-[5px] text-ds-xs font-bold text-teal-deep">{reg}</span>
+            </>
+          );
+          return href.startsWith("http")
+            ? <a key={label} href={href} className={className}>{body}</a>
+            : <Link key={label} href={href} className={className}>{body}</Link>;
+        })}
       </div>
 
-      <p className="text-center text-sm text-muted mt-6">
+      <p className="mt-6 text-center text-ds-sm text-muted">
         Already registered?{" "}
-        <Link href="/login" className="text-white font-medium hover:underline">Sign in</Link>
+        <Link href="/login" className="font-bold text-accent hover:underline">Sign in</Link>
       </p>
     </div>
   );
