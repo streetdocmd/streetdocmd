@@ -1,20 +1,10 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { BOOKING_STATUS_LABELS } from "@/lib/shared";
+import { Check, Mail, Phone, Star } from "lucide-react";
+import { SUPPORT_EMAIL } from "@/lib/brand";
+import { Avatar, Button, Card, Notice, TopBar, iconButtonClass } from "@/components/ds";
 import TrackingClient from "./TrackingClient";
-
-const STATUS_COLORS: Record<string, string> = {
-  pending:     "bg-amber-100 text-amber-800 border-amber-200",
-  paid:        "bg-amber-100 text-amber-800 border-amber-200",
-  expired:     "bg-gray-100 text-gray-600 border-gray-200",
-  provider_declined: "bg-red-100 text-red-800 border-red-200",
-  accepted:    "bg-blue-100 text-blue-800 border-blue-200",
-  en_route:    "bg-violet-100 text-violet-800 border-violet-200",
-  arrived:     "bg-indigo-100 text-indigo-800 border-indigo-200",
-  in_progress: "bg-amber-100 text-amber-800 border-amber-200",
-  completed:   "bg-green-100 text-green-800 border-green-200",
-  cancelled:   "bg-red-100 text-red-800 border-red-200",
-};
 
 const STATUS_STEPS = ["pending", "accepted", "en_route", "arrived", "in_progress", "completed"];
 
@@ -41,46 +31,31 @@ export default async function TrackingPage({ params }: { params: { id: string } 
   // (payment confirmed, provider being matched) since migration 019.
   const currentStep = STATUS_STEPS.indexOf(booking.status === "paid" ? "pending" : booking.status);
 
+  const isScheduled = booking.status === "accepted" && !!booking.scheduled_at && new Date(booking.scheduled_at) > new Date();
+  const fmt = (o: Intl.DateTimeFormatOptions) =>
+    booking.scheduled_at ? new Date(booking.scheduled_at).toLocaleString("en-NG", { ...o, timeZone: "Africa/Lagos" }) : "";
+  const timeline = [
+    { label: "Accepted", text: provider ? `${provider.name} confirmed your visit` : "A provider confirmed your visit" },
+    { label: "On the way", text: "Heading to your door" },
+    { label: "Arrived", text: "At your door" },
+    { label: "In progress", text: "Visit underway" },
+    { label: "Completed", text: "Notes and prescriptions sent to you" },
+  ];
+
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Your Visit</h1>
+    <div className="mx-auto max-w-2xl">
+      <TopBar title={isScheduled ? "Scheduled visit" : "Your visit"} backHref="/dashboard/bookings" className="-mx-5 -mt-2 md:mx-0" />
 
-      {/* Status banner */}
-      <div className={`border rounded-xl px-5 py-4 mb-5 text-center ${STATUS_COLORS[booking.status] ?? "bg-gray-100"}`}>
-        <p className="font-bold text-lg">
-          {(BOOKING_STATUS_LABELS as Record<string, string>)[booking.status]}
-        </p>
-      </div>
+      {booking.status === "cancelled" ? (
+        <Notice tone="danger" title="This visit was cancelled." className="mb-4" />
+      ) : currentStep <= 0 ? (
+        <Notice tone="info" title={(BOOKING_STATUS_LABELS as Record<string, string>)[booking.status]} className="mb-4">
+          We&apos;ll update this page as soon as a provider accepts.
+        </Notice>
+      ) : null}
 
-      {/* Progress steps */}
-      {booking.status !== "cancelled" && (
-        <div className="card p-5 mb-4">
-          <div className="flex items-center justify-between">
-            {["Assigned", "En Route", "Arrived", "In Progress", "Done"].map((label, i) => {
-              const step = i + 1;
-              const done = currentStep >= step;
-              const active = currentStep === step;
-              return (
-                <div key={label} className="flex flex-col items-center flex-1">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
-                    done   ? "bg-blue-brand border-blue-brand text-white" :
-                    active ? "border-blue-brand text-blue-brand" :
-                             "border-gray-200 text-gray-300"
-                  }`}>
-                    {done ? "✓" : step}
-                  </div>
-                  <p className={`text-xs mt-1 text-center ${done || active ? "text-blue-brand font-medium" : "text-gray-400"}`}>
-                    {label}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Live map + distance/ETA — shown while provider is on the way */}
-      {provider && ["accepted", "en_route", "arrived"].includes(booking.status) && (
+      {/* Live map + distance/ETA, shown while the provider is on the way */}
+      {provider && !isScheduled && ["accepted", "en_route", "arrived"].includes(booking.status) && (
         <div className="mb-4">
           <TrackingClient
             bookingId={params.id}
@@ -96,37 +71,83 @@ export default async function TrackingPage({ params }: { params: { id: string } 
 
       {/* Provider card */}
       {provider && (
-        <div className="card p-5 mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-blue-brand flex items-center justify-center text-white font-bold text-lg">
-              {provider.name[0]}
+        <Card>
+          <div className="flex items-center gap-3">
+            <Avatar name={provider.name} size="sm" />
+            <div className="min-w-0 flex-1">
+              <b className="block truncate text-ds-control text-ink">{provider.name}</b>
+              <span className="text-ds-sm text-muted">{provider.specialty}</span>
             </div>
-            <div>
-              <p className="font-semibold text-gray-900">{provider.name}</p>
-              <p className="text-sm text-gray-500">{provider.specialty}</p>
-              {provider.rating > 0 && (
-                <p className="text-xs text-gray-400 mt-0.5">⭐ {provider.rating.toFixed(1)}</p>
-              )}
-            </div>
+            {provider.rating > 0 && (
+              <span className="inline-flex items-center gap-1 text-[13px] font-extrabold text-ink">
+                <Star size={14} className="fill-amber-500 text-amber-500" aria-hidden /> {provider.rating.toFixed(1)}
+              </span>
+            )}
+            {provider.phone && (
+              <a href={`tel:${provider.phone}`} aria-label={`Call ${provider.name}`} className={iconButtonClass}>
+                <Phone size={20} aria-hidden />
+              </a>
+            )}
           </div>
-          <a
-            href={`tel:${provider.phone}`}
-            className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-green-100 transition-colors"
-          >
-            📞 Call
-          </a>
-        </div>
+          {isScheduled && (
+            <dl className="mt-3">
+              {[["Date", fmt({ weekday: "short", day: "numeric", month: "short" })], ["Time", fmt({ hour: "numeric", minute: "2-digit", hour12: true })], ["Where", booking.patient_address]]
+                .filter(([, v]) => v)
+                .map(([k, v]) => (
+                  <div key={k} className="flex justify-between gap-4 border-b border-line py-2.5 text-ds-sm last:border-b-0">
+                    <dt className="text-muted">{k}</dt>
+                    <dd className="text-right font-bold text-ink">{v}</dd>
+                  </div>
+                ))}
+            </dl>
+          )}
+        </Card>
       )}
 
-      {/* Rate button for completed visits */}
-      {booking.status === "completed" && (
-        <a
-          href={`/dashboard/book/rate/${params.id}?providerId=${provider?.id}`}
-          className="block w-full text-center bg-navy-700 text-white rounded-xl py-4 font-semibold hover:bg-navy-800 transition-colors"
-        >
-          Rate your visit ★
-        </a>
+      {/* Visit status timeline */}
+      {booking.status !== "cancelled" && (
+        <section className="mt-[26px]">
+          <h2 className="mb-3 text-[17px] font-bold text-navy">{isScheduled ? "What happens next" : "Visit status"}</h2>
+          <ol>
+            {timeline.map(({ label, text }, i) => {
+              const step = i + 1;
+              // currentStep: 1 accepted ... 5 completed. A reached status is done; the next one is current.
+              const state = currentStep >= step ? "done" : currentStep + 1 === step ? "now" : "todo";
+              return (
+                <li key={label} className="relative flex gap-3.5 pb-5 last:pb-0">
+                  {i < timeline.length - 1 && (
+                    <span aria-hidden className={`absolute left-[13px] top-7 h-[calc(100%-24px)] w-0.5 ${state === "done" ? "bg-success" : "bg-line"}`} />
+                  )}
+                  <span className={`relative grid h-7 w-7 flex-none place-items-center rounded-full ${
+                    state === "done" ? "bg-success text-white" : state === "now" ? "bg-accent-soft ring-2 ring-accent" : "border-2 border-line bg-surface"
+                  }`}>
+                    {state === "done" && <Check size={14} strokeWidth={3} aria-hidden />}
+                    {state === "now" && <span className="h-2.5 w-2.5 rounded-full bg-accent" aria-hidden />}
+                  </span>
+                  <div className="pt-0.5">
+                    <b className={`block text-ds-sm ${state === "todo" ? "text-muted" : "text-ink"}`}>{label}</b>
+                    <small className="text-ds-xs text-muted">{text}</small>
+                    <span className="sr-only">{state === "done" ? ", done" : state === "now" ? ", current step" : ", not yet"}</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
       )}
+
+      <div className="mt-6 flex gap-2.5">
+        {booking.status === "completed" ? (
+          <Button href={`/dashboard/book/rate/${params.id}?providerId=${provider?.id}`} className="flex-1">
+            Rate your visit
+          </Button>
+        ) : (
+          <Button href={`mailto:${SUPPORT_EMAIL}`} variant="secondary" className="flex-1">
+            <Mail size={18} aria-hidden /> Get help
+          </Button>
+        )}
+      </div>
+      {/* TODO(design): Share location, Reschedule and Add to calendar need features that don't exist yet. */}
     </div>
   );
 }

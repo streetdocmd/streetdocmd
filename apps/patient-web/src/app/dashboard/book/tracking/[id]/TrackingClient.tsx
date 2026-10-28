@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase";
 import { getDistanceKm, getEtaMinutes } from "@/lib/shared";
+import { Radio } from "lucide-react";
+import { Pill } from "@/components/ds";
 
 const LiveMap = dynamic(() => import("@/components/LiveMap"), { ssr: false });
 
@@ -75,7 +77,7 @@ export default function TrackingClient({
   }, [bookingId, providerId, router]);
 
   return (
-    <div className="space-y-4">
+    <div className="relative overflow-hidden rounded-ds-lg border border-line bg-surface">
       <LiveMap
         providerLat={providerLat}
         providerLng={providerLng}
@@ -83,27 +85,24 @@ export default function TrackingClient({
         patientLng={patientLng}
         providerName={providerName}
       />
-
-      {/* Distance + ETA */}
-      {distanceKm != null && (
-        <div className="card p-4 flex items-center justify-around text-center">
-          <div>
-            <p className="text-2xl font-bold text-blue-brand">{distanceKm.toFixed(1)} km</p>
-            <p className="text-xs text-gray-400 mt-0.5">Distance away</p>
-          </div>
-          <div className="w-px h-10 bg-gray-100" />
-          <div>
-            <p className="text-2xl font-bold text-teal-brand">{eta} min</p>
-            <p className="text-xs text-gray-400 mt-0.5">Estimated arrival</p>
-          </div>
-        </div>
-      )}
-
-      {/* Live indicator */}
-      <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
-        Live tracking active · updates every 10 seconds
+      <div className="pointer-events-none absolute left-3 top-3 z-[400]">
+        <Pill tone="ok" icon={Radio}>Live</Pill>
       </div>
+
+      {/* Arrival card */}
+      <div className="flex items-center gap-4 border-t border-line p-4">
+        <div className="flex-1">
+          <small className="text-ds-xs font-semibold text-muted">Arriving in</small>
+          <div className="text-ds-2xl font-extrabold leading-tight text-navy tabular-nums">{eta != null ? `${eta} min` : "Updating"}</div>
+        </div>
+        {distanceKm != null && (
+          <div className="text-right">
+            <small className="block text-ds-xs font-semibold text-muted">Distance</small>
+            <b className="text-ds-md text-ink tabular-nums">{distanceKm.toFixed(1)} km</b>
+          </div>
+        )}
+      </div>
+      <p className="sr-only" aria-live="polite">Live tracking updates every 10 seconds.</p>
     </div>
   );
 }
