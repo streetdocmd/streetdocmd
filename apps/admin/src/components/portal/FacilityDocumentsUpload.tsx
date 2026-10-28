@@ -111,19 +111,19 @@ export default function FacilityDocumentsUpload({
 
   return (
     <div className={ui.card}>
-      <div className="px-5 sm:px-6 py-5 border-b border-gray-100">
+      <div className="px-5 sm:px-6 py-5 border-b border-line">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">Verification documents</h2>
-            <p className="text-xs text-gray-500 mt-0.5">PDF, JPG or PNG, up to 10 MB each. Clear scans or photos of the originals.</p>
+            <h2 className="text-base font-semibold text-ink">Verification documents</h2>
+            <p className="text-xs text-muted mt-0.5">PDF, JPG or PNG, up to 10 MB each. Clear scans or photos of the originals.</p>
           </div>
           {complete
             ? <StatusBadge tone="green" icon={CircleCheck}>Submitted for review</StatusBadge>
             : <StatusBadge tone="amber">{done} of {required.length} required</StatusBadge>}
         </div>
-        <div className="mt-4 h-1.5 rounded-full bg-gray-100 overflow-hidden" aria-hidden>
+        <div className="mt-4 h-1.5 rounded-full bg-pending-bg overflow-hidden" aria-hidden>
           <div
-            className={`h-full rounded-full transition-all ${complete ? "bg-green-600" : "bg-blue-brand"}`}
+            className={`h-full rounded-full transition-all ${complete ? "bg-green-600" : "bg-accent"}`}
             style={{ width: `${required.length ? (done / required.length) * 100 : 100}%` }}
           />
         </div>
@@ -136,7 +136,7 @@ export default function FacilityDocumentsUpload({
             </p>
           </div>
         ) : (
-          <p className="mt-3 text-sm text-gray-600">
+          <p className="mt-3 text-sm text-muted">
             Still needed: <strong>{missing.map((m) => m.label).join(", ")}</strong>. We start reviewing once all required documents are in.
           </p>
         )}
@@ -147,7 +147,7 @@ export default function FacilityDocumentsUpload({
           Document uploads aren&apos;t available yet. Please check back shortly, or email your documents to {SUPPORT_EMAIL}.
         </p>
       ) : (
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-line">
           {specs.map((spec) => {
             const doc = docs.find((d) => d.document_type === spec.type);
             const isBusy = busy === spec.type;
@@ -156,22 +156,22 @@ export default function FacilityDocumentsUpload({
             return (
               <li key={spec.type} className="px-5 sm:px-6 py-4">
                 <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                  <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${doc ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"}`}>
+                  <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${doc ? "bg-green-50 text-green-600" : "bg-pending-bg text-muted"}`}>
                     {doc ? <CircleCheck size={18} aria-hidden /> : <FileText size={18} aria-hidden />}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-ink flex flex-wrap items-center gap-2">
                       {spec.label}
                       {spec.required
                         ? (!doc && <StatusBadge tone="amber">Required</StatusBadge>)
                         : <StatusBadge tone="gray">Optional</StatusBadge>}
                     </p>
                     {doc ? (
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">
-                        <span className="font-medium text-gray-700">{doc.file_name ?? "Uploaded file"}</span> · Uploaded {fmtDate(doc.uploaded_at)}
+                      <p className="text-xs text-muted mt-0.5 truncate">
+                        <span className="font-medium text-ink">{doc.file_name ?? "Uploaded file"}</span> · Uploaded {fmtDate(doc.uploaded_at)}
                       </p>
                     ) : (
-                      <p className="text-xs text-gray-500 mt-0.5">{spec.description}</p>
+                      <p className="text-xs text-muted mt-0.5">{spec.description}</p>
                     )}
                   </div>
 
@@ -190,7 +190,7 @@ export default function FacilityDocumentsUpload({
                     />
                     {confirmRemove === spec.type && doc ? (
                       <>
-                        <span className="text-xs text-gray-600">Remove this file?</span>
+                        <span className="text-xs text-muted">Remove this file?</span>
                         <button type="button" onClick={() => remove(spec, doc)} disabled={isBusy}
                           className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 text-white px-3 py-2 text-xs font-semibold hover:bg-red-700 disabled:opacity-50">
                           {isBusy ? <Spinner className="w-3 h-3" /> : <Trash2 size={13} aria-hidden />} Remove

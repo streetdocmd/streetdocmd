@@ -36,12 +36,12 @@ export default function ResetPasswordForm({ type }: { type: PortalType }) {
   return (
     <div className={`${ui.card} p-6 sm:p-8`}>
       {status === "checking" && (
-        <p className="text-sm text-gray-500 text-center py-6 flex items-center justify-center gap-2"><Spinner /> Verifying your reset link…</p>
+        <p className="text-sm text-muted text-center py-6 flex items-center justify-center gap-2"><Spinner /> Verifying your reset link…</p>
       )}
       {(status === "confirm" || status === "verifying") && (
         <>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Reset your password</h2>
-          <p className="text-gray-500 text-sm mb-6">Tap continue to choose a new password for your account.</p>
+          <h2 className="text-ds-xl font-bold text-navy mb-2">Reset your password</h2>
+          <p className="text-muted text-sm mb-6">Tap continue to choose a new password for your account.</p>
           <button type="button" onClick={continueReset} disabled={status === "verifying"} className={`${ui.btnPrimary} w-full py-3`}>
             {status === "verifying" ? "Checking your link…" : "Continue"}
           </button>
@@ -50,8 +50,8 @@ export default function ResetPasswordForm({ type }: { type: PortalType }) {
 
       {status === "expired" && (
         <>
-          <h2 className="text-xl font-bold text-gray-900">Link expired</h2>
-          <p className="text-sm text-gray-500 mt-2 mb-6">
+          <h2 className="text-ds-xl font-bold text-navy">Link expired</h2>
+          <p className="text-sm text-muted mt-2 mb-6">
             {EXPIRED_MESSAGE}
           </p>
           <Link href={`${cfg.base}/forgot-password`} className={`${ui.btnPrimary} w-full py-3`}>Request a new link</Link>
@@ -59,7 +59,7 @@ export default function ResetPasswordForm({ type }: { type: PortalType }) {
       )}
       {status === "ready" && !done && (
         <>
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Set a new password</h2>
+          <h2 className="text-ds-xl font-bold text-navy mb-6">Set a new password</h2>
           <form onSubmit={submit} className="space-y-4">
             <div>
               <label htmlFor="pw" className={ui.label}>New password</label>
@@ -85,8 +85,8 @@ export default function ResetPasswordForm({ type }: { type: PortalType }) {
       {done && (
         <div className="text-center py-4">
           <CheckCircle2 size={36} className="mx-auto text-green-600" aria-hidden />
-          <h2 className="mt-3 text-xl font-bold text-gray-900">Password updated</h2>
-          <p className="text-sm text-gray-500 mt-1">Taking you to your portal…</p>
+          <h2 className="mt-3 text-ds-xl font-bold text-navy">Password updated</h2>
+          <p className="text-sm text-muted mt-1">Taking you to your portal…</p>
         </div>
       )}
     </div>

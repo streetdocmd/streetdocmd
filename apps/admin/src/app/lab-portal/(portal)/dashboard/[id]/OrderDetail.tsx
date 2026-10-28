@@ -14,7 +14,7 @@ interface ResultRow {
 }
 
 const FLAG_STYLE: Record<string, string> = {
-  high: "text-red-600", low: "text-blue-600", critical: "text-purple-700", normal: "text-gray-900",
+  high: "text-red-600", low: "text-accent", critical: "text-purple-700", normal: "text-ink",
 };
 
 export default function OrderDetail({ order }: { order: any }) {
@@ -104,13 +104,13 @@ export default function OrderDetail({ order }: { order: any }) {
                   <li key={s} className="flex items-center">
                     <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${
                       i < currentIdx ? "bg-green-50 text-green-700"
-                      : i === currentIdx ? "bg-blue-brand text-white"
-                      : "bg-gray-100 text-gray-400"
+                      : i === currentIdx ? "bg-accent text-white"
+                      : "bg-pending-bg text-muted"
                     }`}>
                       {i < currentIdx && <Check size={12} aria-hidden />}
                       {LAB_STATUS[s].label}
                     </span>
-                    {i < LAB_FLOW.length - 1 && <ChevronRight size={14} className="text-gray-300 mx-0.5" aria-hidden />}
+                    {i < LAB_FLOW.length - 1 && <ChevronRight size={14} className="text-line mx-0.5" aria-hidden />}
                   </li>
                 ))}
               </ol>
@@ -120,7 +120,7 @@ export default function OrderDetail({ order }: { order: any }) {
                 </button>
               )}
               {nextStatus === "resulted" && (
-                <p className="mt-4 text-sm text-gray-600">Next step: upload the results below. The order is marked resulted and the patient and doctor are notified.</p>
+                <p className="mt-4 text-sm text-muted">Next step: upload the results below. The order is marked resulted and the patient and doctor are notified.</p>
               )}
             </div>
           </Card>
@@ -133,15 +133,15 @@ export default function OrderDetail({ order }: { order: any }) {
                   <FileText size={14} aria-hidden /> View report
                 </a>
               )} />
-              <ul className="divide-y divide-gray-100">
+              <ul className="divide-y divide-line">
                 {existingResults.map((r: any) => (
                   <li key={r.id} className="flex justify-between items-start gap-4 px-5 py-3">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{r.test_name}</p>
-                      {r.reference_range && <p className="text-xs text-gray-500">Reference: {r.reference_range}</p>}
+                      <p className="text-sm font-medium text-ink">{r.test_name}</p>
+                      {r.reference_range && <p className="text-xs text-muted">Reference: {r.reference_range}</p>}
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm font-semibold ${FLAG_STYLE[r.flag] ?? "text-gray-900"}`}>{r.result_value ?? "—"} {r.unit}</p>
+                      <p className={`text-sm font-semibold ${FLAG_STYLE[r.flag] ?? "text-ink"}`}>{r.result_value ?? "—"} {r.unit}</p>
                       {r.flag && r.flag !== "normal" && (
                         <StatusBadge tone={r.flag === "critical" ? "purple" : r.flag === "high" ? "red" : "blue"}>{r.flag}</StatusBadge>
                       )}
@@ -157,8 +157,8 @@ export default function OrderDetail({ order }: { order: any }) {
               <CardHeader title="Upload results" description="Enter a value for each test, attach the signed report, or both." />
               <div className="p-5 space-y-4">
                 {resultRows.map((row, i) => (
-                  <fieldset key={i} className="rounded-lg border border-gray-100 bg-gray-50/60 p-4">
-                    <legend className="text-sm font-semibold text-gray-900 px-1">{row.test_name}</legend>
+                  <fieldset key={i} className="rounded-lg border border-line bg-page/60 p-4">
+                    <legend className="text-sm font-semibold text-ink px-1">{row.test_name}</legend>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
                       <div>
                         <label className={ui.label}>Result</label>
@@ -187,9 +187,9 @@ export default function OrderDetail({ order }: { order: any }) {
 
                 <div>
                   <label className={ui.label}>Result report (PDF, JPG or PNG, optional)</label>
-                  <label className="flex items-center gap-3 rounded-lg border border-dashed border-gray-300 px-4 py-3 cursor-pointer hover:border-blue-brand hover:bg-blue-light/40 transition-colors">
-                    <Upload size={18} className="text-gray-400" aria-hidden />
-                    <span className="text-sm text-gray-600 truncate">{pdfFile ? pdfFile.name : "Choose a file"}</span>
+                  <label className="flex items-center gap-3 rounded-lg border border-dashed border-line px-4 py-3 cursor-pointer hover:border-accent hover:bg-accent-soft/40 transition-colors">
+                    <Upload size={18} className="text-muted" aria-hidden />
+                    <span className="text-sm text-muted truncate">{pdfFile ? pdfFile.name : "Choose a file"}</span>
                     <input type="file" className="sr-only" accept="application/pdf,image/jpeg,image/png"
                       onChange={e => setPdfFile(e.target.files?.[0] ?? null)} />
                   </label>
@@ -216,13 +216,13 @@ export default function OrderDetail({ order }: { order: any }) {
           <Card>
             <CardHeader title="Patient" />
             <div className="p-5 space-y-3 text-sm">
-              <p className="flex items-center gap-2 text-gray-900"><User size={15} className="text-gray-400" aria-hidden /> {order.users?.name ?? "Patient"}</p>
+              <p className="flex items-center gap-2 text-ink"><User size={15} className="text-muted" aria-hidden /> {order.users?.name ?? "Patient"}</p>
               {order.users?.phone && (
-                <a href={`tel:${order.users.phone}`} className="flex items-center gap-2 text-blue-brand hover:underline">
+                <a href={`tel:${order.users.phone}`} className="flex items-center gap-2 text-accent hover:underline">
                   <Phone size={15} aria-hidden /> {order.users.phone}
                 </a>
               )}
-              <p className="flex items-start gap-2 text-gray-600"><Stethoscope size={15} className="text-gray-400 mt-0.5 shrink-0" aria-hidden /> {orderedBy}</p>
+              <p className="flex items-start gap-2 text-muted"><Stethoscope size={15} className="text-muted mt-0.5 shrink-0" aria-hidden /> {orderedBy}</p>
               {order.clinical_notes && (
                 <div className="rounded-lg bg-amber-50 border border-amber-100 p-3 text-amber-900">
                   <p className="text-xs font-semibold mb-0.5">Clinical notes</p>
@@ -234,15 +234,15 @@ export default function OrderDetail({ order }: { order: any }) {
 
           <Card>
             <CardHeader title="Tests ordered" />
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-line">
               {tests.map((t: any, i: number) => (
                 <li key={i} className="flex justify-between gap-3 px-5 py-2.5 text-sm">
-                  <span className="text-gray-900">{t.test_name}</span>
-                  <span className="text-gray-500 whitespace-nowrap">{formatNaira(t.price)}</span>
+                  <span className="text-ink">{t.test_name}</span>
+                  <span className="text-muted whitespace-nowrap">{formatNaira(t.price)}</span>
                 </li>
               ))}
             </ul>
-            <div className="flex justify-between px-5 py-3 border-t border-gray-100 text-sm font-semibold">
+            <div className="flex justify-between px-5 py-3 border-t border-line text-sm font-semibold">
               <span>Total</span><span>{formatNaira(total)}</span>
             </div>
           </Card>

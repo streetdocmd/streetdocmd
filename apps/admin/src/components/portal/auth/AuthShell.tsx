@@ -15,8 +15,8 @@ export default function AuthShell({ type, children }: { type: PortalType; childr
   const cfg = PORTALS[type];
   const Icon = ICON[type];
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <div className="hidden lg:flex lg:w-[45%] bg-gradient-to-b from-navy-700 to-navy-800 flex-col justify-between p-12 relative overflow-hidden">
+    <div className="min-h-screen bg-page flex">
+      <div className="hidden lg:flex lg:w-[45%] bg-gradient-to-b from-navy to-navy flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.06] pointer-events-none" aria-hidden>
           <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full border-2 border-white" />
           <div className="absolute -bottom-16 -right-16 w-72 h-72 rounded-full border-2 border-white" />
@@ -26,13 +26,13 @@ export default function AuthShell({ type, children }: { type: PortalType; childr
           <span className="w-11 h-11 rounded-xl bg-white/10 text-white flex items-center justify-center mb-5">
             <Icon size={22} aria-hidden />
           </span>
-          <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-3">{cfg.name}</p>
+          <p className="text-sky text-xs font-semibold uppercase tracking-widest mb-3">{cfg.name}</p>
           <h1 className="text-3xl font-bold text-white leading-tight">Serve StreetdocMD patients from one simple workspace.</h1>
           <ul className="mt-8 space-y-3.5">
             {POINTS[type].map((p, i) => {
               const PointIcon = [Zap, ShieldCheck, Smartphone][i] ?? Zap;
               return (
-                <li key={p} className="flex items-center gap-3 text-blue-100 text-sm">
+                <li key={p} className="flex items-center gap-3 text-muted text-sm">
                   <span className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shrink-0"><PointIcon size={14} aria-hidden /></span>
                   {p}
                 </li>
@@ -40,23 +40,23 @@ export default function AuthShell({ type, children }: { type: PortalType; childr
             })}
           </ul>
         </div>
-        <p className="relative text-blue-300/70 text-xs tracking-widest uppercase">Care. Anywhere. Anytime.</p>
+        <p className="relative text-sky/70 text-xs tracking-widest uppercase">Care. Anywhere. Anytime.</p>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-white rounded-xl border border-gray-100 shadow-card flex items-center justify-center overflow-hidden">
+            <div className="w-10 h-10 bg-white rounded-xl border border-line shadow-card flex items-center justify-center overflow-hidden">
               <Image src="/mark.jpg" alt="" width={32} height={32} className="object-contain" />
             </div>
             <div>
-              <p className="text-lg font-bold text-navy-700 leading-tight">StreetdocMD</p>
-              <p className="text-xs text-gray-500">{cfg.name}</p>
+              <p className="text-lg font-bold text-navy leading-tight">StreetdocMD</p>
+              <p className="text-xs text-muted">{cfg.name}</p>
             </div>
           </div>
           {children}
-          <p className="mt-8 text-xs text-gray-400 text-center">
-            Need help? <a href={SUPPORT_MAILTO} className="text-blue-brand font-medium hover:underline">{SUPPORT_EMAIL}</a>
+          <p className="mt-8 text-xs text-muted text-center">
+            Need help? <a href={SUPPORT_MAILTO} className="text-accent font-medium hover:underline">{SUPPORT_EMAIL}</a>
           </p>
         </div>
       </div>

@@ -117,13 +117,13 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
                   <li key={s} className="flex items-center">
                     <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${
                       i < currentIdx ? "bg-green-50 text-green-700"
-                      : i === currentIdx ? "bg-blue-brand text-white"
-                      : "bg-gray-100 text-gray-400"
+                      : i === currentIdx ? "bg-accent text-white"
+                      : "bg-pending-bg text-muted"
                     }`}>
                       {i < currentIdx && <Check size={12} aria-hidden />}
                       {PHARMACY_STATUS[s].label}
                     </span>
-                    {i < PHARMACY_FLOW.length - 1 && <ChevronRight size={14} className="text-gray-300 mx-0.5" aria-hidden />}
+                    {i < PHARMACY_FLOW.length - 1 && <ChevronRight size={14} className="text-line mx-0.5" aria-hidden />}
                   </li>
                 ))}
               </ol>
@@ -139,22 +139,22 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
 
           <Card>
             <CardHeader title="Medications" description={pricing ? "Price each item you can supply, or mark it out of stock. Linking an item to your inventory deducts stock when you dispense." : undefined} />
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-line">
               {drugs.map((d: any, i: number) => {
                 const oos = outOfStock.includes(i) || d.out_of_stock;
                 return (
                   <li key={i} className="px-5 py-4 space-y-2">
                     <div className="flex items-start gap-3 flex-wrap">
                       <div className="flex-1 min-w-[10rem]">
-                        <p className={`text-sm font-medium ${oos ? "text-gray-400 line-through" : "text-gray-900"}`}>
+                        <p className={`text-sm font-medium ${oos ? "text-muted line-through" : "text-ink"}`}>
                           {d.drug_name}{d.strength ? ` ${d.strength}` : ""}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted">
                           {[d.quantity ? `Qty ${d.quantity}` : null, d.frequency, d.duration].filter(Boolean).join(" · ") || "—"}
                         </p>
                       </div>
                       {pricing && (
-                        <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer pt-1">
+                        <label className="flex items-center gap-1.5 text-xs text-muted cursor-pointer pt-1">
                           <input type="checkbox" className={ui.checkbox} checked={outOfStock.includes(i)} onChange={() => toggleOOS(i)} />
                           Out of stock
                         </label>
@@ -165,7 +165,7 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
                       )}
                       {!pricing && (oos
                         ? <StatusBadge tone="red">Out of stock</StatusBadge>
-                        : d.price != null && d.price > 0 && <span className="text-sm font-semibold text-gray-900">{formatNaira(d.price)}</span>)}
+                        : d.price != null && d.price > 0 && <span className="text-sm font-semibold text-ink">{formatNaira(d.price)}</span>)}
                     </div>
                     {pricing && !outOfStock.includes(i) && catalogue.length > 0 && (
                       <select className={`${ui.input} text-xs`} value={catalogueLinks[i] ?? d.catalogue_id ?? ""}
@@ -178,12 +178,12 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
                         ))}
                       </select>
                     )}
-                    {d.catalogue_id && !pricing && <p className="text-xs text-gray-400">Linked to inventory · stock deducted on dispense</p>}
+                    {d.catalogue_id && !pricing && <p className="text-xs text-muted">Linked to inventory · stock deducted on dispense</p>}
                   </li>
                 );
               })}
             </ul>
-            <div className="flex justify-between px-5 py-3 border-t border-gray-100 text-sm font-semibold">
+            <div className="flex justify-between px-5 py-3 border-t border-line text-sm font-semibold">
               <span>Total</span>
               <span>{formatNaira(pricing ? draftTotal : order.total_amount)}</span>
             </div>
@@ -214,14 +214,14 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
               <CardHeader title="Proof of delivery" description="Upload a photo or signed slip to mark the order delivered." />
               <div className="p-5 space-y-3">
                 {tracking?.rider_name && (
-                  <p className="flex items-center gap-2 text-sm text-gray-700">
-                    <Bike size={16} className="text-gray-400" aria-hidden /> {tracking.rider_name} · {tracking.rider_phone}
-                    {tracking.estimated_arrival && <span className="text-gray-500"> · ETA {formatDateTime(tracking.estimated_arrival)}</span>}
+                  <p className="flex items-center gap-2 text-sm text-ink">
+                    <Bike size={16} className="text-muted" aria-hidden /> {tracking.rider_name} · {tracking.rider_phone}
+                    {tracking.estimated_arrival && <span className="text-muted"> · ETA {formatDateTime(tracking.estimated_arrival)}</span>}
                   </p>
                 )}
-                <label className="flex items-center gap-3 rounded-lg border border-dashed border-gray-300 px-4 py-3 cursor-pointer hover:border-blue-brand hover:bg-blue-light/40 transition-colors">
-                  <Upload size={18} className="text-gray-400" aria-hidden />
-                  <span className="text-sm text-gray-600 truncate">{proofFile ? proofFile.name : "Choose a photo or PDF"}</span>
+                <label className="flex items-center gap-3 rounded-lg border border-dashed border-line px-4 py-3 cursor-pointer hover:border-accent hover:bg-accent-soft/40 transition-colors">
+                  <Upload size={18} className="text-muted" aria-hidden />
+                  <span className="text-sm text-muted truncate">{proofFile ? proofFile.name : "Choose a photo or PDF"}</span>
                   <input type="file" className="sr-only" accept="image/*,application/pdf" onChange={e => setProofFile(e.target.files?.[0] ?? null)} />
                 </label>
                 {proofFile && (
@@ -251,15 +251,15 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
           <Card>
             <CardHeader title="Patient" />
             <div className="p-5 space-y-3 text-sm">
-              <p className="flex items-center gap-2 text-gray-900"><User size={15} className="text-gray-400" aria-hidden /> {order.users?.name ?? "Patient"}</p>
+              <p className="flex items-center gap-2 text-ink"><User size={15} className="text-muted" aria-hidden /> {order.users?.name ?? "Patient"}</p>
               {order.users?.phone && (
-                <a href={`tel:${order.users.phone}`} className="flex items-center gap-2 text-blue-brand hover:underline">
+                <a href={`tel:${order.users.phone}`} className="flex items-center gap-2 text-accent hover:underline">
                   <Phone size={15} aria-hidden /> {order.users.phone}
                 </a>
               )}
-              <p className="flex items-start gap-2 text-gray-600"><Stethoscope size={15} className="text-gray-400 mt-0.5 shrink-0" aria-hidden /> {prescriber}</p>
+              <p className="flex items-start gap-2 text-muted"><Stethoscope size={15} className="text-muted mt-0.5 shrink-0" aria-hidden /> {prescriber}</p>
               {order.prescription_pdf_url && (
-                <a href={order.prescription_pdf_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-blue-brand hover:underline">
+                <a href={order.prescription_pdf_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-accent hover:underline">
                   <FileText size={15} aria-hidden /> View prescription PDF
                 </a>
               )}
@@ -269,13 +269,13 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
             <CardHeader title="Payment" />
             <div className="p-5 text-sm space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-500">Status</span>
+                <span className="text-muted">Status</span>
                 <StatusBadge tone={order.payment_status === "paid" || order.payment_status === "released" ? "green" : "amber"}>
                   {order.payment_status === "paid" ? "Paid" : order.payment_status === "released" ? "Released to pharmacy" : "Pending"}
                 </StatusBadge>
               </div>
               {Number(order.total_amount) > 0 && (
-                <div className="flex justify-between"><span className="text-gray-500">Order total</span><span className="font-semibold">{formatNaira(order.total_amount)}</span></div>
+                <div className="flex justify-between"><span className="text-muted">Order total</span><span className="font-semibold">{formatNaira(order.total_amount)}</span></div>
               )}
             </div>
           </Card>

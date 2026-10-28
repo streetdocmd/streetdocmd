@@ -177,8 +177,8 @@ export default function InventoryImport({
   return (
     <div className={`${ui.card} p-5 space-y-4`}>
       <div>
-        <p className="font-semibold text-gray-900">Import your existing inventory</p>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <p className="font-semibold text-ink">Import your existing inventory</p>
+        <p className="text-sm text-muted mt-0.5">
           Upload a CSV (export from Excel or Google Sheets). Drugs already in your inventory (same name, strength and
           formulation) have their price and stock updated; everything else is added.
         </p>
@@ -206,7 +206,7 @@ export default function InventoryImport({
         <div className="space-y-3">
           <div className="flex gap-2 flex-wrap text-xs font-medium">
             <span className="px-2.5 py-1 rounded-full bg-green-100 text-green-700">{toAdd.length} new</span>
-            <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">{toUpdate.length} to update</span>
+            <span className="px-2.5 py-1 rounded-full bg-accent-soft text-accent">{toUpdate.length} to update</span>
             {errors.length > 0 && <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-700">{errors.length} with errors (skipped)</span>}
           </div>
 
@@ -218,29 +218,29 @@ export default function InventoryImport({
             </p>
           )}
 
-          <div className="max-h-64 overflow-auto border border-gray-100 rounded-lg">
+          <div className="max-h-64 overflow-auto border border-line rounded-lg">
             <table className="w-full text-xs">
-              <thead className="bg-gray-50 sticky top-0">
-                <tr className="text-left text-gray-500">
+              <thead className="bg-page sticky top-0">
+                <tr className="text-left text-muted">
                   <th className="px-3 py-2">Row</th><th className="px-3 py-2">Drug</th><th className="px-3 py-2">Price</th>
                   <th className="px-3 py-2">Stock</th><th className="px-3 py-2">Result</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-line">
                 {rows.slice(0, 200).map(r => (
                   <tr key={r.line} className={r.error ? "bg-red-50/50" : ""}>
-                    <td className="px-3 py-1.5 text-gray-400">{r.line}</td>
-                    <td className="px-3 py-1.5 text-gray-900">{r.drug_name || "—"}{r.strength ? ` ${r.strength}` : ""}</td>
+                    <td className="px-3 py-1.5 text-muted">{r.line}</td>
+                    <td className="px-3 py-1.5 text-ink">{r.drug_name || "—"}{r.strength ? ` ${r.strength}` : ""}</td>
                     <td className="px-3 py-1.5">{r.error ? "" : `₦${r.price.toLocaleString()}`}</td>
                     <td className="px-3 py-1.5">{r.error ? "" : r.stock_quantity}</td>
                     <td className="px-3 py-1.5">
-                      {r.error ? <span className="text-red-600">{r.error}</span> : r.existingId ? <span className="text-blue-700">Update</span> : <span className="text-green-600">New</span>}
+                      {r.error ? <span className="text-red-600">{r.error}</span> : r.existingId ? <span className="text-accent">Update</span> : <span className="text-green-600">New</span>}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {rows.length > 200 && <p className="text-xs text-gray-400 px-3 py-2">Showing the first 200 of {rows.length} rows.</p>}
+            {rows.length > 200 && <p className="text-xs text-muted px-3 py-2">Showing the first 200 of {rows.length} rows.</p>}
           </div>
 
           <button

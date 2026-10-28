@@ -93,7 +93,7 @@ export default function TestMenuClient({ tests, canEdit, loadError }: { tests: T
       {showForm && (
         <Card className="p-5">
           <form onSubmit={addTest} className="space-y-4">
-            <p className="font-semibold text-gray-900">New test</p>
+            <p className="font-semibold text-ink">New test</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className={ui.label} htmlFor="t-name">Test name *</label>
@@ -121,7 +121,7 @@ export default function TestMenuClient({ tests, canEdit, loadError }: { tests: T
                   onChange={e => setForm(f => ({ ...f, test_code: e.target.value }))} />
               </div>
             </div>
-            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">
               <input type="checkbox" className={ui.checkbox} checked={form.home_collection}
                 onChange={e => setForm(f => ({ ...f, home_collection: e.target.checked }))} />
               Sample can be collected at the patient&apos;s home
@@ -139,12 +139,12 @@ export default function TestMenuClient({ tests, canEdit, loadError }: { tests: T
       )}
 
       <Card>
-        <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-3 flex-wrap">
+        <div className="px-5 py-3 border-b border-line flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[12rem] max-w-xs">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
             <input className={`${ui.input} pl-9`} placeholder="Search tests…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <p className="text-xs text-gray-500">{activeCount} active · {tests.length} total</p>
+          <p className="text-xs text-muted">{activeCount} active · {tests.length} total</p>
         </div>
         {rowError && <p role="alert" className="px-5 pt-3 text-sm text-red-600">{rowError}</p>}
 
@@ -159,8 +159,8 @@ export default function TestMenuClient({ tests, canEdit, loadError }: { tests: T
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50/80 border-b border-gray-100">
-                <tr className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <thead className="bg-page/80 border-b border-line">
+                <tr className="text-left text-xs font-semibold text-muted uppercase tracking-wide">
                   <th className="px-5 py-3">Test</th>
                   <th className="px-5 py-3">Price</th>
                   <th className="px-5 py-3">Turnaround</th>
@@ -168,12 +168,12 @@ export default function TestMenuClient({ tests, canEdit, loadError }: { tests: T
                   {canEdit && <th className="px-5 py-3 text-right">Actions</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-line">
                 {visible.map(t => (
-                  <tr key={t.id} className="hover:bg-gray-50/60">
+                  <tr key={t.id} className="hover:bg-page/60">
                     <td className="px-5 py-3">
-                      <p className="font-medium text-gray-900">{t.test_name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="font-medium text-ink">{t.test_name}</p>
+                      <p className="text-xs text-muted">
                         {[t.test_code, t.sample_type, t.home_collection ? "Home collection" : null].filter(Boolean).join(" · ") || "—"}
                       </p>
                     </td>
@@ -181,9 +181,9 @@ export default function TestMenuClient({ tests, canEdit, loadError }: { tests: T
                       {editingId === t.id ? (
                         <input className={`${ui.input} w-28`} type="number" min="1" step="any" aria-label="Price"
                           value={edit.price} onChange={e => setEdit(v => ({ ...v, price: e.target.value }))} />
-                      ) : <span className="font-medium text-gray-900">{formatNaira(t.price)}</span>}
+                      ) : <span className="font-medium text-ink">{formatNaira(t.price)}</span>}
                     </td>
-                    <td className="px-5 py-3 whitespace-nowrap text-gray-600">
+                    <td className="px-5 py-3 whitespace-nowrap text-muted">
                       {editingId === t.id ? (
                         <input className={`${ui.input} w-24`} type="number" min="1" step="1" aria-label="Turnaround hours"
                           value={edit.turnaround_hours} onChange={e => setEdit(v => ({ ...v, turnaround_hours: e.target.value }))} />
@@ -200,7 +200,7 @@ export default function TestMenuClient({ tests, canEdit, loadError }: { tests: T
                               onClick={async () => { if (await patch(t.id, edit)) setEditingId(null); }}>
                               {rowBusy === t.id ? "Saving…" : "Save"}
                             </button>
-                            <button className="text-sm text-gray-500 hover:text-gray-800" onClick={() => setEditingId(null)}>Cancel</button>
+                            <button className="text-sm text-muted hover:text-ink" onClick={() => setEditingId(null)}>Cancel</button>
                           </span>
                         ) : (
                           <span className="inline-flex gap-3">
@@ -208,7 +208,7 @@ export default function TestMenuClient({ tests, canEdit, loadError }: { tests: T
                               setEditingId(t.id);
                               setEdit({ price: String(t.price), turnaround_hours: t.turnaround_hours ? String(t.turnaround_hours) : "" });
                             }}>Edit</button>
-                            <button className="text-sm text-gray-500 hover:text-gray-800 disabled:opacity-50" disabled={rowBusy === t.id}
+                            <button className="text-sm text-muted hover:text-ink disabled:opacity-50" disabled={rowBusy === t.id}
                               onClick={() => patch(t.id, { active: !t.active })}>
                               {t.active ? "Hide" : "Show"}
                             </button>

@@ -81,13 +81,13 @@ export default function ReferralsClient({ referrals, partnerId, facilityName, lo
       </div>
 
       <Card>
-        <div className="flex gap-1 px-3 pt-3 border-b border-gray-100 overflow-x-auto" role="tablist">
+        <div className="flex gap-1 px-3 pt-3 border-b border-line overflow-x-auto" role="tablist">
           {tabs.map(([v, label, count]) => (
             <button key={v} role="tab" aria-selected={tab === v} onClick={() => setTab(v)}
               className={`px-3 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${
-                tab === v ? "border-blue-brand text-blue-brand" : "border-transparent text-gray-500 hover:text-gray-800"
+                tab === v ? "border-accent text-accent" : "border-transparent text-muted hover:text-ink"
               }`}>
-              {label} <span className="ml-1 text-xs text-gray-400">{count}</span>
+              {label} <span className="ml-1 text-xs text-muted">{count}</span>
             </button>
           ))}
         </div>
@@ -101,7 +101,7 @@ export default function ReferralsClient({ referrals, partnerId, facilityName, lo
               : "No referrals in this category."}
           />
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-line">
             {visible.map(r => {
               const s = REFERRAL_STATUS[r.status] ?? { label: r.status, tone: "gray" as const };
               const u = URGENCY[r.urgency] ?? { label: r.urgency, tone: "gray" as const };
@@ -111,11 +111,11 @@ export default function ReferralsClient({ referrals, partnerId, facilityName, lo
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-gray-900">{r.patient_label}</p>
+                        <p className="font-semibold text-ink">{r.patient_label}</p>
                         <StatusBadge tone={u.tone}>{u.label}</StatusBadge>
                         <StatusBadge tone={s.tone}>{s.label}</StatusBadge>
                       </div>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-muted">
                         {r.referred_by ? <span className="inline-flex items-center gap-1"><Stethoscope size={12} aria-hidden /> {r.referred_by} · </span> : null}
                         {formatDateTime(r.referred_at)}
                       </p>
@@ -126,15 +126,15 @@ export default function ReferralsClient({ referrals, partnerId, facilityName, lo
                       </a>
                     )}
                   </div>
-                  {r.reason && <p className="text-sm text-gray-700"><span className="font-medium">Reason:</span> {r.reason}</p>}
-                  {r.clinical_summary && <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">{r.clinical_summary}</p>}
+                  {r.reason && <p className="text-sm text-ink"><span className="font-medium">Reason:</span> {r.reason}</p>}
+                  {r.clinical_summary && <p className="text-sm text-muted bg-page rounded-lg px-3 py-2">{r.clinical_summary}</p>}
                   {r.patient_phone && (
-                    <a href={`tel:${r.patient_phone}`} className="inline-flex items-center gap-1.5 text-sm text-blue-brand hover:underline">
+                    <a href={`tel:${r.patient_phone}`} className="inline-flex items-center gap-1.5 text-sm text-accent hover:underline">
                       <Phone size={14} aria-hidden /> {r.patient_phone}
                     </a>
                   )}
                   {!r.revealed && r.status === "pending" && (
-                    <p className="text-xs text-gray-500 inline-flex items-center gap-1.5">
+                    <p className="text-xs text-muted inline-flex items-center gap-1.5">
                       <Lock size={12} aria-hidden /> Full patient details and clinical summary unlock when you acknowledge.
                     </p>
                   )}

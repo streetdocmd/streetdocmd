@@ -17,11 +17,11 @@ function Blocked({ icon: Icon, title, children, action }: {
   return (
     <div className="max-w-xl mx-auto py-4 sm:py-10">
       <div className={`${ui.card} p-6 sm:p-8`}>
-        <span className="w-12 h-12 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center">
+        <span className="w-12 h-12 rounded-full bg-pending-bg text-muted flex items-center justify-center">
           <Icon size={24} aria-hidden />
         </span>
-        <h1 className="mt-4 text-xl font-bold text-gray-900">{title}</h1>
-        <div className="mt-2 text-sm text-gray-600 space-y-2">{children}</div>
+        <h1 className="mt-4 text-ds-xl font-bold text-navy">{title}</h1>
+        <div className="mt-2 text-sm text-muted space-y-2">{children}</div>
         <div className="mt-6 flex flex-col sm:flex-row gap-2">
           {action}
           <a href={SUPPORT_MAILTO} className={ui.btnSecondary}>

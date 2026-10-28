@@ -55,22 +55,22 @@ export default async function AccountPage({ type }: { type: PortalType }) {
               </dl>
               {specialties.length > 0 && (
                 <div className="mt-5">
-                  <p className="text-xs font-medium text-gray-500 mb-2">Specialties</p>
+                  <p className="text-xs font-medium text-muted mb-2">Specialties</p>
                   <div className="flex flex-wrap gap-1.5">
                     {specialties.map(s => <StatusBadge key={s} tone="navy">{s}</StatusBadge>)}
                   </div>
                 </div>
               )}
-              <p className="mt-5 pt-4 border-t border-gray-100 text-xs text-gray-500">
+              <p className="mt-5 pt-4 border-t border-line text-xs text-muted">
                 Need to change any of these?{" "}
-                <a href={SUPPORT_MAILTO} className="font-medium text-blue-brand hover:underline inline-flex items-center gap-1">
+                <a href={SUPPORT_MAILTO} className="font-medium text-accent hover:underline inline-flex items-center gap-1">
                   <Mail size={12} aria-hidden /> Email {SUPPORT_EMAIL}
                 </a>{" "}
                 and we&apos;ll update them for you.
               </p>
             </>
           ) : (
-            <p className="text-sm text-gray-500">You&apos;re viewing this portal as a StreetdocMD admin, so there&apos;s no facility profile.</p>
+            <p className="text-sm text-muted">You&apos;re viewing this portal as a StreetdocMD admin, so there&apos;s no facility profile.</p>
           )}
         </div>
       </Card>

@@ -40,16 +40,16 @@ export default function ForgotPasswordForm({ type }: { type: PortalType }) {
           <span className="w-11 h-11 rounded-full bg-green-50 text-green-600 flex items-center justify-center mb-4">
             <MailCheck size={22} aria-hidden />
           </span>
-          <h2 className="text-xl font-bold text-gray-900">Check your email</h2>
-          <p className="text-sm text-gray-500 mt-2">
-            If an account exists for <strong className="text-gray-700">{email.trim()}</strong>, we&apos;ve sent a link to reset your password.
+          <h2 className="text-ds-xl font-bold text-navy">Check your email</h2>
+          <p className="text-sm text-muted mt-2">
+            If an account exists for <strong className="text-ink">{email.trim()}</strong>, we&apos;ve sent a link to reset your password.
             Open it on this device. It can take a few minutes, so check your spam folder too.
           </p>
         </>
       ) : (
         <>
-          <h2 className="text-xl font-bold text-gray-900">Reset your password</h2>
-          <p className="text-sm text-gray-500 mt-1 mb-6">Enter the email your {cfg.facilityNoun} signs in with and we&apos;ll email you a reset link.</p>
+          <h2 className="text-ds-xl font-bold text-navy">Reset your password</h2>
+          <p className="text-sm text-muted mt-1 mb-6">Enter the email your {cfg.facilityNoun} signs in with and we&apos;ll email you a reset link.</p>
           <form onSubmit={submit} className="space-y-4">
             <div>
               <label htmlFor="email" className={ui.label}>Email address</label>
@@ -67,7 +67,7 @@ export default function ForgotPasswordForm({ type }: { type: PortalType }) {
           </form>
         </>
       )}
-      <Link href={`${cfg.base}/login`} className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-blue-brand hover:underline">
+      <Link href={`${cfg.base}/login`} className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline">
         <ArrowLeft size={15} aria-hidden /> Back to sign in
       </Link>
     </div>

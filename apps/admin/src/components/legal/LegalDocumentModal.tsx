@@ -43,7 +43,7 @@ export default function LegalDocumentModal({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-stretch sm:items-center justify-center sm:p-6 bg-gray-900/50 backdrop-blur-[1px]"
+      className="fixed inset-0 z-[60] flex items-stretch sm:items-center justify-center sm:p-6 bg-ink/50 backdrop-blur-[1px]"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
@@ -54,19 +54,19 @@ export default function LegalDocumentModal({
         tabIndex={-1}
         className="bg-white w-full sm:max-w-3xl h-full sm:h-auto sm:max-h-[88vh] flex flex-col sm:rounded-xl shadow-xl outline-none"
       >
-        <div className="flex items-start gap-3 px-5 sm:px-6 py-4 border-b border-gray-100">
-          <span className="hidden sm:flex w-9 h-9 rounded-lg bg-blue-light text-blue-brand items-center justify-center shrink-0">
+        <div className="flex items-start gap-3 px-5 sm:px-6 py-4 border-b border-line">
+          <span className="hidden sm:flex w-9 h-9 rounded-lg bg-accent-soft text-accent items-center justify-center shrink-0">
             <FileText size={18} aria-hidden />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="text-base font-semibold text-gray-900">{doc.title}</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Version {doc.version} · {doc.versionLabel}</p>
+            <h2 id={titleId} className="text-base font-semibold text-ink">{doc.title}</h2>
+            <p className="text-xs text-muted mt-0.5">Version {doc.version} · {doc.versionLabel}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="p-1 -mr-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+            className="p-1 -mr-1 rounded-md text-muted hover:text-ink hover:bg-pending-bg"
           >
             <X size={18} aria-hidden />
           </button>
@@ -76,12 +76,12 @@ export default function LegalDocumentModal({
           <LegalDocumentView doc={doc} />
         </div>
 
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between px-5 sm:px-6 py-3 border-t border-gray-100 bg-gray-50/70 sm:rounded-b-xl">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between px-5 sm:px-6 py-3 border-t border-line bg-page/70 sm:rounded-b-xl">
           <a
             href={legalUrl(doc.slug)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-blue-brand hover:text-blue-700 hover:underline"
+            className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-accent hover:text-accent hover:underline"
           >
             Open public copy (streetdocmd.com{LEGAL_PATHS[doc.slug]}) <ExternalLink size={13} aria-hidden />
           </a>
@@ -89,7 +89,7 @@ export default function LegalDocumentModal({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex items-center justify-center gap-2 bg-blue-brand text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center justify-center gap-2 bg-accent text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-accent-hover transition-colors"
             >
               Close
             </button>

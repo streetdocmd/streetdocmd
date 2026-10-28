@@ -10,31 +10,31 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
       {/* Phones: one card per row, each cell labelled with its column header. */}
       <div className="sm:hidden space-y-2">
         {rows.map((row, r) => (
-          <dl key={r} className="rounded-lg border border-gray-200 divide-y divide-gray-100 bg-white">
+          <dl key={r} className="rounded-lg border border-line divide-y divide-line bg-white">
             {row.map((cell, c) => (
               <div key={c} className="px-3 py-2">
-                <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{headers[c] ?? ""}</dt>
-                <dd className="mt-0.5 text-gray-800">{cell}</dd>
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted">{headers[c] ?? ""}</dt>
+                <dd className="mt-0.5 text-ink">{cell}</dd>
               </div>
             ))}
           </dl>
         ))}
       </div>
       {/* Wider screens: a real table, scrolling sideways if it still doesn't fit. */}
-      <div className="hidden sm:block overflow-x-auto rounded-lg border border-gray-200">
+      <div className="hidden sm:block overflow-x-auto rounded-lg border border-line">
         <table className="w-full text-left text-[13px] border-collapse">
-          <thead className="bg-gray-50">
+          <thead className="bg-page">
             <tr>
               {headers.map((h, i) => (
-                <th key={i} scope="col" className="px-3 py-2 font-semibold text-gray-700 border-b border-gray-200 align-bottom min-w-[8rem]">{h}</th>
+                <th key={i} scope="col" className="px-3 py-2 font-semibold text-ink border-b border-line align-bottom min-w-[8rem]">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {rows.map((row, r) => (
               <tr key={r} className="align-top">
                 {row.map((cell, c) => (
-                  <td key={c} className={`px-3 py-2 text-gray-800 ${c === 0 ? "font-medium" : ""}`}>{cell}</td>
+                  <td key={c} className={`px-3 py-2 text-ink ${c === 0 ? "font-medium" : ""}`}>{cell}</td>
                 ))}
               </tr>
             ))}
@@ -52,13 +52,13 @@ export function LegalBlockView({ block }: { block: LegalBlock }) {
     case "clause":
       return (
         <p className="flex gap-3">
-          <span className="w-10 shrink-0 font-semibold text-gray-900 tabular-nums">{block.num}</span>
+          <span className="w-10 shrink-0 font-semibold text-ink tabular-nums">{block.num}</span>
           <span className="min-w-0 flex-1">{block.text}</span>
         </p>
       );
     case "bullets":
       return (
-        <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-400">
+        <ul className="list-disc pl-5 space-y-1.5 marker:text-muted">
           {block.items.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
       );
@@ -78,13 +78,13 @@ export function LegalBlockView({ block }: { block: LegalBlock }) {
 
 export default function LegalDocumentView({ doc, showHeading = true }: { doc: LegalDocument; showHeading?: boolean }) {
   return (
-    <article className="text-sm leading-relaxed text-gray-700 break-words">
+    <article className="text-sm leading-relaxed text-ink break-words">
       {showHeading && (
-        <header className="pb-5 mb-5 border-b border-gray-100">
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-brand">{doc.versionLabel}</p>
-          <h2 className="mt-1 text-lg sm:text-xl font-bold text-gray-900">{doc.title}</h2>
-          <p className="mt-1 text-gray-600">{doc.subtitle}</p>
-          {doc.partyLine && <p className="mt-2 text-xs text-gray-500">{doc.partyLine}</p>}
+        <header className="pb-5 mb-5 border-b border-line">
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">{doc.versionLabel}</p>
+          <h2 className="mt-1 text-lg sm:text-ds-xl font-bold text-navy">{doc.title}</h2>
+          <p className="mt-1 text-muted">{doc.subtitle}</p>
+          {doc.partyLine && <p className="mt-2 text-xs text-muted">{doc.partyLine}</p>}
         </header>
       )}
 
@@ -94,7 +94,7 @@ export default function LegalDocumentView({ doc, showHeading = true }: { doc: Le
 
       {doc.sections.map((s) => (
         <section key={s.id} id={`${doc.slug}-${s.id}`} className="mt-7 scroll-mt-4">
-          <h3 className="text-base font-semibold text-gray-900 mb-3">{s.title}</h3>
+          <h3 className="text-base font-semibold text-ink mb-3">{s.title}</h3>
           <div className="space-y-3">
             {s.blocks.map((b, i) => <LegalBlockView key={i} block={b} />)}
           </div>

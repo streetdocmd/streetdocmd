@@ -31,14 +31,14 @@ export default function FacilityAgreementRecord({
           {state === "accepted" ? <CheckCircle2 size={18} aria-hidden /> : state === "outdated" ? <Clock size={18} aria-hidden /> : <ScrollText size={18} aria-hidden />}
         </span>
         <div className="min-w-0 text-sm">
-          <p className="font-semibold text-gray-900">
+          <p className="font-semibold text-ink">
             Facility Partner Agreement — Version {state === "missing" ? FACILITY_AGREEMENT.version : version}
           </p>
           {state === "missing" ? (
-            <p className="text-gray-600 mt-0.5">Not yet accepted. An authorised representative needs to review and accept it.</p>
+            <p className="text-muted mt-0.5">Not yet accepted. An authorised representative needs to review and accept it.</p>
           ) : (
-            <p className="text-gray-600 mt-0.5">
-              Accepted on {formatAcceptedAt(acceptedAt)}{acceptedName ? <> by <strong className="text-gray-900">{acceptedName}</strong></> : null}
+            <p className="text-muted mt-0.5">
+              Accepted on {formatAcceptedAt(acceptedAt)}{acceptedName ? <> by <strong className="text-ink">{acceptedName}</strong></> : null}
               {state === "outdated" && <span className="block text-amber-700 mt-0.5">Version {FACILITY_AGREEMENT.version} is now current — please review and accept it.</span>}
             </p>
           )}
@@ -46,7 +46,7 @@ export default function FacilityAgreementRecord({
             href={legalUrl("facility-agreement")}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-blue-brand hover:underline"
+            className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
           >
             Public copy on streetdocmd.com <ExternalLink size={11} aria-hidden />
           </a>

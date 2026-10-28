@@ -121,7 +121,7 @@ export default function FacilityAgreementPrompt({
             <button type="button" onClick={accept} disabled={!agreed || saving || name.trim().length < 2} className={ui.btnPrimary}>
               {saving ? <><Spinner /> Recording acceptance…</> : "Accept agreement"}
             </button>
-            {!agreed && <p className="text-xs text-gray-500">Tick the box above to enable this button.</p>}
+            {!agreed && <p className="text-xs text-muted">Tick the box above to enable this button.</p>}
           </div>
         </div>
       )}

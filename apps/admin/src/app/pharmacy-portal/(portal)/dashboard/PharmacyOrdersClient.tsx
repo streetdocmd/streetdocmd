@@ -69,13 +69,13 @@ export default function PharmacyOrdersClient({ orders, loadError, partnerId, inv
       </div>
 
       <Card>
-        <div className="flex gap-1 px-3 pt-3 border-b border-gray-100 overflow-x-auto" role="tablist">
+        <div className="flex gap-1 px-3 pt-3 border-b border-line overflow-x-auto" role="tablist">
           {tabs.map(([v, label, count]) => (
             <button key={v} role="tab" aria-selected={filter === v} onClick={() => setFilter(v)}
               className={`px-3 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${
-                filter === v ? "border-blue-brand text-blue-brand" : "border-transparent text-gray-500 hover:text-gray-800"
+                filter === v ? "border-accent text-accent" : "border-transparent text-muted hover:text-ink"
               }`}>
-              {label} <span className="ml-1 text-xs text-gray-400">{count}</span>
+              {label} <span className="ml-1 text-xs text-muted">{count}</span>
             </button>
           ))}
         </div>
@@ -88,25 +88,25 @@ export default function PharmacyOrdersClient({ orders, loadError, partnerId, inv
               : "No orders match this filter."}
           />
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-line">
             {visible.map(o => {
               const s = PHARMACY_STATUS[o.status] ?? { label: o.status, tone: "gray" as const };
               return (
                 <li key={o.id}>
-                  <Link href={`/pharmacy-portal/dashboard/${o.id}`} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
+                  <Link href={`/pharmacy-portal/dashboard/${o.id}`} className="flex items-center gap-4 px-5 py-4 hover:bg-page transition-colors">
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-gray-900">{o.patient_name}</p>
+                        <p className="font-semibold text-ink">{o.patient_name}</p>
                         <StatusBadge tone={s.tone}>{s.label}</StatusBadge>
                         {o.requires_review && <StatusBadge tone="amber" icon={ShieldAlert}>Controlled drug</StatusBadge>}
                       </div>
-                      <p className="text-sm text-gray-600 truncate">{o.drugs.join(", ") || "No medications listed"}</p>
-                      <p className="text-xs text-gray-400">{o.source} · {formatDateTime(o.created_at)}</p>
+                      <p className="text-sm text-muted truncate">{o.drugs.join(", ") || "No medications listed"}</p>
+                      <p className="text-xs text-muted">{o.source} · {formatDateTime(o.created_at)}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      {o.total_amount > 0 && <p className="text-sm font-semibold text-gray-900">{formatNaira(o.total_amount)}</p>}
+                      {o.total_amount > 0 && <p className="text-sm font-semibold text-ink">{formatNaira(o.total_amount)}</p>}
                     </div>
-                    <ChevronRight size={18} className="text-gray-300 shrink-0" aria-hidden />
+                    <ChevronRight size={18} className="text-line shrink-0" aria-hidden />
                   </Link>
                 </li>
               );

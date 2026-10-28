@@ -152,7 +152,7 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
   const outOfStock = activeDrugs.filter(d => d.stock_quantity <= 0).length;
 
   if (loading) {
-    return <div className="flex justify-center py-20 text-blue-brand"><Spinner className="w-7 h-7" /></div>;
+    return <div className="flex justify-center py-20 text-accent"><Spinner className="w-7 h-7" /></div>;
   }
 
   return (
@@ -190,19 +190,19 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
       {showForm && partnerId && (
         <Card className="p-5">
           <form onSubmit={addDrug} className="space-y-4">
-            <p className="font-semibold text-gray-900">New drug</p>
+            <p className="font-semibold text-ink">New drug</p>
             <div className="relative">
               <label className={ui.label} htmlFor="lib-search">Search the medication library (optional, fills the fields below)</label>
               <input id="lib-search" className={ui.input} placeholder="Start typing a drug name…" autoComplete="off"
                 value={librarySearch} onChange={e => setLibrarySearch(e.target.value)} />
               {libraryMatches.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                <div className="absolute z-10 mt-1 w-full bg-white border border-line rounded-lg shadow-lg max-h-56 overflow-y-auto">
                   {libraryMatches.map(item => (
                     <button type="button" key={item.id} onClick={() => pickFromLibrary(item)}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0">
-                      <span className="font-medium text-gray-900">{item.name}</span>
-                      {item.strength && <span className="text-gray-400"> · {item.strength}</span>}
-                      {item.generic_name && <span className="text-gray-400 text-xs block">{item.generic_name}</span>}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-page border-b border-line last:border-0">
+                      <span className="font-medium text-ink">{item.name}</span>
+                      {item.strength && <span className="text-muted"> · {item.strength}</span>}
+                      {item.generic_name && <span className="text-muted text-xs block">{item.generic_name}</span>}
                     </button>
                   ))}
                 </div>
@@ -222,7 +222,7 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
               <div><label className={ui.label}>Price (₦) *</label><input className={ui.input} type="number" min="0" step="any" required value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} /></div>
               <div><label className={ui.label}>Stock quantity *</label><input className={ui.input} type="number" min="0" step="1" required value={form.stock_quantity} onChange={e => setForm(f => ({ ...f, stock_quantity: e.target.value }))} /></div>
             </div>
-            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">
               <input type="checkbox" className={ui.checkbox} checked={form.prescription_required} onChange={e => setForm(f => ({ ...f, prescription_required: e.target.checked }))} />
               Requires a prescription to dispense
             </label>
@@ -239,16 +239,16 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
       )}
 
       <Card>
-        <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-4 flex-wrap">
+        <div className="px-5 py-3 border-b border-line flex items-center gap-4 flex-wrap">
           <div className="relative flex-1 min-w-[12rem] max-w-xs">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
             <input className={`${ui.input} pl-9`} placeholder="Search inventory…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+          <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
             <input type="checkbox" className={ui.checkbox} checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
             Show inactive
           </label>
-          <p className="text-xs text-gray-500 ml-auto">
+          <p className="text-xs text-muted ml-auto">
             {activeDrugs.length} active{outOfStock > 0 ? ` · ${outOfStock} out of stock` : ""}
           </p>
         </div>
@@ -265,8 +265,8 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50/80 border-b border-gray-100">
-                <tr className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <thead className="bg-page/80 border-b border-line">
+                <tr className="text-left text-xs font-semibold text-muted uppercase tracking-wide">
                   <th className="px-5 py-3">Drug</th>
                   <th className="px-5 py-3">Formulation</th>
                   <th className="px-5 py-3">Price</th>
@@ -275,28 +275,28 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
                   <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-line">
                 {visibleDrugs.map(d => (
-                  <tr key={d.id} className="hover:bg-gray-50/60">
+                  <tr key={d.id} className="hover:bg-page/60">
                     <td className="px-5 py-3">
-                      <p className="font-medium text-gray-900">{d.drug_name}{d.strength ? ` ${d.strength}` : ""}</p>
+                      <p className="font-medium text-ink">{d.drug_name}{d.strength ? ` ${d.strength}` : ""}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        {d.generic_name && <span className="text-xs text-gray-500">{d.generic_name}</span>}
+                        {d.generic_name && <span className="text-xs text-muted">{d.generic_name}</span>}
                         {d.prescription_required && <StatusBadge tone="purple">Rx</StatusBadge>}
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-gray-600">{d.formulation ?? "—"}</td>
+                    <td className="px-5 py-3 text-muted">{d.formulation ?? "—"}</td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       {editingId === d.id ? (
                         <input className={`${ui.input} w-28`} type="number" min="0" step="any" aria-label="Price" value={editValues.price}
                           onChange={e => setEditValues(v => ({ ...v, price: e.target.value }))} />
-                      ) : <span className="font-medium text-gray-900">{formatNaira(d.price)}</span>}
+                      ) : <span className="font-medium text-ink">{formatNaira(d.price)}</span>}
                     </td>
                     <td className="px-5 py-3">
                       {editingId === d.id ? (
                         <input className={`${ui.input} w-24`} type="number" min="0" step="1" aria-label="Stock quantity" value={editValues.stock_quantity}
                           onChange={e => setEditValues(v => ({ ...v, stock_quantity: e.target.value }))} />
-                      ) : <span className={d.stock_quantity > 0 ? "text-gray-700" : "text-red-600 font-medium"}>{d.stock_quantity}</span>}
+                      ) : <span className={d.stock_quantity > 0 ? "text-ink" : "text-red-600 font-medium"}>{d.stock_quantity}</span>}
                     </td>
                     <td className="px-5 py-3">
                       <StatusBadge tone={!d.active ? "gray" : d.stock_quantity > 0 ? "green" : "red"}>
@@ -309,13 +309,13 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
                           <button onClick={() => saveEdit(d.id)} disabled={savingRow === d.id} className={ui.btnLink}>
                             {savingRow === d.id ? "Saving…" : "Save"}
                           </button>
-                          <button onClick={() => setEditingId(null)} className="text-sm text-gray-500 hover:text-gray-800">Cancel</button>
+                          <button onClick={() => setEditingId(null)} className="text-sm text-muted hover:text-ink">Cancel</button>
                         </span>
                       ) : (
                         <span className="inline-flex gap-3">
                           <button onClick={() => startEdit(d)} className={ui.btnLink}>Edit</button>
                           <button onClick={() => toggleActive(d.id, d.active)} disabled={savingRow === d.id}
-                            className="text-sm text-gray-500 hover:text-gray-800 disabled:opacity-50">
+                            className="text-sm text-muted hover:text-ink disabled:opacity-50">
                             {d.active ? "Deactivate" : "Activate"}
                           </button>
                         </span>

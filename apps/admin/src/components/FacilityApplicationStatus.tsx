@@ -106,10 +106,10 @@ export default async function FacilityApplicationStatus({ app, userId, userName 
         <span className={`w-12 h-12 rounded-full flex items-center justify-center ${rejected ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"}`}>
           {rejected ? <XCircle size={24} aria-hidden /> : <Clock size={24} aria-hidden />}
         </span>
-        <h1 className="mt-4 text-xl sm:text-2xl font-bold text-gray-900">
+        <h1 className="mt-4 text-xl sm:text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">
           {rejected ? "Your application wasn't approved" : docsComplete ? "Your application is under review" : "Upload your documents to continue"}
         </h1>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm text-muted">
           {rejected
             ? <>We couldn&apos;t approve <strong>{app.name}</strong> to join the StreetdocMD partner network this time.</>
             : docsComplete
@@ -132,14 +132,14 @@ export default async function FacilityApplicationStatus({ app, userId, userName 
                   s.state === "done" ? "bg-green-600 text-white"
                   : s.state === "current" ? "bg-amber-100 text-amber-700 ring-2 ring-amber-300"
                   : s.state === "failed" ? "bg-red-100 text-red-700"
-                  : "bg-gray-100 text-gray-400"
+                  : "bg-pending-bg text-muted"
                 }`}
               >
                 {s.state === "done" ? <Check size={13} aria-hidden /> : s.state === "failed" ? <XCircle size={13} aria-hidden /> : i + 1}
               </span>
               <div>
-                <p className={`text-sm font-semibold ${s.state === "todo" || s.state === "skipped" ? "text-gray-400" : "text-gray-900"}`}>{s.label}</p>
-                <p className="text-xs text-gray-500">{s.detail}</p>
+                <p className={`text-sm font-semibold ${s.state === "todo" || s.state === "skipped" ? "text-muted" : "text-ink"}`}>{s.label}</p>
+                <p className="text-xs text-muted">{s.detail}</p>
               </div>
             </li>
           ))}
@@ -156,7 +156,7 @@ export default async function FacilityApplicationStatus({ app, userId, userName 
           </a>
         </div>
         {rejected && (
-          <p className="mt-3 text-xs text-gray-500">
+          <p className="mt-3 text-xs text-muted">
             Re-applying: use the same email and password you registered with. After you re-apply, sign in here again to
             upload your verification documents for the new application.
           </p>
@@ -166,7 +166,7 @@ export default async function FacilityApplicationStatus({ app, userId, userName 
       {agreementRecord && (
         agreementState(agreementRecord) === "accepted" ? (
           <div className={`${ui.card} p-5 sm:p-6`}>
-            <h2 className="text-sm font-semibold text-gray-900 mb-3">Your partner agreement</h2>
+            <h2 className="text-sm font-semibold text-ink mb-3">Your partner agreement</h2>
             <FacilityAgreementRecord
               version={agreementRecord.version}
               acceptedAt={agreementRecord.acceptedAt}
@@ -181,7 +181,7 @@ export default async function FacilityApplicationStatus({ app, userId, userName 
       {!rejected && (
         <div id="documents">
           {!docsComplete && !unavailable && (
-            <p className="mb-2 px-1 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+            <p className="mb-2 px-1 flex items-center gap-1.5 text-xs font-medium text-muted">
               <FileUp size={13} aria-hidden /> Step 2 of 4 — upload your documents
             </p>
           )}
@@ -191,12 +191,12 @@ export default async function FacilityApplicationStatus({ app, userId, userName 
 
       {!rejected && prepare.length > 0 && (
         <div className={`${ui.card} p-6`}>
-          <h2 className="text-sm font-semibold text-gray-900">Get ready while you wait</h2>
-          <p className="text-xs text-gray-500 mt-0.5">Having these to hand speeds up verification and your first day on the network.</p>
+          <h2 className="text-sm font-semibold text-ink">Get ready while you wait</h2>
+          <p className="text-xs text-muted mt-0.5">Having these to hand speeds up verification and your first day on the network.</p>
           <ul className="mt-4 space-y-2.5">
             {prepare.map(p => (
-              <li key={p} className="flex items-start gap-2.5 text-sm text-gray-700">
-                <Check size={16} className="text-blue-brand mt-0.5 shrink-0" aria-hidden /> {p}
+              <li key={p} className="flex items-start gap-2.5 text-sm text-ink">
+                <Check size={16} className="text-accent mt-0.5 shrink-0" aria-hidden /> {p}
               </li>
             ))}
           </ul>

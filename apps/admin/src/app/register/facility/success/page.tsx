@@ -16,22 +16,22 @@ export default function FacilityRegSuccessPage({
   const name  = searchParams.name  ?? "your facility";
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-page flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center space-y-6">
         <CheckCircle2 size={56} className="mx-auto text-green-600" aria-hidden />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Application submitted</h1>
-          <p className="text-gray-500 mt-2">Thank you for applying to join the StreetdocMD partner network.</p>
+          <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Application submitted</h1>
+          <p className="text-muted mt-2">Thank you for applying to join the StreetdocMD partner network.</p>
         </div>
 
         <div className={`${ui.card} p-5 text-left space-y-3`}>
-          <p className="text-sm font-semibold text-gray-900">{name}</p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm font-semibold text-ink">{name}</p>
+          <p className="text-sm text-muted">
             Your application is under review. We&apos;ll contact you at{" "}
             {email ? <strong>{email}</strong> : "the email you provided"} within 48 hours. You can sign in to your
             partner portal at any time to check its status.
           </p>
-          <p className="border-t border-gray-100 pt-3 text-xs text-gray-500">
+          <p className="border-t border-line pt-3 text-xs text-muted">
             Questions? Email us at{" "}
             <a href={SUPPORT_MAILTO} className={ui.btnLink}>{SUPPORT_EMAIL}</a>
           </p>

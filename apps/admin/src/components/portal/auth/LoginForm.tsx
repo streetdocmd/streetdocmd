@@ -40,8 +40,8 @@ export default function LoginForm({ type }: { type: PortalType }) {
 
   return (
     <div className={`${ui.card} p-6 sm:p-8`}>
-      <h2 className="text-xl font-bold text-gray-900">Sign in</h2>
-      <p className="text-sm text-gray-500 mt-1 mb-6">Use the email and password your {cfg.facilityNoun} registered with.</p>
+      <h2 className="text-ds-xl font-bold text-navy">Sign in</h2>
+      <p className="text-sm text-muted mt-1 mb-6">Use the email and password your {cfg.facilityNoun} registered with.</p>
       <form onSubmit={login} className="space-y-4">
         <div>
           <label htmlFor="email" className={ui.label}>Email address</label>
@@ -50,8 +50,8 @@ export default function LoginForm({ type }: { type: PortalType }) {
         </div>
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label htmlFor="password" className="text-sm font-medium text-gray-700">Password</label>
-            <Link href={`${cfg.base}/forgot-password`} className="text-xs font-medium text-blue-brand hover:underline">Forgot password?</Link>
+            <label htmlFor="password" className="text-sm font-medium text-ink">Password</label>
+            <Link href={`${cfg.base}/forgot-password`} className="text-xs font-medium text-accent hover:underline">Forgot password?</Link>
           </div>
           <PasswordInput id="password" className={ui.input} autoComplete="current-password" value={password}
             onChange={e => setPassword(e.target.value)} required />
@@ -65,9 +65,9 @@ export default function LoginForm({ type }: { type: PortalType }) {
           {loading ? <><Spinner /> Signing in…</> : "Sign in"}
         </button>
       </form>
-      <p className="mt-6 pt-5 border-t border-gray-100 text-sm text-gray-500 text-center">
+      <p className="mt-6 pt-5 border-t border-line text-sm text-muted text-center">
         New to StreetdocMD?{" "}
-        <Link href={`/register/facility?type=${type}`} className="font-semibold text-blue-brand hover:underline">Register your {cfg.facilityNoun}</Link>
+        <Link href={`/register/facility?type=${type}`} className="font-semibold text-accent hover:underline">Register your {cfg.facilityNoun}</Link>
       </p>
     </div>
   );

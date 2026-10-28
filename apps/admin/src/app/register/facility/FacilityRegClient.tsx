@@ -54,15 +54,15 @@ function Field({ label, required, error, hint, children, className = "" }: {
 
 function Header({ onBack, backLabel }: { onBack?: () => void; backLabel?: string }) {
   return (
-    <header className="bg-gradient-to-b from-navy-700 to-navy-800 text-white">
+    <header className="bg-gradient-to-b from-navy to-navy text-white">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
         <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="h-8 w-auto" priority />
         {onBack ? (
-          <button onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-blue-100 hover:text-white">
+          <button onClick={onBack} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-white">
             <ArrowLeft size={15} aria-hidden /> {backLabel}
           </button>
         ) : (
-          <a href={INDIVIDUAL_PORTAL_URL} className="inline-flex items-center gap-1.5 text-sm text-blue-100 hover:text-white">
+          <a href={INDIVIDUAL_PORTAL_URL} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-white">
             <ArrowLeft size={15} aria-hidden /> Change registration type
           </a>
         )}
@@ -193,12 +193,12 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
   // ── Type selection ─────────────────────────────────────────────────────────
   if (!facilityType) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-page">
         <Header />
-        <div className="bg-gradient-to-b from-navy-800 to-navy-700 text-white pb-16 pt-10 px-4 text-center">
-          <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest">Partner network</p>
+        <div className="bg-gradient-to-b from-navy to-navy text-white pb-16 pt-10 px-4 text-center">
+          <p className="text-sky text-xs font-semibold uppercase tracking-widest">Partner network</p>
           <h1 className="mt-2 text-2xl sm:text-3xl font-bold">Join the StreetdocMD partner network</h1>
-          <p className="mt-2 text-blue-100 max-w-lg mx-auto text-sm sm:text-base">
+          <p className="mt-2 text-muted max-w-lg mx-auto text-sm sm:text-base">
             Register your facility to receive patients from StreetdocMD doctors. It takes about 5 minutes.
           </p>
         </div>
@@ -209,30 +209,30 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
               <button
                 key={f.type}
                 onClick={() => { setFacilityType(f.type); setFormStep(1); }}
-                className={`${ui.card} p-6 text-left hover:shadow-card-md hover:border-blue-mid transition-all group flex flex-col`}
+                className={`${ui.card} p-6 text-left hover:shadow-card-md hover:border-accent/40 transition-all group flex flex-col`}
               >
-                <span className="w-11 h-11 rounded-xl bg-blue-light text-blue-brand flex items-center justify-center">
+                <span className="w-11 h-11 rounded-xl bg-accent-soft text-accent flex items-center justify-center">
                   <f.icon size={22} aria-hidden />
                 </span>
-                <p className="mt-4 font-bold text-gray-900 text-lg group-hover:text-blue-brand">{f.title}</p>
-                <p className="mt-1.5 text-sm text-gray-500 flex-1">{f.desc}</p>
+                <p className="mt-4 font-bold text-ink text-lg group-hover:text-accent">{f.title}</p>
+                <p className="mt-1.5 text-sm text-muted flex-1">{f.desc}</p>
                 <div className="mt-5 flex items-center justify-between">
                   <span className="text-xs font-semibold text-green-700 bg-green-50 ring-1 ring-inset ring-green-200 px-2.5 py-1 rounded-full">{f.earn}</span>
-                  <ChevronRight size={18} className="text-gray-300 group-hover:text-blue-brand" aria-hidden />
+                  <ChevronRight size={18} className="text-line group-hover:text-accent" aria-hidden />
                 </div>
               </button>
             ))}
           </div>
 
           <div className={`${ui.card} mt-6 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4`}>
-            <p className="text-sm text-gray-600 flex-1">
+            <p className="text-sm text-muted flex-1">
               This page is for <strong>organisations</strong>: a hospital, laboratory or pharmacy. Registering as an individual doctor,
               nurse, physiotherapist or lab scientist?
             </p>
             <a href={INDIVIDUAL_PORTAL_URL} className={`${ui.btnLink} whitespace-nowrap`}>Individual practitioner sign-up</a>
           </div>
 
-          <p className="mt-6 text-sm text-gray-500 text-center">
+          <p className="mt-6 text-sm text-muted text-center">
             Already registered?{" "}
             <Link href="/lab-portal/login" className={ui.btnLink}>Lab</Link> ·{" "}
             <Link href="/pharmacy-portal/login" className={ui.btnLink}>Pharmacy</Link> ·{" "}
@@ -248,18 +248,18 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
 
   // ── Form steps ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-page">
       <Header onBack={() => { setFacilityType(null); setError(""); setShowErrors(false); }} backLabel="Change facility type" />
 
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white border-b border-line">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-5">
           <div className="flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-blue-light text-blue-brand flex items-center justify-center shrink-0">
+            <span className="w-10 h-10 rounded-xl bg-accent-soft text-accent flex items-center justify-center shrink-0">
               <selected.icon size={20} aria-hidden />
             </span>
             <div>
-              <p className="text-xs font-medium text-gray-500">Partner registration</p>
-              <h1 className="text-lg font-bold text-gray-900">{selected.title}</h1>
+              <p className="text-xs font-medium text-muted">Partner registration</p>
+              <h1 className="text-ds-lg font-bold text-navy">{selected.title}</h1>
             </div>
           </div>
           <ol className="mt-5 flex items-center gap-2" aria-label="Progress">
@@ -270,12 +270,12 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
               return (
                 <li key={label} className="flex items-center gap-2 flex-1 last:flex-none">
                   <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                    done ? "bg-blue-brand text-white" : current ? "bg-blue-light text-blue-brand ring-2 ring-blue-brand" : "bg-gray-100 text-gray-400"
+                    done ? "bg-accent text-white" : current ? "bg-accent-soft text-accent ring-2 ring-accent" : "bg-pending-bg text-muted"
                   }`} aria-current={current ? "step" : undefined}>
                     {done ? <Check size={14} aria-hidden /> : n}
                   </span>
-                  <span className={`text-xs sm:text-sm font-medium whitespace-nowrap ${current ? "text-gray-900" : "text-gray-500"} ${current ? "" : "hidden sm:inline"}`}>{label}</span>
-                  {n < STEPS.length && <span className={`h-px flex-1 ${done ? "bg-blue-brand" : "bg-gray-200"}`} />}
+                  <span className={`text-xs sm:text-sm font-medium whitespace-nowrap ${current ? "text-ink" : "text-muted"} ${current ? "" : "hidden sm:inline"}`}>{label}</span>
+                  {n < STEPS.length && <span className={`h-px flex-1 ${done ? "bg-accent" : "bg-line"}`} />}
                 </li>
               );
             })}
@@ -288,8 +288,8 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
           <>
             <section className={`${ui.card} p-5 sm:p-6 space-y-4`}>
               <div>
-                <h2 className="font-semibold text-gray-900">Facility</h2>
-                <p className="text-xs text-gray-500 mt-0.5">As it appears on your licence.</p>
+                <h2 className="font-semibold text-ink">Facility</h2>
+                <p className="text-xs text-muted mt-0.5">As it appears on your licence.</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Field label="Facility name" required error={e1("name")} className="md:col-span-2">
@@ -329,8 +329,8 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
 
             <section className={`${ui.card} p-5 sm:p-6 space-y-4`}>
               <div>
-                <h2 className="font-semibold text-gray-900">Portal login</h2>
-                <p className="text-xs text-gray-500 mt-0.5">You&apos;ll use these to sign in to the {PORTALS[facilityType].name}. Use an email your team checks.</p>
+                <h2 className="font-semibold text-ink">Portal login</h2>
+                <p className="text-xs text-muted mt-0.5">You&apos;ll use these to sign in to the {PORTALS[facilityType].name}. Use an email your team checks.</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Field label="Email address" required error={e1("email")} className="md:col-span-2">
@@ -360,8 +360,8 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
           <>
             <section className={`${ui.card} p-5 sm:p-6 space-y-5`}>
               <div>
-                <h2 className="font-semibold text-gray-900">{selected.title} services</h2>
-                <p className="text-xs text-gray-500 mt-0.5">Helps us route the right patients to you.</p>
+                <h2 className="font-semibold text-ink">{selected.title} services</h2>
+                <p className="text-xs text-muted mt-0.5">Helps us route the right patients to you.</p>
               </div>
 
               {facilityType === "lab" && (
@@ -369,7 +369,7 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" className={ui.checkbox} checked={labData.home_collection}
                       onChange={e => setLabData(d => ({ ...d, home_collection: e.target.checked }))} />
-                    <span className="text-sm font-medium text-gray-700">Home sample collection available</span>
+                    <span className="text-sm font-medium text-ink">Home sample collection available</span>
                   </label>
                   {labData.home_collection && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:pl-7">
@@ -409,7 +409,7 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" className={ui.checkbox} checked={pharmData.delivery_available}
                       onChange={e => setPharmData(d => ({ ...d, delivery_available: e.target.checked }))} />
-                    <span className="text-sm font-medium text-gray-700">Home delivery available</span>
+                    <span className="text-sm font-medium text-ink">Home delivery available</span>
                   </label>
                   {pharmData.delivery_available && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:pl-7">
@@ -450,12 +450,12 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input type="checkbox" className={ui.checkbox} checked={hospData.emergency_available}
                         onChange={e => setHospData(d => ({ ...d, emergency_available: e.target.checked }))} />
-                      <span className="text-sm font-medium text-gray-700">Emergency services available</span>
+                      <span className="text-sm font-medium text-ink">Emergency services available</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input type="checkbox" className={ui.checkbox} checked={hospData.ambulance_available}
                         onChange={e => setHospData(d => ({ ...d, ambulance_available: e.target.checked }))} />
-                      <span className="text-sm font-medium text-gray-700">Ambulance available</span>
+                      <span className="text-sm font-medium text-ink">Ambulance available</span>
                     </label>
                     <Field label="Approximate bed count">
                       <input className={ui.input} type="number" min="0" value={hospData.bed_count}
@@ -466,7 +466,7 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
                     <p className={ui.label}>Specialties</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {HOSPITAL_SPECIALTIES.map(s => (
-                        <label key={s} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                        <label key={s} className="flex items-center gap-2 text-sm text-ink cursor-pointer">
                           <input type="checkbox" className={ui.checkbox} checked={hospData.specialties.includes(s)} onChange={() => toggleSpecialty(s)} />
                           {s}
                         </label>
@@ -495,8 +495,8 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
         {formStep === 3 && (
           <>
             <section className={ui.card}>
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                <h2 className="font-semibold text-gray-900">Facility & login</h2>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+                <h2 className="font-semibold text-ink">Facility & login</h2>
                 <button onClick={() => setFormStep(1)} className={`${ui.btnLink} inline-flex items-center gap-1`}><Pencil size={13} aria-hidden /> Edit</button>
               </div>
               <dl className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
@@ -510,17 +510,17 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
                   ["Licence no.", basic.registration_number],
                   ["CAC no.", basic.cac_number],
                 ].filter(([, v]) => v).map(([k, v]) => (
-                  <div key={k}><dt className="text-xs text-gray-500">{k}</dt><dd className="text-gray-900 break-words">{v}</dd></div>
+                  <div key={k}><dt className="text-xs text-muted">{k}</dt><dd className="text-ink break-words">{v}</dd></div>
                 ))}
               </dl>
             </section>
 
             <section className={ui.card}>
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                <h2 className="font-semibold text-gray-900">{selected.title} services</h2>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+                <h2 className="font-semibold text-ink">{selected.title} services</h2>
                 <button onClick={() => setFormStep(2)} className={`${ui.btnLink} inline-flex items-center gap-1`}><Pencil size={13} aria-hidden /> Edit</button>
               </div>
-              <div className="px-5 py-4 text-sm text-gray-700 space-y-1.5">
+              <div className="px-5 py-4 text-sm text-ink space-y-1.5">
                 {facilityType === "lab" && (
                   <>
                     <p>Home collection: {labData.home_collection ? `Yes${labData.collection_radius_km ? ` (${labData.collection_radius_km} km radius)` : ""}` : "No"}</p>
@@ -548,8 +548,8 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
               </div>
             </section>
 
-            <div className="rounded-xl border border-blue-mid bg-blue-light px-4 py-3 text-sm text-navy-700 flex gap-2.5">
-              <Info size={17} className="mt-0.5 shrink-0 text-blue-brand" aria-hidden />
+            <div className="rounded-xl border border-accent/40 bg-accent-soft px-4 py-3 text-sm text-navy flex gap-2.5">
+              <Info size={17} className="mt-0.5 shrink-0 text-accent" aria-hidden />
               <p>
                 After you complete sign-up, you&apos;ll go straight to your portal, which shows your application status. Our partnerships team reviews
                 applications within 48 hours and may ask you for your licence and CAC certificate.
@@ -565,20 +565,20 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
 
             <section className={`${ui.card} p-5 sm:p-6`} aria-labelledby="agreement-heading">
               <div className="flex items-start gap-3">
-                <span className="w-9 h-9 rounded-lg bg-blue-light text-blue-brand flex items-center justify-center shrink-0">
+                <span className="w-9 h-9 rounded-lg bg-accent-soft text-accent flex items-center justify-center shrink-0">
                   <ScrollText size={18} aria-hidden />
                 </span>
                 <div className="min-w-0">
-                  <h2 id="agreement-heading" className="font-semibold text-gray-900">Facility Partner Agreement</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <h2 id="agreement-heading" className="font-semibold text-ink">Facility Partner Agreement</h2>
+                  <p className="text-xs text-muted mt-0.5">
                     {FACILITY_AGREEMENT.title} · Version {FACILITY_AGREEMENT.version}
                   </p>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-gray-600">
-                To complete sign-up, an authorised representative of <strong className="text-gray-900">{basic.name.trim() || "your facility"}</strong> must
+              <p className="mt-4 text-sm text-muted">
+                To complete sign-up, an authorised representative of <strong className="text-ink">{basic.name.trim() || "your facility"}</strong> must
                 read and accept the Agreement. The details above form part of it, and we record the version, the date and time, and that it was
-                accepted by <strong className="text-gray-900">{basic.contact_person_name.trim() || "the contact person"}</strong>
+                accepted by <strong className="text-ink">{basic.contact_person_name.trim() || "the contact person"}</strong>
                 {basic.contact_person_role.trim() ? ` (${basic.contact_person_role.trim()})` : ""}.
               </p>
               <div className="mt-4">
@@ -612,11 +612,11 @@ export default function FacilityRegClient({ initialType = null }: { initialType?
               </button>
             </div>
             {!agreed && !submitting && (
-              <p id="complete-signup-hint" className="text-xs text-gray-500 text-center sm:text-right">
+              <p id="complete-signup-hint" className="text-xs text-muted text-center sm:text-right">
                 Tick the box above to accept the Facility Partner Agreement and enable Complete sign-up.
               </p>
             )}
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-muted text-center">
               Questions? Email us at{" "}
               <a href={SUPPORT_MAILTO} className={ui.btnLink}>{SUPPORT_EMAIL}</a>
             </p>
