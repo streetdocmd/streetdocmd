@@ -57,6 +57,55 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
     .eq("patient_id", user!.id)
     .order("created_at", { ascending: false })
     .limit(20);
+  // Continue where you left off (unpaid booking or medicine order) and Book again (recent providers)
+  const [{ data: unpaidBooking }, { data: unpaidOrder }, { data: pastVisits }] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select("id, service_type, created_at, providers!bookings_provider_id_fkey(name)")
+      .eq("patient_id", user!.id)
+      .eq("status", "pending_payment")
+      .gt("created_at", new Date(Date.now() - 2 * 86_400_000).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("prescription_orders")
+      .select("id, drugs, created_at, pharmacy_partners(name)")
+      .eq("patient_id", user!.id)
+      .eq("status", "pending_payment")
+      .gt("created_at", new Date(Date.now() - 2 * 86_400_000).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("bookings")
+      .select("service_type, provider_id, providers!bookings_provider_id_fkey(id, name, photo_url, specialty, rating, referral_code)")
+      .eq("patient_id", user!.id)
+      .eq("status", "completed")
+      .not("provider_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(12),
+  ]);
+  const resume = unpaidBooking
+    ? { href: `/dashboard/book/payment/${(unpaidBooking as any).id}`, kind: "visit" as const, title: (unpaidBooking as any).service_type as string, sub: (unpaidBooking as any).providers?.name ?? null }
+    : unpaidOrder
+      ? { href: `/dashboard/book/medication/payment/${(unpaidOrder as any).id}`, kind: "order" as const, title: ((unpaidOrder as any).drugs ?? []).map((d: any) => d.drug_name).join(", ") || "Medicine order", sub: (unpaidOrder as any).pharmacy_partners?.name ?? null }
+      : null;
+  const seen = new Set<string>();
+  const bookAgain = ((pastVisits ?? []) as any[])
+    .filter(v => v.providers && !seen.has(v.provider_id) && seen.add(v.provider_id))
+    .slice(0, 3)
+    .map(v => ({
+      id: v.provider_id as string,
+      name: v.providers.name as string,
+      photo: (v.providers.photo_url as string | null) ?? null,
+      role: (v.providers.specialty as string | null) ?? null,
+      rating: Number(v.providers.rating) || 0,
+      href: v.providers.referral_code
+        ? `/dashboard/book/preferred-provider?code=${encodeURIComponent(v.providers.referral_code)}`
+        : `/dashboard/book/${v.service_type}?provider=${v.provider_id}`,
+    }));
+
   const refill = refillItems((prescriptions ?? []) as any[]).find(r => r.daysLeft <= REFILL_SOON_DAYS && r.daysLeft > -3) ?? null;
 
   return (
@@ -74,6 +123,8 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
       } : null}
       careIsActive={!!activeBooking}
       refill={refill}
+      resume={resume}
+      bookAgain={bookAgain}
       now={new Date()}
     />
   );

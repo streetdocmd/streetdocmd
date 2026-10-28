@@ -1,11 +1,11 @@
 import Link from "next/link";
 import {
   Bandage, CalendarClock, ChevronRight, FileText, FlaskConical, HeartHandshake, House, KeyRound, PenLine, Pill,
-  ShieldCheck, Stethoscope, Activity, Syringe, Truck, Video, type LucideIcon,
+  Search, ShieldCheck, Star, Stethoscope, Activity, Syringe, Truck, Video, type LucideIcon,
 } from "lucide-react";
 import { SERVICE_LABELS, BOOKING_STATUS_LABELS } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
-import { Card, cx, focusRing } from "@/components/ds";
+import { Avatar, Card, cx, focusRing } from "@/components/ds";
 
 // Presentation for the patient home (/dashboard). All data is loaded in page.tsx.
 
@@ -28,6 +28,10 @@ export interface HomeViewProps {
   careIsActive: boolean;
   /** Medicine running out soonest, if within the refill window */
   refill: { name: string; daysLeft: number } | null;
+  /** An unpaid booking or medicine order from the last two days */
+  resume: { href: string; kind: "visit" | "order"; title: string; sub: string | null } | null;
+  /** Recent providers from completed visits */
+  bookAgain: { id: string; name: string; photo: string | null; role: string | null; rating: number; href: string }[];
   now: Date;
 }
 
@@ -163,7 +167,7 @@ function ProfileProgress({ checks }: { checks: NonNullable<HomeViewProps["profil
 }
 
 export default function HomeView({
-  firstName, justOnboarded, profileChecks, isFirstVisit, careBooking, careIsActive, refill, now,
+  firstName, justOnboarded, profileChecks, isFirstVisit, careBooking, careIsActive, refill, resume, bookAgain, now,
 }: HomeViewProps) {
   const profileIncomplete = !!profileChecks && Object.values(profileChecks).some(v => !v);
 
@@ -176,11 +180,30 @@ export default function HomeView({
         </h1>
       </div>
 
-      {/* TODO(design): search bar "Search doctors, medicines, tests" arrives with the Search screen (no search route yet). */}
+      <Link href="/dashboard/search"
+        className={cx("mb-4 flex h-[54px] items-center gap-2.5 rounded-[18px] border-[1.5px] border-line bg-surface px-4 text-muted", focusRing)}>
+        <Search size={20} className="flex-none text-navy" aria-hidden />
+        <span className="text-ds-control">Search doctors, medicines, tests</span>
+      </Link>
 
       {careBooking && <NextVisitCard booking={careBooking} active={careIsActive} now={now} />}
 
-      {/* TODO(design): "Continue where you left off" (resume card) needs unfinished bookings, which this page doesn't load yet. */}
+      {resume && (
+        <Link href={resume.href}
+          className={cx("mt-[26px] flex items-center gap-3 rounded-[20px] border border-line bg-surface p-3.5 shadow-ds-sm", focusRing)}>
+          <span className="grid h-10 w-10 flex-none place-items-center rounded-[13px] bg-tint-mint text-navy">
+            {resume.kind === "order" ? <Pill size={20} aria-hidden /> : <Stethoscope size={20} aria-hidden />}
+          </span>
+          <span className="min-w-0 flex-1">
+            <b className="block truncate text-ds-sm text-ink">
+              {resume.kind === "visit" ? sentence((SERVICE_LABELS as Record<string, string>)[resume.title] ?? "Your booking") : resume.title}
+            </b>
+            <span className="block truncate text-ds-sm text-muted">{[resume.sub, "Payment pending · Step 2 of 3"].filter(Boolean).join(" · ")}</span>
+            <span className="mt-2 block h-1.5 overflow-hidden rounded bg-line" aria-hidden><span className="block h-full w-2/3 bg-teal" /></span>
+          </span>
+          <ChevronRight size={20} className="text-muted" aria-hidden />
+        </Link>
+      )}
 
       {isFirstVisit && !careBooking && (
         <Card className="mt-6">
@@ -245,7 +268,29 @@ export default function HomeView({
         <ChevronRight size={20} className="text-muted" aria-hidden />
       </Link>
 
-      {/* TODO(design): "Book again" (past providers with rating and price) needs completed bookings, which this page doesn't load yet. */}
+      {bookAgain.length > 0 && (
+        <section className="mt-[26px]">
+          <SectionHead title="Book again" action={<Link href="/dashboard/bookings" className="text-[13px] font-bold text-accent">History</Link>} />
+          <div className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-2 md:mx-0 md:px-0">
+            {bookAgain.map(p => (
+              <div key={p.id} className="w-[210px] flex-none rounded-ds-lg border border-line bg-surface p-4 shadow-ds-sm">
+                <Avatar name={p.name} src={p.photo} size="sm" />
+                <b className="mt-3 block truncate text-ds-control text-ink">{p.name}</b>
+                {p.role && <span className="block truncate text-ds-xs text-muted">{p.role}</span>}
+                {p.rating > 0 && (
+                  <span className="mt-3 inline-flex items-center gap-1 text-[13px] font-extrabold text-ink">
+                    <Star size={14} className="fill-amber-500 text-amber-500" aria-hidden /> {p.rating.toFixed(1)}
+                  </span>
+                )}
+                <Link href={p.href}
+                  className={cx("mt-3 flex min-h-11 items-center justify-center rounded-pill bg-sky text-ds-sm font-semibold text-navy", focusRing)}>
+                  Book again
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       {refill && (
         <section className="mt-[26px]">
           <div className="flex items-center gap-3 rounded-[20px] border border-warn/20 bg-warn-bg p-3.5">

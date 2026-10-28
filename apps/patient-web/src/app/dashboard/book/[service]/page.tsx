@@ -54,7 +54,7 @@ export default async function SelectProviderPage({
   searchParams,
 }: {
   params: { service: string };
-  searchParams: { description?: string; care_episode_id?: string; follow_up_id?: string };
+  searchParams: { description?: string; care_episode_id?: string; follow_up_id?: string; provider?: string };
 }) {
   const service = params.service as ServiceType;
   if (!SERVICE_LABELS[service]) redirect("/dashboard");
@@ -68,6 +68,7 @@ export default async function SelectProviderPage({
     <div>
       <BookProviderClient
         serviceChargeRate={serviceChargeRate}
+        openProviderId={searchParams.provider}
         title={sentenceCase(SERVICE_LABELS[service])}
         subtitle={isFollowUp
           ? "Follow up visit with your provider"

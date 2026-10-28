@@ -2,18 +2,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { CalendarDays, FileText, Heart, House, User } from "lucide-react";
+import { CalendarDays, Heart, House, Search, User } from "lucide-react";
 import { BottomTabBar, cx, focusRing, type TabItem } from "@/components/ds";
 import NotificationBell from "./NotificationBell";
 import ProfileMenu from "./ProfileMenu";
 
-// One list for the desktop header links and the mobile tab bar.
-// TODO(design): the design's Search tab has no route yet; it joins this list with the Search screen.
+// One list for the desktop header links and the mobile tab bar (the design's five tabs).
+// Records is reached from Care.
 const NAV: TabItem[] = [
   { href: "/dashboard", label: "Home", icon: House, exact: true },
+  { href: "/dashboard/search", label: "Search", icon: Search },
   { href: "/dashboard/bookings", label: "Visits", icon: CalendarDays },
   { href: "/dashboard/my-care", label: "Care", icon: Heart },
-  { href: "/dashboard/records", label: "Records", icon: FileText },
   { href: "/dashboard/profile", label: "Profile", icon: User },
 ];
 

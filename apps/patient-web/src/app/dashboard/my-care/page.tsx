@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Check, CreditCard, HeartHandshake, Pill as PillIcon, Star, Video } from "lucide-react";
+import { Check, ChevronRight, CreditCard, FileText, HeartHandshake, Pill as PillIcon, Star, Video } from "lucide-react";
 import { Avatar, Button, Card, Pill, cx, focusRing, type PillTone } from "@/components/ds";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { CARE_EPISODE_STATUS_LABELS, PROFESSION_LABELS, CARE_TASK_TYPE_LABELS, FOLLOW_UP_TYPE_LABELS } from "@/lib/shared";
@@ -154,6 +154,15 @@ export default async function MyCarePage() {
         <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Your care</h1>
         <small className="text-[13px] font-semibold text-muted">Journey, results and medicines</small>
       </div>
+
+      <Link href="/dashboard/records" className={cx("mb-4 flex items-center gap-3 rounded-[20px] border border-line bg-surface p-3.5 shadow-ds-sm", focusRing)}>
+        <span className="grid h-10 w-10 flex-none place-items-center rounded-[13px] bg-sky text-brand"><FileText size={20} aria-hidden /></span>
+        <span className="min-w-0 flex-1">
+          <b className="block text-ds-sm text-ink">Visit records</b>
+          <span className="text-ds-xs text-muted">Notes, prescriptions and results from every visit</span>
+        </span>
+        <ChevronRight size={20} className="text-muted" aria-hidden />
+      </Link>
 
       {activeEpisode ? (
         <>

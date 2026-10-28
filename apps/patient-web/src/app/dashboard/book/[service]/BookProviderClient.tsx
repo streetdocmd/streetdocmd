@@ -38,7 +38,10 @@ export default function BookProviderClient({
   title,
   subtitle,
   serviceChargeRate,
+  openProviderId,
 }: {
+  /** Open this provider's profile straight away (links from Search) */
+  openProviderId?: string;
   /** Patient service charge rate (platform_settings); the server applies the same rate */
   serviceChargeRate: number;
   /** Page heading, shown above the provider list only */
@@ -54,7 +57,9 @@ export default function BookProviderClient({
   // A follow-up goes to the continuing provider, so skip straight to the booking steps
   const [choice, setChoice] = useState<Choice>(followUpId ? "nearest" : null);
   // Provider whose profile is open (before choosing them)
-  const [viewing, setViewing] = useState<BookableProvider | null>(null);
+  const [viewing, setViewing] = useState<BookableProvider | null>(
+    () => (openProviderId ? providers.find(p => p.id === openProviderId) ?? null : null),
+  );
   // A time picked on the provider's calendar, carried into the When step
   const [presetAt, setPresetAt] = useState<string | null>(null);
   const [query, setQuery] = useState("");
