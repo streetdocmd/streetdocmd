@@ -1,9 +1,18 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Package, Plus, X, Upload, Search, AlertCircle, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase";
-import { Card, EmptyState, Notice, PageHeader, Spinner, StatusBadge, formatNaira, ui } from "@/components/portal/ui";
+import { Card, EmptyState, Notice, PageHeader, Spinner, formatNaira, ui } from "@/components/portal/ui";
+import { Pill, SegmentedControl, Stepper } from "@/components/ds";
 import InventoryImport from "./InventoryImport";
+
+type StockFilter = "all" | "low" | "out";
+
+// Matches the patient app: at or below the threshold reads "Low, N left"
+function stockState(d: { stock_quantity: number; low_stock_threshold?: number | null }) {
+  if (d.stock_quantity <= 0) return "out" as const;
+  return d.stock_quantity <= (d.low_stock_threshold ?? 10) ? "low" as const : "in" as const;
+}
 
 const FORMULATIONS = ["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Ointment", "Drops", "Inhaler", "Other"];
 
@@ -33,7 +42,9 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
   const [formError, setFormError]     = useState("");
   const [form, setForm]               = useState(BLANK_FORM);
   const [editingId, setEditingId]     = useState<string | null>(null);
-  const [editValues, setEditValues]   = useState<{ price: string; stock_quantity: string }>({ price: "", stock_quantity: "" });
+  const [editValues, setEditValues]   = useState<{ price: string; stock_quantity: string; low_stock_threshold: string }>({ price: "", stock_quantity: "", low_stock_threshold: "" });
+  const [filter, setFilter]           = useState<StockFilter>("all");
+  const stockTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const [savingRow, setSavingRow]     = useState<string | null>(null);
   const [rowError, setRowError]       = useState("");
   const [library, setLibrary]         = useState<LibraryItem[]>([]);
@@ -108,25 +119,43 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
   function startEdit(d: any) {
     setRowError("");
     setEditingId(d.id);
-    setEditValues({ price: String(d.price), stock_quantity: String(d.stock_quantity) });
+    setEditValues({ price: String(d.price), stock_quantity: String(d.stock_quantity), low_stock_threshold: String(d.low_stock_threshold ?? 10) });
   }
 
   async function saveEdit(id: string) {
     const stock = parseInt(editValues.stock_quantity, 10);
     const price = parseFloat(editValues.price);
-    if (!Number.isFinite(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
-      setRowError("Enter a valid price and a whole-number stock quantity.");
+    const low = parseInt(editValues.low_stock_threshold, 10);
+    if (!Number.isFinite(price) || price < 0 || !Number.isInteger(stock) || stock < 0 || !Number.isInteger(low) || low < 0) {
+      setRowError("Enter a valid price, and whole numbers for stock and the low stock level.");
       return;
     }
     setSavingRow(id);
     setRowError("");
     const { error } = await createClient().from("drug_catalogue").update({
-      price, stock_quantity: stock, in_stock: stock > 0, updated_at: new Date().toISOString(),
+      price, stock_quantity: stock, in_stock: stock > 0, low_stock_threshold: low, updated_at: new Date().toISOString(),
     }).eq("id", id);
     setSavingRow(null);
     if (error) { setRowError(`Couldn't save: ${error.message}`); return; }
-    setDrugs(prev => prev.map(d => d.id === id ? { ...d, price, stock_quantity: stock, in_stock: stock > 0, updated_at: new Date().toISOString() } : d));
+    setDrugs(prev => prev.map(d => d.id === id ? { ...d, price, stock_quantity: stock, in_stock: stock > 0, low_stock_threshold: low, updated_at: new Date().toISOString() } : d));
     setEditingId(null);
+  }
+
+  // Stepper taps update the count at once and save after a short pause
+  function adjustStock(d: any, stock: number) {
+    setRowError("");
+    const before = d.stock_quantity;
+    setDrugs(prev => prev.map(x => x.id === d.id ? { ...x, stock_quantity: stock, in_stock: stock > 0 } : x));
+    clearTimeout(stockTimers.current[d.id]);
+    stockTimers.current[d.id] = setTimeout(async () => {
+      const { error } = await createClient().from("drug_catalogue").update({
+        stock_quantity: stock, in_stock: stock > 0, updated_at: new Date().toISOString(),
+      }).eq("id", d.id);
+      if (error) {
+        setRowError(`Couldn't save the stock for ${d.drug_name}: ${error.message}`);
+        setDrugs(prev => prev.map(x => x.id === d.id ? { ...x, stock_quantity: before, in_stock: before > 0 } : x));
+      }
+    }, 700);
   }
 
   async function toggleActive(id: string, current: boolean) {
@@ -142,6 +171,7 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
 
   const visibleDrugs = drugs
     .filter(d => showInactive || d.active)
+    .filter(d => filter === "all" || (filter === "out" ? stockState(d) === "out" : stockState(d) !== "in"))
     .filter(d => d.drug_name.toLowerCase().includes(search.toLowerCase()) || (d.generic_name ?? "").toLowerCase().includes(search.toLowerCase()));
 
   const activeDrugs = drugs.filter(d => d.active);
@@ -150,6 +180,7 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
     : null;
   const daysSinceUpdate = lastUpdated ? Math.floor((Date.now() - new Date(lastUpdated).getTime()) / 86_400_000) : null;
   const outOfStock = activeDrugs.filter(d => d.stock_quantity <= 0).length;
+  const needAttention = activeDrugs.filter(d => stockState(d) !== "in").length;
 
   if (loading) {
     return <div className="flex justify-center py-20 text-accent"><Spinner className="w-7 h-7" /></div>;
@@ -158,14 +189,14 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Inventory"
-        description="The prices and stock here are what patients see when a prescription is sent to you. Keep them current so orders don't need a back-and-forth."
+        title="Stock"
+        description={`${needAttention} ${needAttention === 1 ? "item needs" : "items need"} attention. Patients see these prices and stock levels when they order, so keep them current.`}
         actions={partnerId && <>
           <button onClick={() => { setShowImport(s => !s); setShowForm(false); }} className={ui.btnSecondary}>
             {showImport ? <><X size={16} aria-hidden /> Close import</> : <><Upload size={16} aria-hidden /> Import CSV</>}
           </button>
           <button onClick={() => { setShowForm(s => !s); setShowImport(false); setFormError(""); }} className={showForm ? ui.btnSecondary : ui.btnPrimary}>
-            {showForm ? <><X size={16} aria-hidden /> Cancel</> : <><Plus size={16} aria-hidden /> Add drug</>}
+            {showForm ? <><X size={16} aria-hidden /> Cancel</> : <><Plus size={16} aria-hidden /> Add item</>}
           </button>
         </>}
       />
@@ -190,7 +221,7 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
       {showForm && partnerId && (
         <Card className="p-5">
           <form onSubmit={addDrug} className="space-y-4">
-            <p className="font-semibold text-ink">New drug</p>
+            <p className="font-semibold text-ink">New item</p>
             <div className="relative">
               <label className={ui.label} htmlFor="lib-search">Search the medication library (optional, fills the fields below)</label>
               <input id="lib-search" className={ui.input} placeholder="Start typing a drug name…" autoComplete="off"
@@ -227,105 +258,113 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
               Requires a prescription to dispense
             </label>
             {formError && (
-              <div role="alert" className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-3.5 py-2.5 rounded-lg">
+              <div role="alert" className="flex items-start gap-2 bg-danger-bg text-danger text-ds-sm font-semibold px-3.5 py-2.5 rounded-ds-sm">
                 <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden /> {formError}
               </div>
             )}
             <button type="submit" disabled={saving} className={ui.btnPrimary}>
-              {saving ? <><Spinner /> Saving…</> : "Add to inventory"}
+              {saving ? <><Spinner /> Saving…</> : "Add to stock"}
             </button>
           </form>
         </Card>
       )}
 
+      <SegmentedControl<StockFilter>
+        label="Show"
+        value={filter}
+        onChange={setFilter}
+        options={[{ value: "all", label: "All" }, { value: "low", label: "Low or out" }, { value: "out", label: "Out" }]}
+        className="max-w-md"
+      />
+
       <Card>
-        <div className="px-5 py-3 border-b border-line flex items-center gap-4 flex-wrap">
+        <div className="px-4 sm:px-5 py-3 border-b border-line flex items-center gap-4 flex-wrap">
           <div className="relative flex-1 min-w-[12rem] max-w-xs">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
-            <input className={`${ui.input} pl-9`} placeholder="Search inventory…" value={search} onChange={e => setSearch(e.target.value)} />
+            <input className={`${ui.input} pl-9`} placeholder="Search stock" aria-label="Search stock" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
+          <label className="flex items-center gap-2 text-ds-sm text-muted cursor-pointer">
             <input type="checkbox" className={ui.checkbox} checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
-            Show inactive
+            Show hidden items
           </label>
-          <p className="text-xs text-muted ml-auto">
-            {activeDrugs.length} active{outOfStock > 0 ? ` · ${outOfStock} out of stock` : ""}
+          <p className="text-ds-xs text-muted ml-auto">
+            {activeDrugs.length} listed{outOfStock > 0 ? ` · ${outOfStock} out of stock` : ""}
           </p>
         </div>
-        {rowError && <p role="alert" className="px-5 pt-3 text-sm text-red-600">{rowError}</p>}
+        {rowError && <p role="alert" className="px-5 pt-3 text-ds-sm font-semibold text-danger">{rowError}</p>}
 
         {visibleDrugs.length === 0 ? (
           <EmptyState icon={Package}
-            title={drugs.length === 0 ? "No drugs in your inventory yet" : "No matching drugs"}
-            description={drugs.length === 0 ? "Import a CSV of your stock list or add drugs one at a time." : undefined}
+            title={drugs.length === 0 ? "No stock listed yet" : "Nothing to show in this view"}
+            description={drugs.length === 0 ? "Import a spreadsheet of your stock or add items one at a time." : undefined}
             action={drugs.length === 0 && partnerId && !showImport && !showForm
               ? <button onClick={() => setShowImport(true)} className={ui.btnPrimary}><Upload size={16} aria-hidden /> Import from spreadsheet</button>
               : undefined}
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-page/80 border-b border-line">
-                <tr className="text-left text-xs font-semibold text-muted uppercase tracking-wide">
-                  <th className="px-5 py-3">Drug</th>
-                  <th className="px-5 py-3">Formulation</th>
-                  <th className="px-5 py-3">Price</th>
-                  <th className="px-5 py-3">Stock</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {visibleDrugs.map(d => (
-                  <tr key={d.id} className="hover:bg-page/60">
-                    <td className="px-5 py-3">
-                      <p className="font-medium text-ink">{d.drug_name}{d.strength ? ` ${d.strength}` : ""}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {d.generic_name && <span className="text-xs text-muted">{d.generic_name}</span>}
-                        {d.prescription_required && <StatusBadge tone="purple">Rx</StatusBadge>}
+          <ul className="px-4 sm:px-5">
+            {visibleDrugs.map(d => {
+              const st = stockState(d);
+              const editing = editingId === d.id;
+              return (
+                <li key={d.id} className="border-b border-line py-3.5 last:border-0">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <b className="block text-ds-control text-ink">{d.drug_name}{d.strength ? ` ${d.strength}` : ""}</b>
+                      <small className="text-ds-xs text-muted">
+                        {[d.generic_name, d.formulation, formatNaira(d.price)].filter(Boolean).join(" · ")}
+                      </small>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {!d.active ? <Pill tone="idle">Hidden from patients</Pill>
+                          : st === "out" ? <Pill tone="bad">Out of stock</Pill>
+                          : st === "low" ? <Pill tone="warn">Low, {d.stock_quantity} left</Pill>
+                          : <Pill tone="ok">In stock · {d.stock_quantity}</Pill>}
+                        {d.prescription_required && <Pill tone="teal">Prescription</Pill>}
                       </div>
-                    </td>
-                    <td className="px-5 py-3 text-muted">{d.formulation ?? "—"}</td>
-                    <td className="px-5 py-3 whitespace-nowrap">
-                      {editingId === d.id ? (
-                        <input className={`${ui.input} w-28`} type="number" min="0" step="any" aria-label="Price" value={editValues.price}
+                    </div>
+                    {partnerId && !editing && (
+                      <Stepper size="sm" label={`Stock, ${d.drug_name}`} value={d.stock_quantity} onChange={v => adjustStock(d, v)} />
+                    )}
+                    {!editing && (
+                      <span className="inline-flex gap-3">
+                        <button onClick={() => startEdit(d)} className={ui.btnLink}>Edit</button>
+                        <button onClick={() => toggleActive(d.id, d.active)} disabled={savingRow === d.id}
+                          className="text-ds-sm font-semibold text-muted hover:text-ink disabled:opacity-50">
+                          {d.active ? "Hide" : "Show"}
+                        </button>
+                      </span>
+                    )}
+                  </div>
+
+                  {editing && (
+                    <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(3,minmax(0,140px))_auto] sm:items-end">
+                      <div>
+                        <label className={ui.label} htmlFor={`price-${d.id}`}>Price (₦)</label>
+                        <input id={`price-${d.id}`} className={ui.input} type="number" min="0" step="any" value={editValues.price}
                           onChange={e => setEditValues(v => ({ ...v, price: e.target.value }))} />
-                      ) : <span className="font-medium text-ink">{formatNaira(d.price)}</span>}
-                    </td>
-                    <td className="px-5 py-3">
-                      {editingId === d.id ? (
-                        <input className={`${ui.input} w-24`} type="number" min="0" step="1" aria-label="Stock quantity" value={editValues.stock_quantity}
+                      </div>
+                      <div>
+                        <label className={ui.label} htmlFor={`stock-${d.id}`}>In stock</label>
+                        <input id={`stock-${d.id}`} className={ui.input} type="number" min="0" step="1" value={editValues.stock_quantity}
                           onChange={e => setEditValues(v => ({ ...v, stock_quantity: e.target.value }))} />
-                      ) : <span className={d.stock_quantity > 0 ? "text-ink" : "text-red-600 font-medium"}>{d.stock_quantity}</span>}
-                    </td>
-                    <td className="px-5 py-3">
-                      <StatusBadge tone={!d.active ? "gray" : d.stock_quantity > 0 ? "green" : "red"}>
-                        {!d.active ? "Inactive" : d.stock_quantity > 0 ? "In stock" : "Out of stock"}
-                      </StatusBadge>
-                    </td>
-                    <td className="px-5 py-3 text-right whitespace-nowrap">
-                      {editingId === d.id ? (
-                        <span className="inline-flex gap-3">
-                          <button onClick={() => saveEdit(d.id)} disabled={savingRow === d.id} className={ui.btnLink}>
-                            {savingRow === d.id ? "Saving…" : "Save"}
-                          </button>
-                          <button onClick={() => setEditingId(null)} className="text-sm text-muted hover:text-ink">Cancel</button>
-                        </span>
-                      ) : (
-                        <span className="inline-flex gap-3">
-                          <button onClick={() => startEdit(d)} className={ui.btnLink}>Edit</button>
-                          <button onClick={() => toggleActive(d.id, d.active)} disabled={savingRow === d.id}
-                            className="text-sm text-muted hover:text-ink disabled:opacity-50">
-                            {d.active ? "Deactivate" : "Activate"}
-                          </button>
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                      <div>
+                        <label className={ui.label} htmlFor={`low-${d.id}`}>Low at</label>
+                        <input id={`low-${d.id}`} className={ui.input} type="number" min="0" step="1" value={editValues.low_stock_threshold}
+                          onChange={e => setEditValues(v => ({ ...v, low_stock_threshold: e.target.value }))} />
+                      </div>
+                      <span className="col-span-2 inline-flex gap-3 sm:col-span-1 sm:pb-3">
+                        <button onClick={() => saveEdit(d.id)} disabled={savingRow === d.id} className={ui.btnLink}>
+                          {savingRow === d.id ? "Saving…" : "Save"}
+                        </button>
+                        <button onClick={() => setEditingId(null)} className="text-ds-sm font-semibold text-muted hover:text-ink">Cancel</button>
+                      </span>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         )}
       </Card>
     </div>
