@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { BOOKING_STATUS_LABELS } from "@/lib/shared";
-import { Check, Mail, Phone, Star } from "lucide-react";
-import { SUPPORT_EMAIL } from "@/lib/brand";
+import { Check, Phone, Star } from "lucide-react";
 import { Avatar, Button, Card, Notice, TopBar, iconButtonClass } from "@/components/ds";
 import TrackingClient from "./TrackingClient";
+import TrackingActions from "./TrackingActions";
 
 const STATUS_STEPS = ["pending", "accepted", "en_route", "arrived", "in_progress", "completed"];
 
@@ -136,18 +136,20 @@ export default async function TrackingPage({ params }: { params: { id: string } 
         </section>
       )}
 
-      <div className="mt-6 flex gap-2.5">
-        {booking.status === "completed" ? (
-          <Button href={`/dashboard/book/rate/${params.id}?providerId=${provider?.id}`} className="flex-1">
-            Rate your visit
-          </Button>
-        ) : (
-          <Button href={`mailto:${SUPPORT_EMAIL}`} variant="secondary" className="flex-1">
-            <Mail size={18} aria-hidden /> Get help
-          </Button>
-        )}
-      </div>
-      {/* TODO(design): Share location, Reschedule and Add to calendar need features that don't exist yet. */}
+      {booking.status === "completed" ? (
+        <Button href={`/dashboard/book/rate/${params.id}?providerId=${provider?.id}`} block className="mt-6">
+          Rate your visit
+        </Button>
+      ) : booking.status !== "cancelled" ? (
+        <TrackingActions
+          bookingId={params.id}
+          providerName={provider?.name ?? null}
+          scheduledAt={booking.scheduled_at ?? null}
+          durationMinutes={booking.duration_minutes ?? 45}
+          address={booking.patient_address ?? null}
+          live={["en_route", "arrived", "in_progress"].includes(booking.status)}
+        />
+      ) : null}
     </div>
   );
 }

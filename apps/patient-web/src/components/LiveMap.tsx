@@ -7,9 +7,11 @@ interface Props {
   patientLat: number;
   patientLng: number;
   providerName: string;
+  /** Map height in px (default 280) */
+  height?: number;
 }
 
-export default function LiveMap({ providerLat, providerLng, patientLat, patientLng, providerName }: Props) {
+export default function LiveMap({ providerLat, providerLng, patientLat, patientLng, providerName, height = 280 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markerRefs = useRef<{ provider?: any; patient?: any }>({});
@@ -82,8 +84,8 @@ export default function LiveMap({ providerLat, providerLng, patientLat, patientL
   return (
     <div
       ref={containerRef}
-      className="rounded-xl overflow-hidden border border-gray-100"
-      style={{ height: "280px", width: "100%" }}
+      className="overflow-hidden"
+      style={{ height: `${height}px`, width: "100%" }}
     />
   );
 }

@@ -1,7 +1,10 @@
 "use client";
 import { useState } from "react";
 import { MapPin, Edit3, Loader2, Search, ArrowLeft } from "lucide-react";
+import dynamic from "next/dynamic";
 import { Button, Notice, cx, focusRing } from "@/components/ds";
+
+const LiveMap = dynamic(() => import("./LiveMap"), { ssr: false });
 
 type Coords = { lat: number; lng: number };
 type Mode = "choice" | "current" | "manual";
@@ -118,7 +121,9 @@ export default function LocationPicker({
             Change
           </button>
         </div>
-        {/* TODO(design): mini map above the address (the design shows a map preview with a pin). */}
+        <div className="mb-2.5 overflow-hidden rounded-[20px] border border-line">
+          <LiveMap providerLat={null} providerLng={null} patientLat={confirmed.coords.lat} patientLng={confirmed.coords.lng} providerName="" height={150} />
+        </div>
         <div className="flex items-center gap-3 rounded-[20px] border border-line bg-surface p-3.5">
           {pinTile}
           <div className="min-w-0 flex-1 text-ds-sm">
