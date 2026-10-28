@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { MapPin, Edit3, Loader2, Search, ArrowLeft } from "lucide-react";
+import { Button, Notice, cx, focusRing } from "@/components/ds";
 
 type Coords = { lat: number; lng: number };
 type Mode = "choice" | "current" | "manual";
@@ -85,7 +86,7 @@ export default function LocationPicker({
       );
       const data: SearchResult[] = await res.json();
       if (!data || data.length === 0) {
-        setSearchError("No matching addresses found — try being more specific.");
+        setSearchError("No matching addresses found. Try being more specific.");
       } else {
         setResults(data);
       }
@@ -101,109 +102,132 @@ export default function LocationPicker({
     onReady(coords, r.display_name);
   }
 
+  const heading = <h3 className="mb-3 text-[17px] font-bold text-navy">Where?</h3>;
+  const pinTile = (
+    <span className="grid h-[42px] w-[42px] flex-none place-items-center rounded-[14px] bg-sky text-brand">
+      <MapPin size={20} aria-hidden />
+    </span>
+  );
+
   if (confirmed) {
     return (
-      <div className="card p-4 flex items-start gap-3">
-        <MapPin size={18} className="text-blue-brand mt-0.5 shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-400 mb-0.5">Visit address</p>
-          <p className="text-sm text-gray-700 leading-snug line-clamp-2">{confirmed.address}</p>
+      <section>
+        <div className="mb-3 flex items-baseline justify-between">
+          <h3 className="text-[17px] font-bold text-navy">Where?</h3>
+          <button type="button" onClick={reset} className={cx("text-[13px] font-bold text-accent rounded-sm", focusRing)}>
+            Change
+          </button>
         </div>
-        <button onClick={reset} className="text-xs text-blue-brand hover:underline shrink-0">
-          Change
-        </button>
-      </div>
+        {/* TODO(design): mini map above the address (the design shows a map preview with a pin). */}
+        <div className="flex items-center gap-3 rounded-[20px] border border-line bg-surface p-3.5">
+          {pinTile}
+          <div className="min-w-0 flex-1 text-ds-sm">
+            <small className="block text-ds-xs text-muted">Visit address</small>
+            <b className="line-clamp-2 font-semibold text-ink">{confirmed.address}</b>
+          </div>
+        </div>
+      </section>
     );
   }
 
   if (mode === "choice") {
     return (
-      <div className="card p-5">
-        <p className="font-semibold text-gray-900 mb-1">Where should the provider visit?</p>
-        <p className="text-sm text-gray-500 mb-4">Choose how you'd like to set the visit address.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <section>
+        {heading}
+        <div className="grid grid-cols-2 gap-3">
           <button
+            type="button"
             onClick={useCurrentLocation}
-            className="flex flex-col items-center text-center gap-2 rounded-xl border border-gray-200 p-4 hover:border-blue-mid hover:bg-blue-light/40 transition-colors"
+            className={cx("flex flex-col items-start gap-3 rounded-[20px] border border-line bg-surface p-4 text-left hover:border-accent", focusRing)}
           >
-            <div className="w-10 h-10 rounded-full bg-blue-light flex items-center justify-center">
-              <MapPin size={20} className="text-blue-brand" />
-            </div>
-            <span className="text-sm font-semibold text-gray-900">Use my current location</span>
+            {pinTile}
+            <span className="text-ds-sm font-bold text-ink">Use my current location</span>
           </button>
           <button
+            type="button"
             onClick={() => setMode("manual")}
-            className="flex flex-col items-center text-center gap-2 rounded-xl border border-gray-200 p-4 hover:border-blue-mid hover:bg-blue-light/40 transition-colors"
+            className={cx("flex flex-col items-start gap-3 rounded-[20px] border border-line bg-surface p-4 text-left hover:border-accent", focusRing)}
           >
-            <div className="w-10 h-10 rounded-full bg-blue-light flex items-center justify-center">
-              <Edit3 size={20} className="text-blue-brand" />
-            </div>
-            <span className="text-sm font-semibold text-gray-900">Choose a different address</span>
+            <span className="grid h-[42px] w-[42px] flex-none place-items-center rounded-[14px] bg-sky text-brand">
+              <Edit3 size={20} aria-hidden />
+            </span>
+            <span className="text-ds-sm font-bold text-ink">Choose a different address</span>
           </button>
         </div>
-      </div>
+      </section>
     );
   }
 
   if (mode === "current") {
     if (geoState === "locating") {
       return (
-        <div className="card p-6 text-center">
-          <Loader2 size={28} className="text-blue-brand mx-auto mb-3 animate-spin" />
-          <p className="text-gray-600 font-medium">Getting your location…</p>
-        </div>
+        <section>
+          {heading}
+          <div className="flex items-center gap-3 rounded-[20px] border border-line bg-surface p-4" role="status">
+            <Loader2 size={22} className="animate-spin text-brand" aria-hidden />
+            <p className="text-ds-sm font-semibold text-ink">Getting your location…</p>
+          </div>
+        </section>
       );
     }
     // denied
     return (
-      <div className="card p-6 text-center border border-red-200 bg-red-50">
-        <p className="text-red-700 font-medium mb-2">Location access denied</p>
-        <p className="text-sm text-red-500 mb-4">
+      <section>
+        {heading}
+        <Notice tone="danger" title="Location access denied.">
           Enable location in your browser settings, or choose a different address instead.
-        </p>
-        <div className="flex gap-2 justify-center">
-          <button onClick={useCurrentLocation} className="btn-primary text-sm px-4 py-2">Try again</button>
-          <button onClick={() => setMode("manual")} className="btn-secondary text-sm px-4 py-2">Choose an address</button>
+        </Notice>
+        <div className="mt-3 flex gap-2">
+          <Button onClick={useCurrentLocation}>Try again</Button>
+          <Button variant="secondary" onClick={() => setMode("manual")}>Choose an address</Button>
         </div>
-      </div>
+      </section>
     );
   }
 
   // mode === "manual"
   return (
-    <div className="card p-5">
-      <button onClick={() => setMode("choice")} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-3">
-        <ArrowLeft size={13} /> Back
-      </button>
-      <p className="font-semibold text-gray-900 mb-3">Search for an address</p>
-      <form onSubmit={searchAddress} className="flex gap-2 mb-3">
-        <input
-          className="input flex-1"
-          placeholder="e.g. 12 Allen Avenue, Ikeja, Lagos"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-        />
-        <button type="submit" disabled={searching || !query.trim()} className="btn-primary px-4 shrink-0">
-          {searching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+    <section>
+      <div className="mb-3 flex items-baseline justify-between">
+        <h3 className="text-[17px] font-bold text-navy">Where?</h3>
+        <button type="button" onClick={() => setMode("choice")}
+          className={cx("inline-flex items-center gap-1 text-[13px] font-bold text-accent rounded-sm", focusRing)}>
+          <ArrowLeft size={13} aria-hidden /> Back
         </button>
+      </div>
+      <form onSubmit={searchAddress} className="flex gap-2">
+        <label className="flex h-[54px] min-w-0 flex-1 items-center gap-2.5 rounded-[18px] border-[1.5px] border-line bg-surface px-4 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent-soft">
+          <MapPin size={20} className="flex-none text-navy" aria-hidden />
+          <input
+            className="min-w-0 flex-1 bg-transparent text-ds-control text-ink outline-none placeholder:text-muted"
+            placeholder="e.g. 12 Allen Avenue, Ikeja, Lagos"
+            aria-label="Search for an address"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+          />
+        </label>
+        <Button type="submit" disabled={searching || !query.trim()} aria-label="Search" className="min-h-[54px] px-4">
+          {searching ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Search size={18} aria-hidden />}
+        </Button>
       </form>
 
-      {searchError && <p className="text-sm text-red-600 mb-2">{searchError}</p>}
+      {searchError && <p className="mt-2 text-ds-sm font-semibold text-danger">{searchError}</p>}
 
       {results.length > 0 && (
-        <div className="space-y-1.5">
+        <div className="mt-3 overflow-hidden rounded-[20px] border border-line bg-surface">
           {results.map((r, i) => (
             <button
               key={i}
+              type="button"
               onClick={() => pickResult(r)}
-              className="w-full flex items-start gap-2 text-left text-sm text-gray-700 rounded-lg border border-gray-100 p-2.5 hover:border-blue-mid hover:bg-blue-light/40 transition-colors"
+              className={cx("flex w-full items-start gap-2.5 border-b border-line p-3.5 text-left text-ds-sm text-ink last:border-b-0 hover:bg-page", focusRing)}
             >
-              <MapPin size={15} className="text-gray-400 mt-0.5 shrink-0" />
+              <MapPin size={16} className="mt-0.5 flex-none text-muted" aria-hidden />
               <span className="line-clamp-2">{r.display_name}</span>
             </button>
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }

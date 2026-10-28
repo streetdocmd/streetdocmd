@@ -1,13 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Search, ArrowLeft, Zap, Clock } from "lucide-react";
+import { Star, Search, Zap, Clock } from "lucide-react";
 import { SERVICE_LABELS, SERVICE_PROFESSION, formatNaira } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
 import FamilyMemberPicker from "./FamilyMemberPicker";
 import SchedulePicker from "./SchedulePicker";
 import LocationPicker from "@/components/LocationPicker";
-import { Avatar, Button, Card, Chip, Pill, TopBar, VerifiedBadge, cx, focusRing } from "@/components/ds";
+import { Avatar, Button, Card, Chip, EmergencyNotice, Notice, Pill, TopBar, VerifiedBadge, cx, focusRing } from "@/components/ds";
 
 export interface BookableProvider {
   id: string;
@@ -219,103 +219,80 @@ export default function BookProviderClient({
   }
 
   // ── Step 2: who, when, where ────────────────────────────────
+  const ready = !!coords && scheduleReady;
   return (
-    <div className="max-w-md mx-auto space-y-5">
-      <div>
-        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{title}</h1>
-        <p className="mt-0.5 text-ds-xs text-muted">{subtitle}</p>
-      </div>
-      {!followUpId && (
-        <button
-          type="button"
-          onClick={() => { setChoice(null); setError(""); }}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900"
-        >
-          <ArrowLeft size={15} aria-hidden /> Choose a different provider
-        </button>
+    <div className="mx-auto max-w-md">
+      {followUpId ? (
+        <TopBar title="Book a visit" backHref="/dashboard" className="-mx-5 -mt-2 md:mx-0" />
+      ) : (
+        <TopBar title="Book a visit" onBack={() => { setChoice(null); setError(""); }} className="-mx-5 -mt-2 md:mx-0" />
       )}
+      <div className="mb-4 flex gap-1.5" aria-hidden>
+        <span className="h-[5px] flex-1 rounded bg-accent" />
+        <span className="h-[5px] flex-1 rounded bg-line" />
+        <span className="h-[5px] flex-1 rounded bg-line" />
+      </div>
 
-      <div className="card p-5">
+      <EmergencyNotice className="mb-4" />
+
+      {/* What is being booked */}
+      <div className="flex items-center gap-3 rounded-[20px] border border-line bg-surface p-3.5">
         {chosen ? (
-          <div className="flex items-start gap-4">
-            <ProviderAvatar provider={chosen} />
+          <>
+            <Avatar name={chosen.name} src={chosen.photo_url} size="sm" />
             <div className="min-w-0 flex-1">
-              <p className="font-bold text-gray-900">{chosen.name}</p>
-              <p className="text-sm text-gray-500">{serviceLabel}</p>
-              <div className="mt-1 text-xs text-gray-500"><Rating provider={chosen} /></div>
+              <b className="block truncate text-ds-control text-ink">{chosen.name}</b>
+              <small className="text-ds-xs text-muted">{title}</small>
             </div>
-            <p className="text-lg font-bold text-blue-brand shrink-0">{formatNaira(chosen.price)}</p>
-          </div>
+            <span className="font-extrabold text-navy tabular-nums">{formatNaira(chosen.price)}</span>
+          </>
         ) : (
-          <div>
-            <p className="font-bold text-gray-900 text-lg">{serviceLabel}</p>
-            {description && <p className="text-sm text-gray-500 mt-1 italic">&ldquo;{description}&rdquo;</p>}
-            <p className="text-xs text-gray-500 mt-1">
+          <div className="min-w-0 flex-1">
+            <b className="block text-ds-control text-ink">{title}</b>
+            {description && <small className="block text-ds-xs italic text-muted">&ldquo;{description}&rdquo;</small>}
+            <small className="block text-ds-xs text-muted">
               {followUpId
-                ? "Follow-up pricing applies: discounted from your provider's rate. You'll see the total before you pay."
+                ? "Follow up pricing applies: discounted from your provider's rate. You'll see the total before you pay."
                 : "We'll send the nearest available verified provider. You'll see the price before you pay."}
-            </p>
+            </small>
           </div>
         )}
       </div>
 
-      {/* Who is this for */}
-      {!followUpId && <FamilyMemberPicker onChange={setFamilyMemberId} />}
+      <div className="mt-[26px] space-y-[26px]">
+        {!followUpId && <FamilyMemberPicker onChange={setFamilyMemberId} />}
+        {!followUpId && <SchedulePicker onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }} />}
+        <LocationPicker
+          onReady={(c, a) => { setCoords(c); setAddress(a); }}
+          onReset={() => { setCoords(null); setAddress(""); }}
+        />
+      </div>
 
-      {/* When */}
-      {!followUpId && <SchedulePicker onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }} />}
+      {error && <Notice tone="danger" className="mt-4">{error}</Notice>}
 
-      {/* Location step */}
-      <LocationPicker
-        onReady={(c, a) => { setCoords(c); setAddress(a); }}
-        onReset={() => { setCoords(null); setAddress(""); }}
-      />
-
-      {coords && (
-        <div className="space-y-4">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-              {error}
-            </div>
-          )}
-
-          <button
-            onClick={book}
-            disabled={booking || !scheduleReady}
-            className="btn-primary w-full text-base py-3 flex justify-center"
-          >
-            {booking ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 mt-0.5" />
-                {chosen ? `Sending your request to ${chosen.name}…` : scheduledAt ? "Confirming your slot…" : "Finding your provider…"}
-              </>
-            ) : followUpId ? (
-              "Book Follow-up"
-            ) : chosen ? (
-              `Book with ${chosen.name} · ${formatNaira(chosen.price)}`
-            ) : scheduledAt ? (
-              "Confirm Booking"
-            ) : (
-              "Book Now"
-            )}
-          </button>
-          <p className="text-xs text-center text-gray-400">
-            {chosen
+      <div className="sticky bottom-[76px] z-20 mt-6 rounded-ds-lg border border-line bg-surface/95 p-3.5 shadow-ds backdrop-blur md:bottom-4">
+        <div className="flex items-center gap-3.5">
+          <div>
+            <small className="block text-ds-2xs font-bold text-muted">{chosen ? "Visit fee" : "Price"}</small>
+            <b className="text-[20px] tracking-[-0.01em] text-navy tabular-nums">
+              {chosen ? formatNaira(chosen.price) : "Before you pay"}
+            </b>
+          </div>
+          <Button className="flex-1" onClick={book} disabled={booking || !ready} aria-busy={booking}>
+            {booking
+              ? (chosen ? "Sending request…" : scheduledAt ? "Confirming your slot…" : "Finding your provider…")
+              : "Continue"}
+          </Button>
+        </div>
+        <p className="mt-2 text-center text-ds-xs text-muted">
+          {!coords
+            ? "Add the visit address to continue."
+            : chosen
               ? `${chosen.name} will be notified and can accept or decline. Payment is due before they set off.`
               : "We'll match you with the nearest available provider. Payment due after confirmation."}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ProviderAvatar({ provider }: { provider: BookableProvider }) {
-  return provider.photo_url ? (
-    <img src={provider.photo_url} alt="" className="w-14 h-14 rounded-full object-cover shrink-0" />
-  ) : (
-    <div className="w-14 h-14 rounded-full bg-blue-light text-blue-brand flex items-center justify-center font-bold text-lg shrink-0" aria-hidden>
-      {provider.name.replace(/^(dr|nurse|mr|mrs|ms)\.?\s+/i, "").charAt(0).toUpperCase()}
+        </p>
+      </div>
+      {/* TODO(design): "Total with service charge" needs the patient service fee, which isn't implemented. */}
     </div>
   );
 }

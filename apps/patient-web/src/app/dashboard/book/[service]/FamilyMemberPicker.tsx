@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase";
+import { Button, Chip, Input } from "@/components/ds";
 
 type FamilyMember = { id: string; name: string; relationship: string };
 
@@ -53,84 +55,34 @@ export default function FamilyMemberPicker({
   }
 
   return (
-    <div className="card p-5 space-y-3">
-      <p className="font-semibold text-gray-900 text-sm">Who is this visit for?</p>
+    <section>
+      <h3 className="mb-3 text-[17px] font-bold text-navy">Who is this for?</h3>
 
-      <div className="space-y-2">
-        <label className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 cursor-pointer has-[:checked]:border-blue-brand has-[:checked]:bg-blue-50">
-          <input
-            type="radio"
-            name="family_member"
-            checked={selected === null}
-            onChange={() => select(null)}
-            className="accent-blue-brand"
-          />
-          <span className="text-sm font-medium text-gray-900">Myself</span>
-        </label>
-
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Who is this for">
+        <Chip selected={selected === null} onClick={() => select(null)}>Me</Chip>
         {members.map(m => (
-          <label
-            key={m.id}
-            className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 cursor-pointer has-[:checked]:border-blue-brand has-[:checked]:bg-blue-50"
-          >
-            <input
-              type="radio"
-              name="family_member"
-              checked={selected === m.id}
-              onChange={() => select(m.id)}
-              className="accent-blue-brand"
-            />
-            <span className="text-sm font-medium text-gray-900">{m.name}</span>
-            <span className="text-xs text-gray-400">· {m.relationship}</span>
-          </label>
+          <Chip key={m.id} selected={selected === m.id} onClick={() => select(m.id)}>
+            {m.name} <span className="font-semibold opacity-70">· {m.relationship}</span>
+          </Chip>
         ))}
+        {!adding && (
+          <Chip onClick={() => setAdding(true)}>
+            <Plus size={14} aria-hidden /> Someone else
+          </Chip>
+        )}
       </div>
 
-      {!adding ? (
-        <button
-          type="button"
-          onClick={() => setAdding(true)}
-          className="text-sm text-blue-brand font-medium hover:underline"
-        >
-          + Add someone else
-        </button>
-      ) : (
-        <form onSubmit={addMember} className="space-y-3 border-t border-gray-100 pt-3">
-          <div>
-            <label className="label">Full name</label>
-            <input
-              className="input"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="e.g. Adaeze Okafor"
-              required
-            />
-          </div>
-          <div>
-            <label className="label">Relationship</label>
-            <input
-              className="input"
-              value={relationship}
-              onChange={e => setRelationship(e.target.value)}
-              placeholder="e.g. Mother, Son, Spouse"
-              required
-            />
-          </div>
-          {error && <p className="text-red-600 text-xs">{error}</p>}
+      {adding && (
+        <form onSubmit={addMember} className="mt-3 space-y-3 rounded-ds-lg border border-line bg-surface p-4">
+          <Input label="Full name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Adaeze Okafor" required />
+          <Input label="Relationship" value={relationship} onChange={e => setRelationship(e.target.value)} placeholder="e.g. Mother, Son, Spouse" required />
+          {error && <p className="text-ds-xs font-semibold text-danger">{error}</p>}
           <div className="flex gap-2">
-            <button type="submit" disabled={saving} className="btn-primary text-xs px-4 py-2">
-              {saving ? "Saving…" : "Save"}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setAdding(false); setError(""); }}
-              className="text-xs text-gray-500 font-medium px-4 py-2"
-            >
-              Cancel
-            </button>
+            <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+            <Button variant="ghost" onClick={() => { setAdding(false); setError(""); }}>Cancel</Button>
           </div>
         </form>
       )}
-    </div>
+    </section>
   );
 }
