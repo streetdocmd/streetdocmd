@@ -83,19 +83,19 @@ function VisitCard({ b }: { b: any }) {
         <span className="text-ds-sm font-extrabold text-navy tabular-nums">{formatNaira(b.fee)}</span>
         <div className="flex flex-wrap items-center gap-2">
           {b.status === "pending_payment" && (
-            <Button href={`/dashboard/book/payment/${b.id}`} className="min-h-10 px-4 text-ds-sm">Pay now <ArrowRight size={14} aria-hidden /></Button>
+            <Button href={`/dashboard/book/payment/${b.id}`} size="sm">Pay now <ArrowRight size={14} aria-hidden /></Button>
           )}
           {isActive && (
-            <Button href={`/dashboard/book/tracking/${b.id}`} className="min-h-10 px-4 text-ds-sm">Track <ArrowRight size={14} aria-hidden /></Button>
+            <Button href={`/dashboard/book/tracking/${b.id}`} size="sm">Track <ArrowRight size={14} aria-hidden /></Button>
           )}
           {b.status === "completed" && !isRated && (
-            <Button href={`/dashboard/book/rate/${b.id}?providerId=${b.provider_id}`} variant="secondary" className="min-h-10 px-4 text-ds-sm">
+            <Button href={`/dashboard/book/rate/${b.id}?providerId=${b.provider_id}`} variant="secondary" size="sm">
               <Star size={14} aria-hidden /> Rate visit
             </Button>
           )}
           {b.status === "completed" && isRated && <span className="text-ds-xs font-semibold text-muted">Rated</span>}
           {b.status === "completed" && (
-            <Button href={bookAgain} variant="secondary" className="min-h-10 px-4 text-ds-sm">Book again</Button>
+            <Button href={bookAgain} variant="secondary" size="sm">Book again</Button>
           )}
           {b.status === "pending" && <CancelButton bookingId={b.id} />}
         </div>

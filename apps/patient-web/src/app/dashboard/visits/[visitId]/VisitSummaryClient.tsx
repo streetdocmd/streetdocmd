@@ -192,7 +192,7 @@ export default function VisitSummaryClient({ summary, extras }: { summary: any; 
             <b className="text-ds-md text-navy">
               {new Date(summary.follow_up_date).toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}
             </b>
-            <Button variant="secondary" onClick={addToCalendar} className="min-h-11 px-4 print:hidden">
+            <Button variant="secondary" size="sm" onClick={addToCalendar} className="print:hidden">
               <CalendarPlus size={16} aria-hidden /> Add to calendar
             </Button>
           </Card>

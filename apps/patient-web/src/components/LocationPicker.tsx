@@ -206,7 +206,7 @@ export default function LocationPicker({
             onChange={e => setQuery(e.target.value)}
           />
         </label>
-        <Button type="submit" disabled={searching || !query.trim()} aria-label="Search" className="min-h-[54px] px-4">
+        <Button type="submit" disabled={searching || !query.trim()} aria-label="Search" size="lg">
           {searching ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Search size={18} aria-hidden />}
         </Button>
       </form>

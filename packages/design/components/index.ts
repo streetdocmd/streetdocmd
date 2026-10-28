@@ -1,5 +1,5 @@
 export { cx, focusRing } from "./cx";
-export { Button, buttonClass, type ButtonVariant } from "./Button";
+export { Button, buttonClass, type ButtonSize, type ButtonVariant } from "./Button";
 export { Card } from "./Card";
 export { Pill, type PillTone } from "./Pill";
 export { VerifiedBadge } from "./VerifiedBadge";

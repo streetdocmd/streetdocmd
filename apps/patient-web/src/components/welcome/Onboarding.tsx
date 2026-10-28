@@ -110,7 +110,7 @@ export default function Onboarding({ onFinish }: { onFinish: (href: "/register" 
           ))}
         </div>
 
-        <Button block className="min-h-[52px]" onClick={() => (last ? onFinish("/register") : setIndex(index + 1))}>
+        <Button block size="lg" onClick={() => (last ? onFinish("/register") : setIndex(index + 1))}>
           {last ? "Get started" : "Next"}
         </Button>
 

@@ -18,7 +18,7 @@ export default function CancelButton({ bookingId }: { bookingId: string }) {
   }
 
   return (
-    <Button variant="secondary" onClick={cancel} disabled={loading} className="min-h-10 px-4 text-ds-sm text-danger hover:border-danger hover:text-danger">
+    <Button variant="danger-outline" size="sm" onClick={cancel} disabled={loading}>
       {loading ? "Cancelling…" : "Cancel"}
     </Button>
   );

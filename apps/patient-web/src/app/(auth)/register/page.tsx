@@ -130,7 +130,7 @@ function RegisterForm() {
 
             {error && <Notice tone="danger" className="mt-3">{error}</Notice>}
 
-            <Button type="submit" block disabled={loading || !legalOk} aria-busy={loading} className="mt-[18px] min-h-[52px]">
+            <Button type="submit" block disabled={loading || !legalOk} aria-busy={loading} size="lg" className="mt-[18px]">
               {loading ? "Creating account…" : completing ? "Finish setup" : "Create account"}
             </Button>
             {!legalOk && !loading && (

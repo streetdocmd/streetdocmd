@@ -23,10 +23,10 @@ export default function ProviderDeclinedActions({ bookingId }: { bookingId: stri
     <div className="mt-3 space-y-2">
       {error && <p className="text-ds-xs font-semibold text-danger">{error}</p>}
       <div className="flex flex-wrap gap-2">
-        <Button href={`/dashboard/book/preferred-provider?retarget=${bookingId}`} className="min-h-10 px-4 text-ds-sm">
+        <Button href={`/dashboard/book/preferred-provider?retarget=${bookingId}`} size="sm">
           Choose another provider
         </Button>
-        <Button variant="secondary" onClick={searchNearest} disabled={loading} className="min-h-10 px-4 text-ds-sm">
+        <Button variant="secondary" onClick={searchNearest} disabled={loading} size="sm">
           {loading ? "Searching…" : "Search nearest available"}
         </Button>
       </div>

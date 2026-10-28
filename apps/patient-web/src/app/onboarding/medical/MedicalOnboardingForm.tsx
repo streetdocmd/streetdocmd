@@ -94,7 +94,7 @@ function TagInput({
           onBlur={add}
           onKeyDown={e => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(); } }}
         />
-        <Button variant="secondary" onClick={add} className="min-h-[52px] px-5">Add</Button>
+        <Button variant="secondary" size="lg" onClick={add}>Add</Button>
       </div>
     </div>
   );
@@ -264,7 +264,7 @@ export default function MedicalOnboardingForm({ initial }: { initial: Initial })
 
             {error && <Notice tone="danger">{error}</Notice>}
 
-            <Button type="submit" block disabled={saving} className="mt-2 min-h-[52px]">
+            <Button type="submit" block size="lg" disabled={saving} className="mt-2">
               {saving ? "Saving…" : "Save and continue"}
             </Button>
           </form>

@@ -196,7 +196,7 @@ export default function BookProviderClient({
         </div>
 
         {providers.length === 0 ? (
-          <Button block className="mt-3 min-h-[52px]" onClick={() => setChoice("nearest")}>
+          <Button block size="lg" className="mt-3" onClick={() => setChoice("nearest")}>
             Send me the nearest available provider
           </Button>
         ) : (
