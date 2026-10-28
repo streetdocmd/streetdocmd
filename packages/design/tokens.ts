@@ -24,6 +24,16 @@ export const colors = {
   "teal-bright": "#5BE0CF", // toggle "on" over a dark header
   ink: "#121D2D",
 
+  // Soft tints behind service tiles and avatars
+  "tint-blue": "#E3EFFF",
+  "tint-mint": "#E2F7F1",
+  "tint-rose": "#FFEAEE",
+  "tint-amber": "#FFF1DB",
+  "tint-green": "#E4F6E8",
+  "tint-yellow": "#FFF8D9",
+  "tint-violet": "#ECE6FB",
+  "tint-sky": "#E0F2FE",
+
   // Neutrals
   muted: "#5B6878",
   line: "#DCE4EF",

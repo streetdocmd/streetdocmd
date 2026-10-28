@@ -19,6 +19,10 @@ const preset: Partial<Config> = {
         sky: { DEFAULT: c.sky, mid: c["sky-mid"], deep: c["sky-deep"] },
         teal: { DEFAULT: c.teal, deep: c["teal-deep"], hover: c["teal-hover"], soft: c["teal-soft"], tint: c["teal-tint"], bright: c["teal-bright"] },
         ink: c.ink,
+        tint: {
+          blue: c["tint-blue"], mint: c["tint-mint"], rose: c["tint-rose"], amber: c["tint-amber"],
+          green: c["tint-green"], yellow: c["tint-yellow"], violet: c["tint-violet"], sky: c["tint-sky"],
+        },
         muted: c.muted,
         line: c.line,
         page: c.bg,
