@@ -13,6 +13,14 @@ interface CatalogueItem {
   formulation: string | null;
   strength: string | null;
   price: number;
+  stock: "in" | "low" | "out";
+  stock_left: number | null;
+}
+
+interface PharmacyInfo {
+  name: string;
+  opening_hours: string | null;
+  delivery_eta_minutes: number | null;
 }
 
 // preselect: medicine names from a visit record ("Send to a pharmacy"); matching
@@ -22,7 +30,8 @@ export default function MedicationPicker({ preselect = [] }: { preselect?: strin
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState("");
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
-  const [pharmacyName, setPharmacyName] = useState("");
+  const [pharmacy, setPharmacy] = useState<PharmacyInfo | null>(null);
+  const pharmacyName = pharmacy?.name ?? "";
   const [items, setItems] = useState<CatalogueItem[]>([]);
   const [catalogueError, setCatalogueError] = useState("");
   const [query, setQuery] = useState("");
@@ -39,12 +48,12 @@ export default function MedicationPicker({ preselect = [] }: { preselect?: strin
       const res = await fetch(`/api/pharmacy/catalogue?lat=${c.lat}&lng=${c.lng}`);
       const json = await res.json();
       if (!res.ok) { setCatalogueError(json.error ?? "Could not load nearby pharmacy"); setLoadingCatalogue(false); return; }
-      setPharmacyName(json.pharmacy.name);
+      setPharmacy(json.pharmacy);
       const loaded: CatalogueItem[] = json.items ?? [];
       setItems(loaded);
       if (preselect.length) {
         const wanted = preselect.map(n => n.toLowerCase());
-        const matches = loaded.filter(i => wanted.some(w => w.includes(i.drug_name.toLowerCase()) || i.drug_name.toLowerCase().includes(w)));
+        const matches = loaded.filter(i => i.stock !== "out" && wanted.some(w => w.includes(i.drug_name.toLowerCase()) || i.drug_name.toLowerCase().includes(w)));
         if (matches.length) setQuantities(Object.fromEntries(matches.map(m => [m.id, 1])));
       }
     } catch {
@@ -123,8 +132,22 @@ export default function MedicationPicker({ preselect = [] }: { preselect?: strin
             <h2 className="mt-3 text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{pharmacyName}</h2>
             <p className="mt-1 text-ds-sm text-muted">Pharmacy · Nearest to you</p>
             <VerifiedBadge className="mt-2.5">Verified partner pharmacy</VerifiedBadge>
-            {/* TODO(design): opening hours, delivery time and regulator rows need those fields from /api/pharmacy/catalogue. */}
           </div>
+
+          <Card padded={false} className="px-5 py-1">
+            <dl>
+              {[
+                ["Hours", pharmacy?.opening_hours],
+                ["Delivery", pharmacy?.delivery_eta_minutes ? `Delivery in about ${pharmacy.delivery_eta_minutes} min` : null],
+                ["Regulator", "PCN"],
+              ].filter(([, v]) => v).map(([k, v]) => (
+                <div key={k} className="flex items-center justify-between gap-4 border-b border-line py-2.5 text-ds-sm last:border-b-0">
+                  <dt className="text-muted">{k}</dt>
+                  <dd className="text-right font-bold text-ink">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </Card>
 
           <section>
             <div className="mb-3 flex items-baseline justify-between">
@@ -152,8 +175,13 @@ export default function MedicationPicker({ preselect = [] }: { preselect?: strin
                       <small className="block truncate text-ds-xs text-muted">
                         {[item.strength, item.formulation].filter(Boolean).join(" · ") || item.generic_name}
                       </small>
-                      {/* The catalogue only lists items in stock. TODO(design): "Low, N left" needs stock_quantity in the API response. */}
-                      <div className="mt-1.5"><Pill tone="ok">In stock</Pill></div>
+                      <div className="mt-1.5">
+                        {item.stock === "out"
+                          ? <Pill tone="bad">Out of stock</Pill>
+                          : item.stock === "low"
+                            ? <Pill tone="warn">Low, {item.stock_left} left</Pill>
+                            : <Pill tone="ok">In stock</Pill>}
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className="text-ds-sm font-extrabold text-navy tabular-nums">{formatNaira(item.price)}</div>
@@ -161,16 +189,22 @@ export default function MedicationPicker({ preselect = [] }: { preselect?: strin
                         {qty === 0 ? (
                           <button
                             type="button"
+                            disabled={item.stock === "out"}
                             onClick={() => changeQty(item.id, 1)}
-                            className={cx("min-h-9 rounded-xl border-[1.5px] border-accent bg-surface px-3 text-[13px] font-bold text-accent", focusRing)}
+                            className={cx(
+                              "min-h-9 rounded-xl border-[1.5px] border-accent bg-surface px-3 text-[13px] font-bold text-accent",
+                              "disabled:cursor-not-allowed disabled:border-line disabled:text-disabled-fg",
+                              focusRing,
+                            )}
                           >
-                            Add
+                            {item.stock === "out" ? "Unavailable" : "Add"}
                           </button>
                         ) : (
                           <Stepper
                             label={`Quantity of ${item.drug_name}`}
                             value={qty}
                             min={0}
+                            max={item.stock_left ?? Infinity}
                             size="sm"
                             onChange={v => changeQty(item.id, v - qty)}
                           />
