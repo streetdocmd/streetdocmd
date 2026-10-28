@@ -45,7 +45,8 @@ export default async function DashboardPage({
 
   if (!provider) return null;
 
-  const needsServices = provider.profession !== "doctor";
+  // Every individual provider lists their services and sets their own fees
+  const needsServices = !!provider.profession;
   const now = new Date();
   const since14 = new Date(now.getTime() - 14 * DAY_MS).toISOString();
   const since30 = new Date(now.getTime() - 30 * DAY_MS).toISOString();

@@ -14,11 +14,6 @@ export default async function ServicesPage() {
     .single();
   if (!provider) redirect("/dashboard");
 
-  // Doctor's bookable services are the fixed consultation types already
-  // built into booking — this page is for professions that price and
-  // describe their own offerings.
-  if (provider.profession === "doctor") redirect("/dashboard");
-
   const { data: services } = await supabase
     .from("provider_services")
     .select("id, name, description, price, duration_minutes, active, service_type, created_at")
@@ -26,11 +21,11 @@ export default async function ServicesPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Services</h1>
         <p className="text-sm text-muted mt-0.5">
-          List the services you offer and their price. Patients see these on your profile.
+          List the services you offer and your fee for each. Patients see your fee, plus a 5 percent service charge at checkout.
         </p>
       </div>
 

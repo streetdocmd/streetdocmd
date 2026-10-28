@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { Card, cx, focusRing } from "@/components/ds";
+import { withinHours, type WeeklyHours } from "@/lib/working-hours";
 
 // Bookable hours shown to patients (same slots as SchedulePicker)
 export const FIRST_HOUR = 8;
@@ -61,8 +62,10 @@ const DAY_STYLE: Record<DayState, string> = {
 };
 
 /** Month calendar with open, partly booked and fully booked days, then the chosen day's times. */
-export default function ProviderSchedule({ providerId, onPick }: {
+export default function ProviderSchedule({ providerId, hours, onPick }: {
   providerId: string;
+  /** The provider's weekly hours; other times aren't offered */
+  hours: WeeklyHours | null;
   /** Called with the chosen start time (ISO) */
   onPick: (iso: string) => void;
 }) {
@@ -79,7 +82,7 @@ export default function ProviderSchedule({ providerId, onPick }: {
 
   function state(d: Date): DayState {
     if (d < today || d > lastBookable) return "past";
-    const open = HOURS.filter(h => slotStart(d, h).getTime() >= earliest);
+    const open = HOURS.filter(h => slotStart(d, h).getTime() >= earliest && withinHours(hours, slotStart(d, h)));
     if (open.length === 0) return "past";
     const taken = open.filter(h => isTaken(busy, slotStart(d, h))).length;
     return taken === 0 ? "open" : taken >= open.length ? "full" : "booked";
@@ -151,7 +154,7 @@ export default function ProviderSchedule({ providerId, onPick }: {
               {HOURS.map(h => {
                 const start = slotStart(day, h);
                 const taken = isTaken(busy, start);
-                const tooSoon = start.getTime() < earliest;
+                const tooSoon = start.getTime() < earliest || !withinHours(hours, start);
                 return (
                   <button
                     key={h}
@@ -175,7 +178,9 @@ export default function ProviderSchedule({ providerId, onPick }: {
             <p className="mt-3 text-ds-xs text-muted">
               {HOURS.some(h => isTaken(busy, slotStart(day, h)))
                 ? "Greyed times are already booked by other patients."
-                : "All times are open. Choose one to start a booking."}
+                : HOURS.some(h => !withinHours(hours, slotStart(day, h)))
+                  ? "Greyed times are outside this provider's working hours."
+                  : "All times are open. Choose one to start a booking."}
             </p>
           </>
         )}

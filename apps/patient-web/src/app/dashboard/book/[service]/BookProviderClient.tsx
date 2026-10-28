@@ -11,6 +11,7 @@ import LocationPicker from "@/components/LocationPicker";
 import { Avatar, Button, Card, Chip, EmergencyNotice, Notice, Pill, TopBar, VerifiedBadge, cx, focusRing } from "@/components/ds";
 import { createClient } from "@/lib/supabase";
 import ProviderSchedule, { useBusySlots } from "./ProviderSchedule";
+import type { WeeklyHours } from "@/lib/working-hours";
 
 export interface BookableProvider {
   id: string;
@@ -24,6 +25,8 @@ export interface BookableProvider {
   available: boolean;
   /** This provider's own price for the service (the booking API charges the same) */
   price: number;
+  /** Weekly working hours; scheduled visits only fall inside them (null = any time) */
+  hours?: WeeklyHours | null;
 }
 
 // "nearest" = let dispatch send the nearest available provider (no provider chosen)
@@ -282,6 +285,7 @@ export default function BookProviderClient({
           <SchedulePicker
             key={`${chosen?.id ?? "nearest"}-${presetAt ?? ""}`}
             busy={busy}
+            hours={chosen?.hours ?? null}
             initialAt={chosen ? presetAt : null}
             onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }}
           />
@@ -447,7 +451,7 @@ function ProviderProfile({ provider: p, regulator, serviceChargeRate, presetAt, 
           <h2 className="text-[17px] font-bold text-navy">Schedule</h2>
           <span className="text-ds-sm text-muted">Times in Lagos time</span>
         </div>
-        <ProviderSchedule providerId={p.id} onPick={onPick} />
+        <ProviderSchedule providerId={p.id} hours={p.hours ?? null} onPick={onPick} />
       </section>
 
       <section className="mt-[26px]">

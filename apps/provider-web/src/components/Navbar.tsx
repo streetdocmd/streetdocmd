@@ -36,9 +36,8 @@ export default function Navbar({
 }) {
   const pathname = usePathname() ?? "";
 
-  // Doctor's bookable "services" are the fixed consultation types built into
-  // booking already — only nurse/physio/lab manage their own service catalogue.
-  const hasServices = !!profession && profession !== "doctor";
+  // Every individual provider sets their own services and fees
+  const hasServices = !!profession;
   const nav = hasServices
     ? [TODAY, REQUESTS, CALENDAR, PATIENTS, SERVICES, WALLET, PROFILE]
     : [TODAY, REQUESTS, CALENDAR, PATIENTS, WALLET, PROFILE];

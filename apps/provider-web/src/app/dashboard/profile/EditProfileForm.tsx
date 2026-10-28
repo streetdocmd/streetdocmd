@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
+import { Toggle } from "@/components/ds";
+import { DAYS, DAY_LABEL, type Day, type WeeklyHours } from "@/lib/hours";
 
 interface Profile {
   providerId: string;
@@ -12,6 +14,8 @@ interface Profile {
   service_radius_km: number;
   working_hours_start: string | null;
   working_hours_end: string | null;
+  /** Per day hours (migration 060); seeded from the single start/end when not set yet */
+  weekly_hours: WeeklyHours;
   bank_name: string | null;
   bank_account_number: string | null;
   bank_account_name: string | null;
@@ -33,6 +37,7 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
     bank_account_number: profile.bank_account_number ?? "",
     bank_account_name: profile.bank_account_name ?? "",
   });
+  const [hours, setHours] = useState<WeeklyHours>(profile.weekly_hours);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -48,8 +53,9 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
     if (!radius || radius < 1 || radius > 50) return "Service radius must be between 1 and 50 km.";
     const years = parseInt(form.years_experience || "0");
     if (Number.isNaN(years) || years < 0 || years > 60) return "Years of experience must be between 0 and 60.";
-    if (form.working_hours_start && form.working_hours_end && form.working_hours_end <= form.working_hours_start) {
-      return "Your working hours must end after they start.";
+    for (const d of DAYS) {
+      const h = hours[d];
+      if (h && h[1] <= h[0]) return `Your ${DAY_LABEL[d]} hours must end after they start.`;
     }
     const anyBank = form.bank_name.trim() || form.bank_account_number.trim() || form.bank_account_name.trim();
     if (anyBank) {
@@ -72,17 +78,24 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
     setSaving(true);
     setError("");
     const supabase = createClient();
-    const { error: err } = await supabase.from("providers").update({
+    // The single start/end stay filled (earliest start, latest end) for anything still reading them
+    const days = DAYS.map(d => hours[d]).filter(Boolean) as [string, string][];
+    const base = {
       bio: form.bio.trim() || null,
       languages: form.languages.split(",").map(l => l.trim()).filter(Boolean),
       years_experience: parseInt(form.years_experience) || 0,
       service_radius_km: parseInt(form.service_radius_km) || 10,
-      working_hours_start: form.working_hours_start || null,
-      working_hours_end: form.working_hours_end || null,
+      working_hours_start: days.length ? days.map(h => h[0]).sort()[0] : null,
+      working_hours_end: days.length ? days.map(h => h[1]).sort().at(-1)! : null,
       bank_name: form.bank_name.trim() || null,
       bank_account_number: form.bank_account_number.trim() || null,
       bank_account_name: form.bank_account_name.trim() || null,
-    }).eq("id", profile.providerId);
+    };
+    let { error: err } = await supabase.from("providers").update({ ...base, weekly_hours: hours }).eq("id", profile.providerId);
+    // Before migration 060 there is no weekly_hours column: save everything else
+    if (err && /weekly_hours/.test(err.message ?? "")) {
+      ({ error: err } = await supabase.from("providers").update(base).eq("id", profile.providerId));
+    }
 
     setSaving(false);
     if (err) { setError("Couldn't save your changes — please check your connection and try again."); return; }
@@ -129,22 +142,49 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
 
       <div id="availability" className="card p-5 space-y-4 scroll-mt-24">
         <div>
-          <h3 className="font-semibold text-ink">Working hours & service area</h3>
-          <p className="text-xs text-muted mt-0.5">We only send you requests inside these hours and within this distance of you.</p>
+          <h3 className="font-semibold text-ink">Working hours and service area</h3>
+          <p className="text-xs text-muted mt-0.5">
+            Patients can only schedule visits inside these hours. For visits now, you choose by going online.
+          </p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="label" htmlFor="start">Start</label>
-            <input id="start" type="time" className="input" value={form.working_hours_start} onChange={e => set("working_hours_start", e.target.value)} />
-          </div>
-          <div>
-            <label className="label" htmlFor="end">End</label>
-            <input id="end" type="time" className="input" value={form.working_hours_end} onChange={e => set("working_hours_end", e.target.value)} />
-          </div>
-          <div className="col-span-2 sm:col-span-1">
-            <label className="label" htmlFor="radius">Service radius (km)</label>
-            <input id="radius" type="number" inputMode="numeric" min="1" max="50" className="input" value={form.service_radius_km} onChange={e => set("service_radius_km", e.target.value)} />
-          </div>
+        <div>
+          {DAYS.map((d: Day) => {
+            const h = hours[d];
+            return (
+              <div key={d} className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-3 last:border-b-0">
+                <div className="min-w-[7rem]">
+                  <span className="text-ds-sm font-semibold text-ink">{DAY_LABEL[d]}</span>
+                  {!h && <small className="block text-ds-xs text-muted">Off</small>}
+                </div>
+                {h && (
+                  <div className="flex items-center gap-2">
+                    <input type="time" aria-label={`${DAY_LABEL[d]} start`} className="input min-h-10 w-[7.5rem] px-2.5" value={h[0]}
+                      onChange={e => { setHours(prev => ({ ...prev, [d]: [e.target.value, prev[d]![1]] })); setSaved(false); }} />
+                    <span className="text-ds-xs text-muted">to</span>
+                    <input type="time" aria-label={`${DAY_LABEL[d]} end`} className="input min-h-10 w-[7.5rem] px-2.5" value={h[1]}
+                      onChange={e => { setHours(prev => ({ ...prev, [d]: [prev[d]![0], e.target.value] })); setSaved(false); }} />
+                  </div>
+                )}
+                <Toggle
+                  label={`Working on ${DAY_LABEL[d]}`}
+                  checked={!!h}
+                  onChange={on => {
+                    setHours(prev => {
+                      const next = { ...prev };
+                      if (on) next[d] = d === "sat" || d === "sun" ? ["09:00", "14:00"] : ["08:00", "18:00"];
+                      else delete next[d];
+                      return next;
+                    });
+                    setSaved(false);
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
+        <div className="max-w-[12rem]">
+          <label className="label" htmlFor="radius">Service radius (km)</label>
+          <input id="radius" type="number" inputMode="numeric" min="1" max="50" className="input" value={form.service_radius_km} onChange={e => set("service_radius_km", e.target.value)} />
         </div>
       </div>
 
@@ -164,7 +204,7 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
               id="acct"
               className="input tracking-wider"
               inputMode="numeric"
-              placeholder="10-digit NUBAN"
+              placeholder="10 digit NUBAN"
               maxLength={10}
               value={form.bank_account_number}
               onChange={e => set("bank_account_number", e.target.value.replace(/\D/g, ""))}
@@ -178,7 +218,7 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
       </div>
 
       {error && (
-        <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
+        <div role="alert" className="rounded-ds-sm bg-danger-bg px-4 py-3 text-ds-sm text-ink">{error}</div>
       )}
 
       <div className="flex items-center gap-3">
@@ -187,7 +227,7 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
           {saving ? "Saving…" : "Save changes"}
         </button>
         {saved && (
-          <span className="inline-flex items-center gap-1.5 text-sm text-green-700 shrink-0">
+          <span className="inline-flex items-center gap-1.5 text-ds-sm font-semibold text-success shrink-0">
             <CheckCircle2 size={16} /> Saved
           </span>
         )}

@@ -20,7 +20,7 @@ export default function SignOutButton({ className = "" }: { className?: string }
       type="button"
       onClick={signOut}
       disabled={loading}
-      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-muted border border-white/15 hover:bg-page hover:text-white transition-colors disabled:opacity-60 ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-pill border border-line bg-surface px-3 py-1.5 text-ds-xs font-semibold text-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-60 ${className}`}
     >
       <LogOut size={13} /> {loading ? "Signing out…" : "Sign out"}
     </button>

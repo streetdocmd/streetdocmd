@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { SERVICE_LABELS, SERVICE_PRICES, SERVICE_PROFESSION } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
 import { createAdminSupabase } from "@/lib/supabase-server";
+import { weeklyHoursOf } from "@/lib/working-hours";
 import { getServiceChargeRate } from "@/lib/service-charge";
 import BookProviderClient, { type BookableProvider } from "./BookProviderClient";
 
@@ -14,7 +15,7 @@ async function loadProviders(service: ServiceType): Promise<BookableProvider[]> 
   const admin = createAdminSupabase();
   const { data: providers } = await admin
     .from("providers")
-    .select("id, name, photo_url, specialty, specialist_field, bio, rating, total_visits, years_experience, available")
+    .select("*") // weekly_hours arrives with migration 060; only the fields below reach the browser
     .eq("verification_status", "verified")
     .eq("profession", SERVICE_PROFESSION[service])
     .limit(100);
@@ -40,6 +41,7 @@ async function loadProviders(service: ServiceType): Promise<BookableProvider[]> 
       years_experience: Number(p.years_experience) || 0,
       available: !!p.available,
       price: priceOf.get(p.id as string) ?? SERVICE_PRICES[service],
+      hours: weeklyHoursOf(p),
     }))
     // Online now first, then best rated, then most experienced
     .sort((a, b) =>

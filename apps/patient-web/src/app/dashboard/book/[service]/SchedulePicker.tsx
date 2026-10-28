@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { SegmentedControl, cx, focusRing } from "@/components/ds";
 import { HOURS, isTaken, slotLabel, slotStart, type BusySlot } from "./ProviderSchedule";
+import { withinHours, type WeeklyHours } from "@/lib/working-hours";
 
 // Earliest bookable time: at least 1 hour from now
 const LEAD_MS = 60 * 60 * 1000;
@@ -16,8 +17,11 @@ function startOfDay(d: Date) {
 export default function SchedulePicker({
   onChange,
   busy = [],
+  hours = null,
   initialAt = null,
 }: {
+  /** The chosen provider's weekly hours; other times are disabled */
+  hours?: WeeklyHours | null;
   // scheduledAt is null for ASAP; ready is false only when "Schedule"
   // is selected but no time has been picked yet — callers should block
   // booking in that case rather than silently falling back to ASAP.
@@ -53,7 +57,8 @@ export default function SchedulePicker({
   }, []);
 
   const earliest = Date.now() + LEAD_MS;
-  const unavailable = (d: Date, h: number) => slotStart(d, h).getTime() < earliest || isTaken(busy, slotStart(d, h));
+  const unavailable = (d: Date, h: number) =>
+    slotStart(d, h).getTime() < earliest || isTaken(busy, slotStart(d, h)) || !withinHours(hours, slotStart(d, h));
 
   function emit(nextDay: number, nextHour: number | null) {
     if (nextHour === null) { onChange(null, false); return; }
