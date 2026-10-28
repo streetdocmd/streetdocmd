@@ -4,6 +4,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase";
 
+// Supabase sometimes returns an error with an empty message ("{}"), e.g. when the email
+// can't be sent. Never show that raw — explain what to do instead.
+function resetErrorMessage(message: string | undefined): string {
+  const m = (message ?? "").trim();
+  if (/rate limit/i.test(m)) return "Too many reset emails were requested. Please wait a few minutes and try again.";
+  if (!m || m === "{}" || /sending|smtp|unexpected/i.test(m)) {
+    return "We couldn't send the reset email right now. Please try again in a few minutes, or contact contact@streetdocmd.com.";
+  }
+  return m;
+}
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -19,7 +30,7 @@ export default function ForgotPasswordPage() {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setLoading(false);
-    if (error) { setError(error.message); return; }
+    if (error) { setError(resetErrorMessage(error.message)); return; }
     setSent(true);
   }
 

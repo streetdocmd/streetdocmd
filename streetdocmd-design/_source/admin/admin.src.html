@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StreetdocMD Admin | Back office</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/*BASE*/
+/*ADMIN*/
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4M16 3v4M4 11h16"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V8l8-4 8 4v13"/><path d="M9 21v-6h6v6"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2.4 17.5A2 2 0 004.1 20h15.8a2 2 0 001.7-2.5L13.7 3.9a2 2 0 00-3.4 0z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h2M3 10h18"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-11a6 6 0 0112 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0112 0v5l2 2H4z"/><path d="M10 20a2 2 0 004 0"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+  <symbol id="i-chevR" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+</svg>
+
+<div class="shell">
+  <aside class="side">
+    <div class="wm"><span class="mk"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Street<span>DocMD</span></div>
+    <span class="env">Admin · staff only</span>
+    <div class="grp">Overview</div>
+    <div id="nav"></div>
+    <div class="staffbox" style="margin-top:auto"><div class="av">TA</div><div style="flex:1;min-width:0"><b>Tolu Adebayo</b><small>Verification lead</small></div></div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <div><div class="crumb" id="crumb">Overview</div><h1 id="title">Overview</h1></div>
+      <div class="grow"></div>
+      <label class="gsearch"><svg class="i"><use href="#i-search"/></svg><input placeholder="Find a provider, booking, ticket or reference"></label>
+      <span class="access"><svg class="i"><use href="#i-eye"/></svg>Patient details need an access reason</span>
+    </header>
+    <section class="content" id="content"></section>
+  </main>
+</div>
+
+<div class="modal-wrap" id="modal" onclick="if(event.target===this)closeModal()"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Helpers ---------- */
+const ic = (n, c = '', st = '') => `<svg class="i ${c}" style="${st}"><use href="#i-${n}"/></svg>`;
+const ngn = n => '₦' + n.toLocaleString('en-NG');
+const initials = s => s.replace(',', '').split(' ').filter(w => w.length && !['Dr.', 'RN', 'PT'].includes(w)).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+const pill = (kind, icon, text) => `<span class="pill ${kind}">${icon ? ic(icon) : ''}${text}</span>`;
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(window._tt); window._tt = setTimeout(() => t.classList.remove('show'), 2000); }
+function openModal(title, body) { document.getElementById('modal').innerHTML = `<div class="modal"><h3>${title}</h3>${body}<div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn btn-s" onclick="closeModal()">Close</button></div></div>`; document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+/* ---------- Data ---------- */
+const VER = [
+  { id: 'v1', name: 'Dr. Chinedu Eze', type: 'Doctor', kind: 'person', reg: 'MDCN', regNo: 'MDCN/2019/04417', city: 'Ibadan', spec: 'General practice', days: 3, status: 'review', applied: '24 Oct', docs: [['Licence certificate', 'Matches the MDCN register', 'ok'], ['Certificate of practice', 'Name differs from licence', 'flag'], ['Service agreement', 'Signed electronically', 'ok'], ['Government ID', 'Valid, not expired', 'ok']], reason: 'Name mismatch' },
+  { id: 'v2', name: 'Funmi Adeyemi, RN', type: 'Nurse', kind: 'person', reg: 'NMCN', regNo: 'NMCN/2021/08830', city: 'Lagos', spec: 'Home nursing', days: 1, status: 'new', applied: '26 Oct', docs: [['Licence certificate', 'Awaiting register check', 'idle'], ['Government ID', 'Valid, not expired', 'ok'], ['Service agreement', 'Signed electronically', 'ok']], reason: '' },
+  { id: 'v3', name: 'Kemi Ojo, PT', type: 'Physiotherapist', kind: 'person', reg: 'MRTB', regNo: 'MRTB/2018/1192', city: 'Ibadan', spec: 'Physiotherapy', days: 2, status: 'info', applied: '25 Oct', docs: [['Licence certificate', 'Blurry scan, re upload needed', 'flag'], ['Government ID', 'Valid, not expired', 'ok'], ['Service agreement', 'Signed electronically', 'ok']], reason: 'Blurry scan' },
+  { id: 'v4', name: 'Halima Musa, RN', type: 'Nurse', kind: 'person', reg: 'NMCN', regNo: 'NMCN/2016/03317', city: 'Ibadan', spec: 'Wound care', days: 6, status: 'expired', applied: '21 Oct', docs: [['Licence certificate', 'Expired 30 Sep 2026', 'flag'], ['Government ID', 'Valid, not expired', 'ok'], ['Service agreement', 'Signed electronically', 'ok']], reason: 'Expired licence' },
+  { id: 'v5', name: 'Lagoon Pharmacy Ikeja', type: 'Pharmacy', kind: 'facility', reg: 'PCN', regNo: 'PCN/PH/44021', city: 'Ikeja, Lagos', spec: 'Community pharmacy', days: 4, status: 'review', applied: '23 Oct', docs: [['Pharmacy licence', 'Matches the PCN register', 'ok'], ['Pharmacist in charge', 'Registered pharmacist named', 'ok'], ['Premises certificate', 'Expires in 40 days', 'flag']], reason: '' }
+];
+const PROVIDERS = [
+  { id: 'p1', name: 'Dr. Adaeze Okonkwo', type: 'Doctor', city: 'Ikeja', status: 'live', rating: 4.9, bookings: 212, flags: 0 },
+  { id: 'p2', name: 'Dr. Emeka Bankole', type: 'Doctor', city: 'Surulere', status: 'live', rating: 4.8, bookings: 340, flags: 0 },
+  { id: 'p3', name: 'Tunde Bello, RN', type: 'Nurse', city: 'Ikeja', status: 'live', rating: 4.7, bookings: 96, flags: 1 },
+  { id: 'p4', name: 'Kemi Ojo, PT', type: 'Physiotherapist', city: 'Ibadan', status: 'live', rating: 4.8, bookings: 158, flags: 0 },
+  { id: 'p5', name: 'Dr. Ifeoma Nwosu', type: 'Doctor', city: 'Lekki', status: 'suspended', rating: 4.9, bookings: 402, flags: 2 },
+  { id: 'p6', name: 'Halima Musa, RN', type: 'Nurse', city: 'Ibadan', status: 'paused', rating: 4.6, bookings: 41, flags: 0 }
+];
+const BOOKINGS = [
+  { id: 'BK-20418', who: 'Ngozi O.', prov: 'Dr. Adaeze Okonkwo', svc: 'General consultation', amt: 12600, st: 'completed', when: 'Today, 9:00 am' },
+  { id: 'BK-20419', who: 'Chidi E.', prov: 'Tunde Bello, RN', svc: 'Wound dressing', amt: 8925, st: 'on the way', when: 'Today, 10:30 am' },
+  { id: 'BK-20420', who: 'Amina S.', prov: 'Kemi Ojo, PT', svc: 'Physiotherapy assessment', amt: 10500, st: 'requested', when: 'Today, 2:00 pm' },
+  { id: 'BK-20421', who: 'Bola K.', prov: 'Dr. Emeka Bankole', svc: 'Paediatric review', amt: 15750, st: 'disputed', when: 'Yesterday' },
+  { id: 'BK-20422', who: 'Tayo A.', prov: 'Dr. Ifeoma Nwosu', svc: 'General consultation', amt: 18900, st: 'cancelled', when: 'Yesterday' },
+  { id: 'BK-20423', who: 'Funke A.', prov: 'Mainstay Diagnostics', svc: 'Full blood count', amt: 6825, st: 'completed', when: '26 Oct' }
+];
+const TICKETS = [
+  { id: 't1', subj: 'Charged twice for one visit', from: 'Patient', who: 'Bola K.', pri: 'high', sla: '1h 40m left', st: 'open', msgs: [['in', 'I was charged twice for my visit on Monday. Please help.'], ['out', 'Hi Bola, I am sorry about this. I am checking the payment record now.']] },
+  { id: 't2', subj: 'Payout not received', from: 'Provider', who: 'Tunde Bello, RN', pri: 'med', sla: '5h left', st: 'open', msgs: [['in', 'My payout from last Friday has not arrived in my bank.']] },
+  { id: 't3', subj: 'Cannot update my availability', from: 'Provider', who: 'Kemi Ojo, PT', pri: 'med', sla: '8h left', st: 'waiting', msgs: [['in', 'The calendar does not save when I block a Saturday.'], ['out', 'Thanks Kemi. We have reproduced it and a fix is in review.']] },
+  { id: 't4', subj: 'Want to change my family member profile', from: 'Patient', who: 'Ade O.', pri: 'low', sla: '1 day left', st: 'open', msgs: [['in', 'How do I add my mother to my account?']] }
+];
+const CASES = [
+  { id: 'SG-0412', sev: 'high', type: 'Concern about care received', opened: '26 Oct, 8:10 am', owner: 'Unassigned', st: 'Open', note: 'Patient reported unsafe handling of a wound dressing. Visit record reviewed. Provider has been asked to pause bookings pending review.' },
+  { id: 'SG-0409', sev: 'med', type: 'Missing visit record', opened: '23 Oct', owner: 'Safeguarding team', st: 'In review', note: 'Visit record incomplete after a home consultation. Provider asked to complete notes within 48 hours.' }
+];
+const PAYOUTS = [
+  { id: 'PO-771', who: 'Tunde Bello, RN', amt: 84600, bank: 'Zenith · 2208', st: 'queued', sel: true },
+  { id: 'PO-772', who: 'Dr. Adaeze Okonkwo', amt: 186400, bank: 'GTBank · 4417', st: 'queued', sel: true },
+  { id: 'PO-773', who: 'Kemi Ojo, PT', amt: 52000, bank: 'Access · 9012', st: 'failed', sel: false },
+  { id: 'PO-774', who: 'Mainstay Diagnostics', amt: 412000, bank: 'UBA · 3381', st: 'queued', sel: true },
+  { id: 'PO-775', who: 'Dr. Emeka Bankole', amt: 240000, bank: 'First Bank · 1130', st: 'paid', sel: false }
+];
+const ROLES = ['Super admin', 'Verification lead', 'Support agent', 'Finance', 'Safeguarding'];
+const PERMS = [
+  ['View patient details (with access reason)', [1, 1, 1, 0, 1]],
+  ['Approve or reject providers', [1, 1, 0, 0, 0]],
+  ['Reply to support tickets', [1, 0, 1, 0, 0]],
+  ['Approve payouts', [1, 0, 0, 1, 0]],
+  ['Open and handle safeguarding cases', [1, 0, 0, 0, 1]],
+  ['Suspend a provider', [1, 0, 0, 0, 1]],
+  ['Change feature flags', [1, 0, 0, 0, 0]],
+  ['Manage staff and roles', [1, 0, 0, 0, 0]]
+];
+const AUDIT = [
+  ['26 Oct, 8:24 am', 'Tolu A.', 'Requested more information', 'Verification · Kemi Ojo, PT', 'Blurry scan'],
+  ['26 Oct, 8:10 am', 'Auto', 'Safeguarding case opened', 'SG-0412', 'Patient report'],
+  ['26 Oct, 7:58 am', 'Ife O.', 'Viewed patient visit record', 'BK-20419', 'Support ticket t1'],
+  ['25 Oct, 4:40 pm', 'Tolu A.', 'Suspended provider', 'Dr. Ifeoma Nwosu', 'Two complaints logged'],
+  ['25 Oct, 2:15 pm', 'Finance team', 'Approved payout batch', 'PO-770 to PO-772', 'Weekly run'],
+  ['25 Oct, 11:02 am', 'Super admin', 'Changed feature flag', 'Video consultation', 'Off until launch']
+];
+let FLAGS = [
+  { k: 'video', n: 'Video consultation', d: 'Lets patients book a doctor by video', on: false },
+  { k: 'plans', n: 'Care plans', d: 'Ongoing programmes for long term conditions', on: false },
+  { k: 'cards', n: 'Saved cards and addresses', d: 'Faster checkout for returning patients', on: false },
+  { k: 'reviews', n: 'Ratings and written reviews', d: 'Show written reviews on profiles', on: true },
+  { k: 'lab', n: 'Lab price list on patient profiles', d: 'Show labs their own prices to patients', on: true }
+];
+
+/* ---------- State ---------- */
+let S = { cur: 'overview', vid: 'v1', vf: 'all', tid: 't1', pf: 'all', bf: 'all', sgid: 'SG-0412', reasons: [], decision: null, reasonText: '', draft: '', proof: {} };
+
+/* ---------- Navigation ---------- */
+const NAV = [
+  ['overview', 'Overview', 'home', null],
+  ['verify', 'Verification', 'shield', () => VER.filter(v => v.status !== 'approved').length],
+  ['providers', 'Providers', 'user', null],
+  ['facilities', 'Facilities', 'building', null],
+  ['bookings', 'Bookings', 'calendar', null],
+  ['support', 'Support', 'mail', () => TICKETS.filter(t => t.st === 'open').length],
+  ['safeguard', 'Safeguarding', 'alert', () => CASES.filter(c => c.st !== 'Closed').length, true],
+  ['payouts', 'Payouts', 'wallet', () => PAYOUTS.filter(p => p.st === 'failed').length],
+  ['roles', 'Staff and roles', 'lock', null],
+  ['audit', 'Audit log', 'doc', null],
+  ['flags', 'Feature flags', 'settings', null]
+];
+const TITLES = { overview: ['Overview', 'Today, Wednesday 28 October'], verify: ['Verification', 'Licences and documents waiting for a decision'], providers: ['Providers', 'Everyone who can take bookings'], facilities: ['Facilities', 'Pharmacies, labs and hospitals'], bookings: ['Bookings', 'Live and recent visits'], support: ['Support', 'Patient and provider messages'], safeguard: ['Safeguarding', 'Restricted: visible to safeguarding officers only'], payouts: ['Payouts', 'Weekly payout run and failed transfers'], roles: ['Staff and roles', 'Who can do what on this console'], audit: ['Audit log', 'Every sensitive action, with who and why'], flags: ['Feature flags', 'Switch features on as they launch'] };
+function go(name) { S.cur = name; S.decision = null; S.reasons = []; S.reasonText = ''; render(); window.scrollTo(0, 0); }
+function renderNav() {
+  document.getElementById('nav').innerHTML = NAV.map(([k, l, i, c, hot]) => {
+    const n = c ? c() : 0;
+    return `<button class="nav ${S.cur === k ? 'on' : ''}" onclick="go('${k}')">${ic(i)}${l}${n ? `<span class="n ${hot ? 'hot' : ''}">${n}</span>` : ''}</button>`;
+  }).join('');
+}
+
+/* ---------- Overview ---------- */
+function vOverview() {
+  const bars = [62, 71, 58, 84, 90, 77, 66, 98, 88, 79, 95, 102, 88, 46];
+  const max = 110;
+  const days = ['Mon 13', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
+  return `
+  <div class="kpis">
+    <div class="kpi"><small>Bookings today</small><b class="num">46</b><div class="sub up">+9 vs same time last week</div></div>
+    <div class="kpi"><small>Live providers</small><b class="num">128</b><div class="sub">14 new this month</div></div>
+    <div class="kpi warn"><small>Waiting for verification</small><b class="num">${VER.filter(v => v.status !== 'approved').length}</b><div class="sub dn">2 waiting over 3 days</div></div>
+    <div class="kpi warn"><small>Open tickets</small><b class="num">${TICKETS.filter(t => t.st === 'open').length}</b><div class="sub dn">1 due within 2 hours</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><h3>Bookings, last 14 days</h3><span class="small muted" style="font-size:12px;color:var(--muted);font-weight:600">Completed and in progress</span></div>
+      <div class="card-b">
+        <div class="bars" style="margin-bottom:30px">${bars.map((v, i) => `<div class="${i === 13 ? 'lo' : ''}" style="height:${Math.max(4, Math.round((v / max) * 100))}%">${v ? `<b>${v}</b>` : ''}<small>${days[i].split(' ')[0]}</small></div>`).join('')}</div>
+        <div class="axis" style="margin-top:4px"><span>Mon 13 Oct</span><span>Today, 46 so far</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h3>Needs your attention</h3><span class="small muted" style="font-size:12px;color:var(--muted);font-weight:600">Sorted by urgency</span></div>
+      <div class="card-b">
+        <div class="att"><div class="ico" style="background:#FDECEA;color:var(--danger)">${ic('alert')}</div><div class="main"><b>Safeguarding case SG-0412 is unassigned</b><small>Opened 2 hours ago, high severity</small></div><button class="btn btn-p btn-sm" onclick="S.sgid='SG-0412';go('safeguard')">Open</button></div>
+        <div class="att"><div class="ico" style="background:#FFF4DB;color:var(--warn)">${ic('mail')}</div><div class="main"><b>Ticket t1 charged twice</b><small>SLA: 1 hour 40 minutes left</small></div><button class="btn btn-s btn-sm" onclick="S.tid='t1';go('support')">Open</button></div>
+        <div class="att"><div class="ico" style="background:#FFF4DB;color:var(--warn)">${ic('wallet')}</div><div class="main"><b>1 payout failed</b><small>Kemi Ojo, PT · ${ngn(52000)}</small></div><button class="btn btn-s btn-sm" onclick="go('payouts')">Review</button></div>
+        <div class="att"><div class="ico" style="background:#E6F6EE;color:var(--success)">${ic('shield')}</div><div class="main"><b>3 providers ready for a decision</b><small>Verification queue</small></div><button class="btn btn-s btn-sm" onclick="go('verify')">Open</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="card"><div class="card-h"><h3>Recent activity</h3><button class="btn btn-s btn-sm" onclick="go('audit')">Full log</button></div>
+      <table><thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead><tbody>
+        ${AUDIT.slice(0, 5).map(([w, p, a, o]) => `<tr><td class="num" style="color:var(--muted);white-space:nowrap">${w}</td><td>${p}</td><td><b style="color:var(--navy)">${a}</b><div class="small muted" style="font-size:12px">${o}</div></td></tr>`).join('')}
+      </tbody></table></div>
+    <div class="card"><div class="card-h"><h3>Service health</h3></div><div class="card-b" style="display:grid;gap:12px">
+      ${[['Booking requests', 'Normal', 'ok'], ['Payments (Paystack)', 'Normal', 'ok'], ['SMS and push alerts', 'Delayed, 3 minutes', 'warn'], ['Provider app', 'Normal', 'ok']].map(([n, s, c]) => `<div class="row" style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><b>${n}</b>${pill(c, c === 'ok' ? 'check' : 'alert', s)}</div>`).join('')}
+    </div></div>
+  </div>`;
+}
+
+/* ---------- Verification queue ---------- */
+const STATUS_PILL = { review: ['info', 'clock', 'Under review'], new: ['idle', 'clock', 'New'], info: ['warn', 'alert', 'Needs info'], expired: ['bad', 'x', 'Licence expired'], approved: ['ok', 'check', 'Approved'], rejected: ['bad', 'x', 'Rejected'] };
+function vVerify() {
+  const list = VER.filter(v => S.vf === 'all' || (S.vf === 'overdue' ? v.days >= 3 : S.vf === 'facility' ? v.kind === 'facility' : v.kind === 'person'));
+  const sel = VER.find(v => v.id === S.vid) || VER[0];
+  const counts = { all: VER.length, overdue: VER.filter(v => v.days >= 3).length, person: VER.filter(v => v.kind === 'person').length, facility: VER.filter(v => v.kind === 'facility').length };
+  const [sk, si, sl] = STATUS_PILL[sel.status];
+  const decisions = [['approve', 'Approve', 'btn-ok'], ['info', 'Needs info', 'btn-s'], ['reject', 'Reject', 'btn-d']];
+  return `
+  <div class="page-head"><div><h2>Verification queue</h2><p>Check the licence against the regulator register, then decide. Every decision is logged with a reason.</p></div>
+    <div class="tabs-s">${[['all', 'All'], ['overdue', 'Over 3 days'], ['person', 'Individuals'], ['facility', 'Facilities']].map(([k, l]) => `<button class="${S.vf === k ? 'on' : ''}" onclick="S.vf='${k}';render()">${l}<span class="c">${counts[k]}</span></button>`).join('')}</div>
+  </div>
+  <div class="split">
+    <div class="card">
+      <table><thead><tr><th>Applicant</th><th>Type</th><th>Waiting</th><th>Status</th></tr></thead><tbody>
+        ${list.map(v => { const [k, i, l] = STATUS_PILL[v.status]; return `<tr class="click ${v.id === sel.id ? 'sel' : ''}" onclick="S.vid='${v.id}';S.decision=null;S.reasons=[];S.reasonText='';render()"><td><div class="who"><b>${v.name}</b><small>${v.city} · ${v.regNo}</small></div></td><td>${v.type}</td><td class="num ${v.days >= 3 ? 'sev-m' : ''}">${v.days} ${v.days === 1 ? 'day' : 'days'}</td><td>${pill(k, i, l)}</td></tr>`; }).join('')}
+      </tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-b">
+        <div class="detail-head"><div class="av">${initials(sel.name)}</div><div style="flex:1"><h3>${sel.name}</h3><div class="small muted">${sel.type} · ${sel.spec}</div><div style="margin-top:6px">${pill(sk, si, sl)}</div></div></div>
+        <div class="kv2"><div><small>${sel.reg} number</small><b class="num">${sel.regNo}</b></div><div><small>Applied</small><b>${sel.applied}</b></div><div><small>Location</small><b>${sel.city}</b></div><div><small>Waiting</small><b>${sel.days} ${sel.days === 1 ? 'day' : 'days'}</b></div></div>
+
+        <h3 style="font-size:14px;margin:20px 0 10px">Documents</h3>
+        ${sel.docs.map(([t, s, c]) => `<div class="doc-row ${c === 'flag' ? 'flag' : ''}"><div class="ico">${ic('doc')}</div><div class="main"><b>${t}</b><small>${s}</small></div>${c === 'ok' ? pill('ok', 'check', 'OK') : c === 'flag' ? pill('warn', 'alert', 'Check') : pill('idle', 'clock', 'Pending')}</div>`).join('')}
+
+        <div class="notice-b" style="margin-top:12px">${ic('shield')}<span>Register check: open the ${sel.reg} register and confirm the name, number and status match before you approve.</span></div>
+
+        ${sel.status === 'approved' || sel.status === 'rejected' ? `<p class="note-small">This application is closed.</p>` : `
+        <div style="margin-top:18px">
+          <div class="tabs-s" style="margin-bottom:12px">${decisions.map(([k, l]) => `<button class="${S.decision === k ? 'on' : ''}" onclick="S.decision='${k}';render()">${l}</button>`).join('')}</div>
+          ${S.decision === 'approve' ? `<p class="small" style="margin-bottom:10px">Approving makes the profile visible to patients and lets the provider take bookings.</p>` : ''}
+          ${S.decision === 'info' || S.decision === 'reject' ? `
+            <div class="reason-chips">${['Name mismatch', 'Blurry scan', 'Licence not on register', 'Expired licence', 'Missing document'].map(r => `<button class="${S.reasons.includes(r) ? 'on' : ''}" onclick="toggleReason('${r}')">${r}</button>`).join('')}</div>
+            <textarea class="txt" placeholder="Write a clear reason the applicant can act on." oninput="S.reasonText=this.value;document.getElementById('dbtn').disabled=!canDecide()">${S.reasonText}</textarea>
+            <p class="note-small">${S.decision === 'reject' ? 'Rejections are emailed with this reason.' : 'The applicant gets the reason and a link to upload the fix.'}</p>` : ''}
+          <div class="decide">${decisions.map(([k, l, c]) => `<button ${k === S.decision ? '' : ''} class="btn ${c}" ${S.decision === k ? '' : 'style="opacity:0.55"'} onclick="S.decision='${k}';render()">${l}</button>`).join('')}</div>
+          <div style="margin-top:12px;display:flex;justify-content:flex-end"><button id="dbtn" class="btn btn-p" ${canDecide() ? '' : 'disabled'} onclick="confirmDecision()">${S.decision ? 'Confirm and log' : 'Choose a decision'}</button></div>
+        </div>`}
+      </div>
+      <div class="card-b" style="border-top:1px solid var(--line)"><h3 style="font-size:14px;margin-bottom:12px">History for this application</h3>
+        <div class="timeline">
+          <div class="tl done"><span class="d"></span><div><b>Application received</b><small>${sel.applied} · ${sel.name}</small></div></div>
+          <div class="tl ${sel.status === 'new' ? 'now' : 'done'}"><span class="d"></span><div><b>Documents uploaded</b><small>Automatic check complete</small></div></div>
+          <div class="tl ${sel.status === 'new' ? 'todo' : 'now'}"><span class="d"></span><div><b>Manual review</b><small>${sel.status === 'new' ? 'Waiting for a reviewer' : 'Assigned to Tolu A.'}</small></div></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+function toggleReason(r) { S.reasons = S.reasons.includes(r) ? S.reasons.filter(x => x !== r) : [...S.reasons, r]; render(); }
+function canDecide() {
+  if (!S.decision) return false;
+  if (S.decision === 'approve') return true;
+  return S.reasons.length > 0 || S.reasonText.trim().length > 5;
+}
+function confirmDecision() {
+  if (!canDecide()) return;
+  const v = VER.find(x => x.id === S.vid);
+  const map = { approve: ['approved', 'Approved. The profile is now live.'], info: ['info', 'Sent back for more information.'], reject: ['rejected', 'Rejected and emailed with the reason.'] };
+  v.status = map[S.decision][0];
+  const msg = map[S.decision][1];
+  S.decision = null; S.reasons = []; S.reasonText = '';
+  toast(msg);
+  render();
+}
+
+/* ---------- Providers and facilities ---------- */
+function vProviders(facilities = false) {
+  const list = PROVIDERS.filter(p => (S.pf === 'all' || p.status === S.pf));
+  const counts = { all: PROVIDERS.length, live: PROVIDERS.filter(p => p.status === 'live').length, paused: PROVIDERS.filter(p => p.status === 'paused').length, suspended: PROVIDERS.filter(p => p.status === 'suspended').length };
+  const stPill = { live: ['ok', 'check', 'Live'], paused: ['idle', 'clock', 'Paused'], suspended: ['bad', 'x', 'Suspended'] };
+  if (facilities) return `
+    <div class="page-head"><div><h2>Facilities</h2><p>Pharmacies, labs and hospitals. Facility stock, tests and capacity are managed by each facility.</p></div><button class="btn btn-p" onclick="toast('Invite a facility opens here')">${ic('plus')} Invite facility</button></div>
+    <div class="card"><table><thead><tr><th>Facility</th><th>Type</th><th>Regulator</th><th>Status</th><th>Health</th><th></th></tr></thead><tbody>
+      ${[['Lagoon Pharmacy Ikeja', 'Pharmacy', 'PCN', 'live', 'Stock updated today'], ['Mainstay Diagnostics', 'Diagnostic lab', 'MLSCN', 'live', 'Price list complete'], ['Oyo Central Medical Centre', 'Hospital', 'Oyo State Ministry of Health', 'live', '2 referrals waiting']].map(([n, t, r, s, h]) => `<tr><td><div class="who"><b>${n}</b><small>Ibadan or Ikeja</small></div></td><td>${t}</td><td>${r}</td><td>${pill(...stPill[s].slice(0, 2), stPill[s][2])}</td><td class="small">${h}</td><td style="text-align:right"><button class="btn btn-s btn-sm" onclick="toast('Facility profile opens here')">Open</button></td></tr>`).join('')}
+    </tbody></table></div>`;
+  return `
+    <div class="page-head"><div><h2>Providers</h2><p>Everyone who can take bookings. Suspending a provider hides them from patients at once and pauses their open bookings.</p></div>
+      <div class="tabs-s">${[['all', 'All'], ['live', 'Live'], ['paused', 'Paused'], ['suspended', 'Suspended']].map(([k, l]) => `<button class="${S.pf === k ? 'on' : ''}" onclick="S.pf='${k}';render()">${l}<span class="c">${counts[k]}</span></button>`).join('')}</div></div>
+    <div class="card"><table><thead><tr><th>Provider</th><th>Type</th><th>Area</th><th>Rating</th><th>Bookings</th><th>Open flags</th><th>Status</th><th></th></tr></thead><tbody>
+      ${list.map(p => `<tr><td><div class="who"><b>${p.name}</b><small>${p.id.toUpperCase()}</small></div></td><td>${p.type}</td><td>${p.city}</td><td class="num">${p.rating.toFixed(1)}</td><td class="num">${p.bookings}</td><td>${p.flags ? pill('warn', 'alert', p.flags + ' open') : '<span class="small muted">None</span>'}</td><td>${pill(...stPill[p.status].slice(0, 2), stPill[p.status][2])}</td><td style="text-align:right;white-space:nowrap"><button class="btn btn-s btn-sm" onclick="toast('Opens the full provider record')">View</button> ${p.status === 'suspended' ? `<button class="btn btn-s btn-sm" onclick="setProv('${p.id}','live')">Reinstate</button>` : `<button class="btn btn-d btn-sm" onclick="openSuspend('${p.id}')">Suspend</button>`}</td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+function setProv(id, st) { PROVIDERS.find(p => p.id === id).status = st; toast('Provider reinstated and logged'); render(); }
+function openSuspend(id) {
+  const p = PROVIDERS.find(x => x.id === id);
+  openModal('Suspend ' + p.name + '?', `<p>They will disappear from search at once. Open bookings are offered to the next nearest provider. This is logged with your reason.</p>
+    <div class="reason-chips">${['Patient complaint', 'Licence concern', 'Missing visit records', 'Safeguarding'].map(r => `<button onclick="this.classList.toggle('on')">${r}</button>`).join('')}</div>
+    <textarea class="txt" placeholder="Reason, in plain words" style="min-height:70px"></textarea>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button class="btn btn-s" onclick="closeModal()">Cancel</button><button class="btn btn-d" onclick="closeModal();PROVIDERS.find(x=>x.id==='${id}').status='suspended';toast('Provider suspended and logged');render()">Suspend provider</button></div>`);
+}
+
+/* ---------- Bookings ---------- */
+const BK_PILL = { requested: ['info', 'clock', 'Requested'], 'on the way': ['warn', 'pin', 'On the way'], completed: ['ok', 'check', 'Completed'], cancelled: ['idle', 'x', 'Cancelled'], disputed: ['bad', 'alert', 'Disputed'] };
+function vBookings() {
+  const list = BOOKINGS.filter(b => S.bf === 'all' || b.st === S.bf);
+  return `
+  <div class="page-head"><div><h2>Bookings</h2><p>Patient first names only by default. Opening full details asks for an access reason, and that is logged.</p></div>
+    <div class="tabs-s">${[['all', 'All'], ['requested', 'Requested'], ['on the way', 'On the way'], ['disputed', 'Disputed']].map(([k, l]) => `<button class="${S.bf === k ? 'on' : ''}" onclick="S.bf='${k}';render()">${l}</button>`).join('')}</div></div>
+  <div class="card"><table><thead><tr><th>Reference</th><th>Patient</th><th>Provider</th><th>Service</th><th>When</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody>
+    ${list.map(b => { const [k, i, l] = BK_PILL[b.st]; return `<tr><td class="num"><b style="color:var(--navy)">${b.id}</b></td><td>${b.who}</td><td>${b.prov}</td><td>${b.svc}</td><td class="small">${b.when}</td><td class="num">${ngn(b.amt)}</td><td>${pill(k, i, l)}</td><td style="text-align:right;white-space:nowrap"><button class="btn btn-s btn-sm" onclick="openAccess('${b.id}')">View</button>${b.st === 'disputed' ? ` <button class="btn btn-p btn-sm" onclick="toast('Refund issued and logged')">Refund</button>` : ''}</td></tr>`; }).join('')}
+  </tbody></table></div>`;
+}
+function openAccess(id) {
+  openModal('View booking ' + id, `<div class="notice-a">${ic('eye')}<span>Full patient details are shown only with a reason. This is logged against your name.</span></div>
+    <p style="margin:14px 0 8px;font-size:13px;font-weight:700">Reason for access</p>
+    <div class="reason-chips">${['Support ticket', 'Payment query', 'Safeguarding', 'Verification check'].map(r => `<button onclick="this.classList.toggle('on')">${r}</button>`).join('')}</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button class="btn btn-s" onclick="closeModal()">Cancel</button><button class="btn btn-p" onclick="closeModal();toast('Access logged. Details open.')">Open record</button></div>`);
+}
+
+/* ---------- Support ---------- */
+function vSupport() {
+  const t = TICKETS.find(x => x.id === S.tid) || TICKETS[0];
+  const pri = { high: ['bad', 'alert', 'High'], med: ['warn', 'clock', 'Medium'], low: ['idle', 'clock', 'Low'] }[t.pri];
+  return `
+  <div class="page-head"><div><h2>Support</h2><p>Reply in plain language. Use a macro to start, then edit it for the person.</p></div></div>
+  <div class="split">
+    <div class="card"><table><thead><tr><th>Ticket</th><th>From</th><th>SLA</th></tr></thead><tbody>
+      ${TICKETS.map(x => `<tr class="click ${x.id === t.id ? 'sel' : ''}" onclick="S.tid='${x.id}';render()"><td><div class="who"><b>${x.subj}</b><small>${x.who}</small></div></td><td>${x.from}</td><td class="small ${x.pri === 'high' ? 'sev-h' : ''}">${x.sla}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="card"><div class="card-h"><div><h3>${t.subj}</h3><div class="small muted" style="font-size:12px">${t.from} · ${t.who}</div></div>${pill(pri[0], pri[1], pri[2] + ' priority')}</div>
+      <div class="card-b">
+        <div class="thread">${t.msgs.map(([d, m]) => `<div class="msg ${d}"><small>${d === 'in' ? t.who : 'StreetdocMD support'}</small>${m}</div>`).join('')}</div>
+        <div style="margin:14px 0 8px">${['Thanks for your patience', 'We are checking this now', 'Refund request raised', 'Here is how to add a family member'].map(m => `<button class="macro" onclick="S.draft=this.textContent;document.getElementById('reply').value=this.textContent">${m}</button>`).join('')}</div>
+        <textarea id="reply" class="txt" placeholder="Write your reply">${S.draft}</textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><span class="small muted" style="font-size:12px">Replies are sent by email and in the app.</span><div class="row" style="display:flex;gap:8px"><button class="btn btn-s" onclick="setTicket('${t.id}','waiting')">Mark waiting</button><button class="btn btn-p" onclick="sendReply('${t.id}')">Send reply</button></div></div>
+      </div>
+    </div>
+  </div>`;
+}
+function sendReply(id) {
+  const t = TICKETS.find(x => x.id === id);
+  const v = document.getElementById('reply').value.trim();
+  if (!v) return;
+  t.msgs.push(['out', v]); t.st = 'waiting'; S.draft = '';
+  toast('Reply sent'); render();
+}
+function setTicket(id, st) { TICKETS.find(x => x.id === id).st = st; toast('Ticket updated'); render(); }
+
+/* ---------- Safeguarding ---------- */
+function vSafeguard() {
+  const c = CASES.find(x => x.id === S.sgid) || CASES[0];
+  return `
+  <div class="page-head"><div><h2>Safeguarding</h2><p><span class="secret">${ic('lock')} Restricted</span> Visible only to safeguarding officers. Never shown to providers or patients, and never included in standard exports.</p></div></div>
+  <div class="split">
+    <div class="card"><table><thead><tr><th>Case</th><th>Type</th><th>Severity</th><th>Status</th></tr></thead><tbody>
+      ${CASES.map(x => `<tr class="click ${x.id === c.id ? 'sel' : ''}" onclick="S.sgid='${x.id}';render()"><td><b style="color:var(--navy)">${x.id}</b></td><td>${x.type}</td><td class="${x.sev === 'high' ? 'sev-h' : 'sev-m'}">${x.sev === 'high' ? 'High' : 'Medium'}</td><td>${x.st}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="card case-warn"><div class="card-h"><div><h3>${c.id} · ${c.type}</h3><div class="small muted" style="font-size:12px">Opened ${c.opened} · Owner: ${c.owner}</div></div><span class="secret">${ic('lock')} Restricted</span></div>
+      <div class="card-b">
+        <p class="small" style="line-height:1.6">${c.note}</p>
+        <div class="notice-a" style="margin-top:14px">${ic('alert')}<span>Do not contact the patient or provider directly from this screen. Follow the safeguarding procedure and record each step.</span></div>
+        <h3 style="font-size:14px;margin:18px 0 10px">Procedure</h3>
+        <div class="timeline">
+          <div class="tl done"><span class="d"></span><div><b>Concern received</b><small>Logged with the visit reference</small></div></div>
+          <div class="tl ${c.owner === 'Unassigned' ? 'now' : 'done'}"><span class="d"></span><div><b>Assign an officer</b><small>${c.owner === 'Unassigned' ? 'Not yet assigned' : c.owner}</small></div></div>
+          <div class="tl todo"><span class="d"></span><div><b>Review the record and decide on action</b><small>Pause bookings, request notes, or escalate</small></div></div>
+          <div class="tl todo"><span class="d"></span><div><b>Record the outcome and close</b><small>Outcome sent to the people involved, as the policy requires</small></div></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px">
+          <button class="btn btn-p" onclick="CASES.find(x=>x.id==='${c.id}').owner='Tolu A. (you)';toast('Assigned to you and logged');render()">Assign to me</button>
+          <button class="btn btn-d" onclick="toast('Bookings paused for this provider and logged')">Pause provider bookings</button>
+          <button class="btn btn-s" onclick="toast('Escalated to the safeguarding lead')">Escalate</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Payouts ---------- */
+function vPayouts() {
+  const sel = PAYOUTS.filter(p => p.sel && p.st === 'queued');
+  const total = sel.reduce((a, p) => a + p.amt, 0);
+  const cls = { queued: ['info', 'clock', 'Queued'], failed: ['bad', 'x', 'Failed'], paid: ['ok', 'check', 'Paid'] };
+  return `
+  <div class="page-head"><div><h2>Payouts</h2><p>Review the weekly run, then approve it. Failed transfers need a fix before they can be retried.</p></div>
+    <button class="btn btn-p" ${sel.length ? '' : 'disabled'} onclick="openModal('Approve payout run', '<p>You are approving <b>${sel.length} transfers</b> totalling <b>${ngn(total)}</b>. Each one is logged to your name.</p><div style=&quot;display:flex;gap:10px;justify-content:flex-end&quot;><button class=&quot;btn btn-s&quot; onclick=&quot;closeModal()&quot;>Cancel</button><button class=&quot;btn btn-p&quot; onclick=&quot;approveRun()&quot;>Approve and send</button></div>')">${ic('check')} Approve run · ${ngn(total)}</button></div>
+  <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
+    <div class="kpi"><small>In this run</small><b class="num">${ngn(total)}</b><div class="sub">${sel.length} transfers selected</div></div>
+    <div class="kpi warn"><small>Failed transfers</small><b class="num">${PAYOUTS.filter(p => p.st === 'failed').length}</b><div class="sub dn">Bank details need checking</div></div>
+    <div class="kpi"><small>Next payout day</small><b>Friday 30 Oct</b><div class="sub">Automatic run at 10 am</div></div>
+  </div>
+  <div class="card"><table><thead><tr><th style="width:40px"></th><th>Reference</th><th>Payee</th><th>Bank</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+    ${PAYOUTS.map(p => `<tr><td>${p.st === 'queued' ? `<input type="checkbox" class="check" ${p.sel ? 'checked' : ''} onchange="PAYOUTS.find(x=>x.id==='${p.id}').sel=this.checked;render()">` : ''}</td><td class="num"><b style="color:var(--navy)">${p.id}</b></td><td>${p.who}</td><td class="small">${p.bank}</td><td class="num">${ngn(p.amt)}</td><td>${pill(...cls[p.st].slice(0, 2), cls[p.st][2])}${p.st === 'failed' ? ` <button class="btn btn-s btn-sm" onclick="toast('Bank details checked. Retry queued.');PAYOUTS.find(x=>x.id==='${p.id}').st='queued';render()">Retry</button>` : ''}</td></tr>`).join('')}
+  </tbody></table></div>
+  <p class="note-small">Reconciliation: payments received ${ngn(1480000)} · payouts ${ngn(1212000)} · service charge ${ngn(74000)} · difference ₦0.</p>`;
+}
+function approveRun() { PAYOUTS.forEach(p => { if (p.sel && p.st === 'queued') p.st = 'paid'; }); closeModal(); toast('Payout run approved and sent'); render(); }
+
+/* ---------- Staff and roles ---------- */
+function vRoles() {
+  return `
+  <div class="page-head"><div><h2>Staff and roles</h2><p>Give each person the least access they need. Changes take effect straight away and are logged.</p></div><button class="btn btn-p" onclick="toast('Invite staff form opens here')">${ic('plus')} Invite staff</button></div>
+  <div class="card"><table class="perm"><thead><tr><th>Permission</th>${ROLES.map(r => `<th style="text-align:center">${r}</th>`).join('')}</tr></thead><tbody>
+    ${PERMS.map(([p, arr], i) => `<tr><td style="font-weight:600;color:var(--navy)">${p}</td>${arr.map((v, j) => `<td><input type="checkbox" class="check" ${v ? 'checked' : ''} ${j === 0 ? 'disabled' : ''} onchange="PERMS[${i}][1][${j}]=this.checked?1:0;toast('Permission changed and logged')"></td>`).join('')}</tr>`).join('')}
+  </tbody></table></div>
+  <p class="note-small">Super admin always keeps full access so the console cannot be locked out.</p>
+  <div class="card" style="margin-top:16px"><div class="card-h"><h3>People with access</h3></div><table><thead><tr><th>Name</th><th>Role</th><th>Last sign in</th><th>Status</th></tr></thead><tbody>
+    ${[['Tolu Adebayo', 'Verification lead', 'Today, 8:02 am', 'ok', 'Active'], ['Ife Okafor', 'Support agent', 'Today, 7:50 am', 'ok', 'Active'], ['Samuel Idowu', 'Finance', 'Yesterday', 'ok', 'Active'], ['Grace Lawal', 'Safeguarding', '2 days ago', 'ok', 'Active'], ['Former staff', 'Support agent', '3 months ago', 'idle', 'Removed']].map(([n, r, s, c, t]) => `<tr><td><div class="who"><b>${n}</b></div></td><td>${r}</td><td class="small">${s}</td><td>${pill(c, c === 'ok' ? 'check' : 'x', t)}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+/* ---------- Audit ---------- */
+function vAudit() {
+  return `
+  <div class="page-head"><div><h2>Audit log</h2><p>Every sensitive action, who did it and why. This log cannot be edited.</p></div><button class="btn btn-s" onclick="toast('Export started. Patient details are excluded.')">${ic('doc')} Export</button></div>
+  <div class="card"><table><thead><tr><th>When</th><th>Who</th><th>Action</th><th>Object</th><th>Reason</th></tr></thead><tbody>
+    ${AUDIT.map(([w, p, a, o, r]) => `<tr><td class="num small" style="white-space:nowrap;color:var(--muted)">${w}</td><td>${p}</td><td><b style="color:var(--navy)">${a}</b></td><td>${o}</td><td class="small">${r}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+/* ---------- Feature flags ---------- */
+function vFlags() {
+  return `
+  <div class="page-head"><div><h2>Feature flags</h2><p>Turn features on as they are ready. Patients and providers see a feature only when it is on.</p></div></div>
+  <div class="card">${FLAGS.map((f, i) => `<div style="display:flex;align-items:center;gap:16px;padding:18px 22px;border-bottom:1px solid var(--line)">
+      <div style="flex:1"><b style="font-size:15px;color:var(--navy)">${f.n}</b><div class="small muted" style="margin-top:3px">${f.d}</div></div>
+      ${f.on ? pill('ok', 'check', 'On') : pill('idle', 'clock', 'Off')}
+      <button class="toggle ${f.on ? 'on' : ''}" aria-label="${f.n}" onclick="FLAGS[${i}].on=!FLAGS[${i}].on;toast('${f.n} ' + (FLAGS[${i}].on ? 'on' : 'off') + ' and logged');render()"></button>
+    </div>`).join('')}</div>
+  <p class="note-small">Only Super admin can change flags. Each change is logged with the time and reason.</p>`;
+}
+
+/* ---------- Route table and render ---------- */
+const VIEWS = { overview: vOverview, verify: vVerify, providers: () => vProviders(false), facilities: () => vProviders(true), bookings: vBookings, support: vSupport, safeguard: vSafeguard, payouts: vPayouts, roles: vRoles, audit: vAudit, flags: vFlags };
+function render() {
+  renderNav();
+  const [t, sub] = TITLES[S.cur] || [S.cur, ''];
+  document.getElementById('title').textContent = t;
+  document.getElementById('crumb').textContent = sub;
+  const keep = window.scrollY;
+  document.getElementById('content').innerHTML = (VIEWS[S.cur] || (() => '<p>Not found</p>'))();
+  window.scrollTo(0, keep);
+}
+render();
+</script>
+</body>
+</html>

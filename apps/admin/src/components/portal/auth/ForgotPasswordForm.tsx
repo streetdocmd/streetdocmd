@@ -25,7 +25,9 @@ export default function ForgotPasswordForm({ type }: { type: PortalType }) {
     if (error) {
       setError(/rate limit/i.test(error.message)
         ? "Too many reset emails were requested. Please wait a few minutes and try again, or contact support."
-        : error.message);
+        : !error.message?.trim() || error.message.trim() === "{}" || /sending|smtp|unexpected/i.test(error.message)
+          ? "We couldn't send the reset email right now. Please try again in a few minutes, or contact contact@streetdocmd.com."
+          : error.message);
       return;
     }
     setSent(true);

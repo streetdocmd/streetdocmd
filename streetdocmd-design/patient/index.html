@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StreetdocMD Patient App | Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ---- StreetdocMD design system ---- */
+/* StreetdocMD design system v1
+   One family (Inter), one blue, one spacing scale.
+   Used by: landing site, patient app, provider dashboard, admin back office. */
+
+
+
+:root {
+  /* Brand */
+  --navy: #0D2B5E;
+  --blue: #1E6FD9;
+  --blue-hover: #1859B5;
+  --sky: #EAF3FD;
+  --teal: #00B5A3;
+  --teal-deep: #007F73;
+  --ink: #121D2D;
+
+  /* Neutrals */
+  --muted: #5B6878;
+  --line: #DCE4EF;
+  --bg: #F5F8FC;
+  --surface: #FFFFFF;
+
+  /* Status (always paired with an icon or text, never colour alone) */
+  --success: #0E7A4F;
+  --success-bg: #E6F6EE;
+  --warn: #8A5300;
+  --warn-bg: #FFF4DB;
+  --danger: #B42318;
+  --danger-bg: #FDECEA;
+  --pending: #3D4B63;
+  --pending-bg: #E9EEF6;
+
+  /* Shape and depth */
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(13, 43, 94, 0.06);
+  --shadow: 0 1px 2px rgba(13, 43, 94, 0.05), 0 10px 28px rgba(13, 43, 94, 0.08);
+
+  /* Spacing scale (4px base) */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px;
+  --s5: 20px; --s6: 24px; --s8: 32px; --s10: 40px; --s12: 48px;
+
+  /* Type scale */
+  --fs-xs: 12px; --fs-sm: 14px; --fs-md: 16px;
+  --fs-lg: 18px; --fs-xl: 22px; --fs-2xl: 28px; --fs-3xl: 40px; --fs-4xl: 52px;
+
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --navy: #8FB4EC;
+    --blue: #5B9BEF;
+    --blue-hover: #7DB0F3;
+    --sky: #14233D;
+    --teal: #2DD4C1;
+    --ink: #E7EEF9;
+    --muted: #A3B1C6;
+    --line: #26354F;
+    --bg: #0B1322;
+    --surface: #111B2E;
+    --success: #5CD39B;
+    --success-bg: #123325;
+    --warn: #F5C25C;
+    --warn-bg: #3A2C10;
+    --danger: #FF8A80;
+    --danger-bg: #3B1716;
+    --pending: #C5D0E2;
+    --pending-bg: #1E2A40;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --navy: #8FB4EC;
+  --blue: #5B9BEF;
+  --blue-hover: #7DB0F3;
+  --sky: #14233D;
+  --teal: #2DD4C1;
+  --ink: #E7EEF9;
+  --muted: #A3B1C6;
+  --line: #26354F;
+  --bg: #0B1322;
+  --surface: #111B2E;
+  --success: #5CD39B;
+  --success-bg: #123325;
+  --warn: #F5C25C;
+  --warn-bg: #3A2C10;
+  --danger: #FF8A80;
+  --danger-bg: #3B1716;
+  --pending: #C5D0E2;
+  --pending-bg: #1E2A40;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: var(--font);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { color: var(--navy); line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: var(--fs-2xl); font-weight: 800; }
+h2 { font-size: var(--fs-xl); font-weight: 700; }
+h3 { font-size: var(--fs-lg); font-weight: 700; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: var(--fs-sm); }
+.xs { font-size: var(--fs-xs); }
+.num { font-variant-numeric: tabular-nums; }
+svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Wordmark */
+.wordmark { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; color: var(--navy); font-size: 18px; letter-spacing: -0.01em; text-decoration: none; }
+.wordmark .doc { color: var(--blue); }
+.mark { width: 30px; height: 30px; border-radius: 9px; background: var(--blue); display: grid; place-items: center; }
+.mark svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+
+/* Buttons: minimum 44px touch target */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 var(--s6);
+  border-radius: var(--radius-pill); border: 1.5px solid transparent;
+  font: 600 var(--fs-md)/1 var(--font); text-decoration: none; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.05s;
+}
+.btn:active { transform: scale(0.98); }
+.btn:focus-visible, .field:focus-visible, a:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; box-shadow: 0 0 0 5px var(--blue); }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: var(--blue-hover); }
+.btn-secondary { background: var(--surface); color: var(--navy); border-color: var(--line); }
+.btn-secondary:hover { border-color: var(--blue); color: var(--blue); }
+.btn-ghost { background: transparent; color: var(--blue); padding: 0 var(--s3); }
+.btn-block { width: 100%; }
+.btn[disabled], .btn.is-disabled { background: var(--pending-bg); color: var(--muted); border-color: transparent; cursor: not-allowed; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-success { background: var(--success); color: #fff; }
+
+/* Cards and rows */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: var(--s5); }
+.card + .card { margin-top: var(--s4); }
+.row { display: flex; align-items: center; gap: var(--s3); }
+.between { justify-content: space-between; }
+.stack > * + * { margin-top: var(--s3); }
+.list-row { display: flex; align-items: center; gap: var(--s3); padding: var(--s4) 0; border-bottom: 1px solid var(--line); }
+.list-row:last-child { border-bottom: 0; }
+.icon-tile { width: 44px; height: 44px; border-radius: 12px; background: var(--sky); color: var(--blue); display: grid; place-items: center; flex: none; }
+.icon-tile svg.i { width: 22px; height: 22px; }
+
+/* Status pills: text and icon, so colour is never the only signal */
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; }
+.pill svg.i { width: 14px; height: 14px; stroke-width: 2.4; }
+.pill-success { background: var(--success-bg); color: var(--success); }
+.pill-warn { background: var(--warn-bg); color: var(--warn); }
+.pill-danger { background: var(--danger-bg); color: var(--danger); }
+.pill-info { background: var(--sky); color: var(--blue); }
+.pill-pending { background: var(--pending-bg); color: var(--pending); }
+.badge-soon { display: inline-block; padding: 2px 8px; border-radius: 6px; background: var(--pending-bg); color: var(--pending); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* Verified badge (trust element, always visible) */
+.verified { display: inline-flex; align-items: center; gap: 4px; color: var(--teal-deep); font-size: var(--fs-sm); font-weight: 600; }
+.verified svg.i { width: 16px; height: 16px; stroke-width: 2.4; }
+
+/* Notices */
+.notice { display: flex; gap: 12px; align-items: flex-start; padding: var(--s4); border-radius: var(--radius-sm); background: var(--warn-bg); color: var(--ink); font-size: var(--fs-sm); }
+.notice svg.i { color: var(--warn); margin-top: 1px; }
+.notice strong { color: var(--ink); }
+
+/* Form controls */
+.field-label { display: block; font-size: var(--fs-sm); font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.field { width: 100%; min-height: 48px; padding: 0 var(--s4); border-radius: var(--radius-sm); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: 500 var(--fs-md)/1 var(--font); }
+.field:focus { border-color: var(--blue); outline: none; }
+textarea.field { min-height: 96px; padding: var(--s3) var(--s4); line-height: 1.5; resize: vertical; }
+.checkbox-row { display: flex; gap: 12px; align-items: flex-start; font-size: var(--fs-sm); padding: var(--s3) 0; }
+.checkbox-row input { width: 22px; height: 22px; margin: 0; accent-color: var(--blue); flex: none; }
+.checkbox-row a { color: var(--blue); font-weight: 600; }
+
+/* Tabs and bottom navigation */
+.tabs { display: flex; gap: var(--s2); border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab { padding: 12px 4px; margin-right: var(--s4); font-weight: 600; color: var(--muted); border-bottom: 2.5px solid transparent; white-space: nowrap; }
+.tab.is-active { color: var(--blue); border-bottom-color: var(--blue); }
+.bottom-nav { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border-top: 1px solid var(--line); padding: 8px 4px 16px; }
+.bottom-nav a { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--muted); text-decoration: none; min-height: 44px; justify-content: center; }
+.bottom-nav a.is-active { color: var(--blue); }
+.bottom-nav svg.i { width: 22px; height: 22px; }
+
+/* Phone frame used to show mobile screens */
+.phone { width: 360px; height: 740px; border-radius: 40px; background: #0A1424; padding: 10px; box-shadow: 0 30px 60px rgba(13, 43, 94, 0.25); flex: none; }
+.phone-screen { width: 100%; height: 100%; border-radius: 31px; background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
+.phone-status { display: flex; justify-content: space-between; padding: 14px 24px 4px; font-size: 13px; font-weight: 700; color: var(--ink); background: var(--surface); }
+.phone-body { flex: 1; overflow: hidden; padding: var(--s4); }
+.phone-header { background: var(--navy); color: #fff; padding: var(--s4) var(--s5) var(--s5); }
+.phone-header h2, .phone-header h3 { color: #fff; }
+.phone-header .muted { color: #C9D7EE; }
+
+/* Empty, loading, and locked states */
+.empty { text-align: center; padding: var(--s8) var(--s5); }
+.empty .icon-tile { margin: 0 auto var(--s4); width: 64px; height: 64px; }
+.skeleton { background: linear-gradient(90deg, var(--line) 25%, var(--bg) 50%, var(--line) 75%); background-size: 200% 100%; border-radius: 8px; height: 14px; animation: sh 1.4s infinite; }
+@keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* Layout helpers */
+.container { max-width: 1160px; margin: 0 auto; padding: 0 var(--s6); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s4); }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s4); }
+@media (max-width: 760px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ---- Patient app ---- */
+/* StreetdocMD patient app, light theme. */
+
+html, body { height: 100%; }
+body { margin: 0; background: #EDF3FA; font-family: var(--font); color: var(--ink); }
+button { font-family: var(--font); }
+input, textarea, select { font-family: var(--font); }
+
+/* Studio layout: index | device | notes */
+.studio { display: grid; grid-template-columns: 250px 1fr 340px; height: 100vh; }
+.index { background: #fff; border-right: 1px solid var(--line); overflow: auto; padding: 22px 16px; }
+.stage {
+  display: flex; align-items: center; justify-content: center; overflow: auto; padding: 24px;
+  background: radial-gradient(circle at 50% 25%, #FFFFFF 0%, #EDF3FA 70%);
+}
+.notes { background: #fff; border-left: 1px solid var(--line); overflow: auto; padding: 24px 22px; }
+
+.idx-brand { padding: 0 8px 18px; }
+.idx-group { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 18px 8px 6px; }
+.idx-btn {
+  display: block; width: 100%; text-align: left; border: 0; background: none; cursor: pointer;
+  padding: 8px 10px; border-radius: 10px; font: 600 13px var(--font); color: var(--ink);
+}
+.idx-btn:hover { background: var(--sky); }
+.idx-btn.on { background: var(--navy); color: #fff; }
+
+.notes h3 { font-size: 18px; margin-bottom: 6px; }
+.notes .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 16px; }
+.notes .note-block { padding: 14px 0; border-top: 1px solid var(--line); }
+.notes .note-block h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
+.notes .note-block p, .notes .note-block li { font-size: 13px; color: var(--ink); line-height: 1.55; }
+.notes ul { padding-left: 18px; margin: 0; }
+.notes li + li { margin-top: 6px; }
+
+/* Device */
+.device { width: 390px; height: 812px; border-radius: 52px; background: #0A1424; padding: 12px; box-shadow: 0 40px 80px rgba(13, 43, 94, 0.25); flex: none; }
+.screen { position: relative; width: 100%; height: 100%; border-radius: 40px; overflow: hidden; background: var(--bg); display: flex; flex-direction: column; }
+.statusbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 28px 6px; font-size: 14px; font-weight: 700; background: var(--bg); flex: none; }
+.view { flex: 1; overflow-y: auto; padding-bottom: 28px; scrollbar-width: none; }
+.view::-webkit-scrollbar { display: none; }
+.pad { padding: 0 20px; }
+.section { margin-top: 26px; }
+.section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.section-head h3 { font-size: 17px; }
+.section-head a, .link { color: var(--blue); font-weight: 700; font-size: 13px; text-decoration: none; cursor: pointer; background: none; border: 0; padding: 0; }
+
+.tabbar { display: grid; grid-template-columns: repeat(5, 1fr); background: #fff; border-top: 1px solid var(--line); padding: 6px 6px 20px; flex: none; }
+.tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; font-size: 11px; font-weight: 600; color: var(--muted); background: none; border: 0; cursor: pointer; }
+.tab svg.i { width: 22px; height: 22px; }
+.tab.on { color: var(--blue); }
+
+/* Top bars */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 20px 14px; }
+.topbar h2 { font-size: 17px; text-align: center; flex: 1; }
+.iconbtn {
+  width: 42px; height: 42px; border-radius: 14px; border: 1px solid var(--line); background: #fff;
+  display: grid; place-items: center; cursor: pointer; color: var(--navy); flex: none;
+}
+.iconbtn svg.i { width: 20px; height: 20px; }
+.iconbtn.ghost-dark { background: rgba(255,255,255,0.16); border-color: transparent; color: #fff; }
+
+/* Splash */
+.splash {
+  position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+  background: linear-gradient(165deg, #0D2B5E 0%, #1B55B0 55%, #1E6FD9 100%); color: #fff; overflow: hidden;
+}
+.splash::before, .splash::after { content: ""; position: absolute; border-radius: 50%; background: rgba(255,255,255,0.06); }
+.splash::before { width: 420px; height: 420px; top: -140px; right: -160px; }
+.splash::after { width: 300px; height: 300px; bottom: -120px; left: -120px; }
+.cable-wrap { position: relative; height: 90px; width: 2px; transform-origin: top center; animation: swing 2.6s ease-in-out infinite; }
+.cable-wrap::before { content: ""; position: absolute; left: 0; top: 0; width: 2px; height: 74px; background: rgba(255,255,255,0.85); }
+.cable-wrap::after { content: ""; position: absolute; left: -7px; top: 72px; width: 16px; height: 16px; border-radius: 50%; background: #fff; }
+@keyframes swing { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+.logo-big { width: 92px; height: 92px; border-radius: 28px; background: #fff; display: grid; place-items: center; box-shadow: 0 20px 40px rgba(0,0,0,0.25); position: relative; z-index: 1; }
+.logo-big svg { width: 46px; height: 46px; stroke: var(--blue); fill: none; stroke-width: 3; stroke-linecap: round; }
+.splash .wm { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; position: relative; z-index: 1; }
+.splash .wm span { color: #9CC7FF; }
+.splash .tagline { font-size: 15px; color: #CFE0F7; position: relative; z-index: 1; }
+.splash .loader { width: 120px; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.2); overflow: hidden; margin-top: 18px; position: relative; z-index: 1; }
+.splash .loader span { display: block; height: 100%; width: 40%; background: #fff; border-radius: 4px; animation: load 2.2s ease-in-out forwards; }
+@keyframes load { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+
+/* Onboarding */
+.onb { flex: 1; display: flex; flex-direction: column; padding: 8px 24px 24px; }
+.onb-art { flex: 1; display: flex; align-items: center; justify-content: center; }
+.onb-stage { width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #FFFFFF 0%, #DCEAFB 60%, #C9E0FA 100%); position: relative; }
+.onb-stage .float { position: absolute; border-radius: 22px; background: #fff; box-shadow: var(--shadow); display: grid; place-items: center; }
+.onb-stage .float svg.i { width: 30px; height: 30px; }
+.onb h1 { font-size: 28px; letter-spacing: -0.02em; margin-top: 8px; }
+.onb p.body { color: var(--muted); margin-top: 10px; font-size: 15px; }
+.dots { display: flex; gap: 6px; justify-content: center; margin: 22px 0 18px; }
+.dots span { width: 8px; height: 8px; border-radius: 4px; background: var(--line); transition: width 0.2s; }
+.dots span.on { width: 24px; background: var(--blue); }
+
+/* Buttons and inputs */
+.btn { min-height: 52px; font-size: 15px; }
+.btn-block { width: 100%; }
+.btn:disabled { background: #E3EAF4; color: #7C8A9C; cursor: not-allowed; }
+.btn-soft { background: var(--sky); color: var(--navy); border: 0; min-height: 44px; }
+.field-wrap { margin-bottom: 16px; }
+.inp { width: 100%; min-height: 52px; border-radius: 16px; border: 1.5px solid var(--line); background: #fff; padding: 0 16px; font-size: 15px; color: var(--ink); }
+.inp:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 4px var(--sky); }
+.search {
+  display: flex; align-items: center; gap: 10px; background: #fff; border: 1.5px solid var(--line);
+  border-radius: 18px; height: 54px; padding: 0 16px; color: var(--muted); cursor: text;
+}
+.search input { flex: 1; border: 0; outline: none; background: transparent; font-size: 15px; color: var(--ink); min-width: 0; }
+.search svg.i { width: 20px; height: 20px; color: var(--navy); flex: none; }
+.search:focus-within { border-color: var(--blue); box-shadow: 0 0 0 4px var(--sky); }
+.legal-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; font-size: 14px; line-height: 1.45; }
+.legal-row input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--blue); flex: none; }
+.legal-row a { color: var(--blue); font-weight: 700; text-decoration: none; }
+.legal-row .read { margin-left: 4px; }
+
+/* Chips and segments */
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 20px 4px; }
+.chips .chip:last-child { margin-right: 20px; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer; }
+.chip.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.chip.multi.on { background: var(--sky); border-color: var(--blue); color: var(--navy); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: #E6EEF8; border-radius: 16px; padding: 4px; }
+.seg button { border: 0; background: none; min-height: 42px; border-radius: 12px; font-weight: 700; font-size: 14px; color: var(--muted); cursor: pointer; }
+.seg button.on { background: #fff; color: var(--navy); box-shadow: 0 2px 8px rgba(13,43,94,0.12); }
+
+/* Home */
+.hello { padding: 4px 20px 16px; }
+.hello small { color: var(--muted); font-size: 13px; font-weight: 600; }
+.hello h1 { font-size: 26px; letter-spacing: -0.02em; margin-top: 2px; }
+.next-card {
+  margin: 0 20px; border-radius: 26px; padding: 20px; color: #fff; position: relative; overflow: hidden;
+  background: linear-gradient(140deg, #0D2B5E 0%, #1E6FD9 100%); box-shadow: 0 18px 36px rgba(13,43,94,0.28);
+}
+.next-card::after { content: ""; position: absolute; width: 180px; height: 180px; border-radius: 50%; right: -60px; top: -60px; background: rgba(255,255,255,0.09); }
+.next-card h3 { color: #fff; font-size: 19px; margin-top: 12px; }
+.next-card .meta { color: #CFE0F7; font-size: 13px; margin-top: 4px; }
+.next-card .row-btns { display: flex; gap: 8px; margin-top: 16px; position: relative; z-index: 1; }
+.next-card .btn-white { background: #fff; color: var(--navy); min-height: 44px; flex: 1; font-size: 14px; }
+.next-card .btn-glass { background: rgba(255,255,255,0.16); color: #fff; min-height: 44px; flex: 1; font-size: 14px; }
+.pill-glass { background: rgba(255,255,255,0.18); color: #fff; }
+.countdown { display: flex; gap: 6px; margin-top: 14px; }
+.countdown div { background: rgba(255,255,255,0.14); border-radius: 12px; padding: 8px 10px; text-align: center; min-width: 58px; }
+.countdown b { display: block; font-size: 18px; }
+.countdown small { font-size: 10px; color: #CFE0F7; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.resume { display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 14px; box-shadow: var(--shadow-sm); }
+.resume .bar { height: 6px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+.resume .bar span { display: block; height: 100%; width: 66%; background: var(--teal); }
+
+.svc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.svc-tile { border: 0; border-radius: 22px; padding: 16px; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 22px; min-height: 128px; color: var(--ink); }
+.svc-tile .ico { width: 44px; height: 44px; border-radius: 14px; background: rgba(255,255,255,0.7); display: grid; place-items: center; color: var(--navy); }
+.svc-tile b { font-size: 15px; display: block; color: var(--navy); }
+.svc-tile small { font-size: 12px; color: #4F5D70; line-height: 1.35; display: block; margin-top: 3px; }
+
+.h-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 2px 20px 8px; scrollbar-width: none; }
+.h-scroll::-webkit-scrollbar { display: none; }
+.mini-card { flex: none; width: 210px; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 16px; box-shadow: var(--shadow-sm); }
+.mini-card b { display: block; font-size: 15px; margin-top: 12px; }
+.mini-card .muted { font-size: 12px; }
+
+.reminder { display: flex; gap: 12px; align-items: center; background: #FFF7E6; border: 1px solid #F6E0B0; border-radius: 20px; padding: 14px; }
+.reminder .ico { width: 42px; height: 42px; border-radius: 14px; background: #FFE9B8; display: grid; place-items: center; color: var(--warn); flex: none; }
+.reminder b { font-size: 14px; }
+.reminder small { color: #6B5320; font-size: 12px; }
+
+.progress-card { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 16px; display: flex; gap: 14px; align-items: center; }
+.progress-track { flex: 1; }
+.progress-track .bar { height: 8px; background: var(--line); border-radius: 6px; overflow: hidden; margin-top: 10px; }
+.progress-track .bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--teal), #3BD0C0); border-radius: 6px; }
+.ring-sm { width: 52px; height: 52px; position: relative; flex: none; }
+.ring-sm svg { width: 52px; height: 52px; transform: rotate(-90deg); }
+.ring-sm b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; color: var(--navy); }
+
+.soon { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: #fff; border: 1px dashed #C8D4E4; opacity: 0.7; }
+.soon .ico { width: 38px; height: 38px; border-radius: 12px; background: var(--pending-bg); color: var(--pending); display: grid; place-items: center; flex: none; }
+.soon b { font-size: 14px; color: var(--pending); }
+.soon small { color: var(--muted); font-size: 12px; display: block; }
+
+/* Avatars and provider rows */
+.av { width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; font-weight: 800; color: var(--navy); flex: none; font-size: 16px; }
+.av.lg { width: 104px; height: 104px; border-radius: 34px; font-size: 32px; box-shadow: 0 12px 28px rgba(13,43,94,0.18); border: 4px solid #fff; }
+.av.sm { width: 40px; height: 40px; border-radius: 13px; font-size: 13px; }
+.rating { display: inline-flex; gap: 4px; align-items: center; font-weight: 800; font-size: 13px; color: var(--ink); }
+.star { fill: #F5A623; stroke: #F5A623; }
+.verified-line { display: inline-flex; align-items: center; gap: 5px; color: var(--teal-deep); font-size: 12px; font-weight: 700; }
+.verified-line svg.i { width: 15px; height: 15px; stroke-width: 2.4; }
+
+.result {
+  display: flex; gap: 14px; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 16px; margin-bottom: 12px;
+  cursor: pointer; box-shadow: var(--shadow-sm); transition: transform 0.12s, border-color 0.12s; width: 100%; text-align: left; font-family: var(--font); color: var(--ink);
+}
+.result:active { transform: scale(0.99); }
+.result:hover { border-color: #B8CDEA; }
+.result .body { flex: 1; min-width: 0; }
+.result .name { font-weight: 800; font-size: 15px; color: var(--navy); }
+.result .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.result .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 8px; }
+.result .price { font-weight: 800; color: var(--navy); font-size: 16px; }
+.result .price small { display: block; font-size: 11px; font-weight: 600; color: var(--muted); }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pill svg.i { width: 13px; height: 13px; stroke-width: 2.6; }
+.pill.ok { background: var(--success-bg); color: var(--success); }
+.pill.warn { background: var(--warn-bg); color: var(--warn); }
+.pill.bad { background: var(--danger-bg); color: var(--danger); }
+.pill.info { background: var(--sky); color: var(--blue); }
+.pill.idle { background: var(--pending-bg); color: var(--pending); }
+.pill.teal { background: #DDF6F2; color: var(--teal-deep); }
+
+/* Profile hero and stat tiles */
+.hero-band { position: relative; padding: 14px 20px 18px; background: linear-gradient(170deg, #E7F1FD 0%, #F5F9FE 100%); border-bottom-left-radius: 32px; border-bottom-right-radius: 32px; }
+.hero-band .av { position: absolute; left: 20px; bottom: -48px; }
+.hero-info { padding: 18px 20px 0; }
+.hero-info .av.lg { margin: 0; }
+.hero-info h1 { font-size: 24px; letter-spacing: -0.02em; }
+.hero-info .role { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.stat3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+.stat3 div { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 12px 8px; text-align: center; }
+.stat3 b { display: block; font-size: 17px; color: var(--navy); }
+.stat3 small { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+.card { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 18px; box-shadow: var(--shadow-sm); }
+.card + .card { margin-top: 12px; }
+.card h4 { font-size: 15px; color: var(--navy); margin-bottom: 10px; }
+.bio { font-size: 14px; color: #3E4B5E; line-height: 1.6; }
+.kv { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.kv:last-child { border-bottom: 0; }
+.kv span:first-child { color: var(--muted); }
+.kv b { color: var(--ink); }
+
+/* Calendar */
+.cal-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.cal-top b { font-size: 15px; color: var(--navy); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-dow { font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; padding-bottom: 4px; }
+.cal-d {
+  aspect-ratio: 1; border: 0; border-radius: 12px; background: #F1F6FC; color: var(--ink); font-weight: 700; font-size: 13px;
+  display: grid; place-items: center; cursor: pointer; position: relative; padding: 0;
+}
+.cal-d.past { color: #B6C0CE; background: transparent; cursor: default; }
+.cal-d.open { background: #EAF8F5; color: var(--teal-deep); }
+.cal-d.booked { background: #FDECEA; color: var(--danger); }
+.cal-d.full { background: #E6EBF3; color: #8390A3; text-decoration: line-through; }
+.cal-d.today { box-shadow: inset 0 0 0 2px var(--navy); }
+.cal-d.sel { background: var(--blue) !important; color: #fff !important; box-shadow: 0 8px 18px rgba(30,111,217,0.35); }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.slot { min-height: 44px; border-radius: 14px; border: 1.5px solid var(--line); background: #fff; font-weight: 700; font-size: 13px; color: var(--ink); cursor: pointer; }
+.slot.on { border-color: var(--blue); color: var(--blue); background: var(--sky); }
+.slot.taken { background: #F3F4F7; color: #9AA4B2; text-decoration: line-through; cursor: not-allowed; border-color: #F3F4F7; }
+.slot-note { font-size: 12px; color: var(--muted); margin-top: 12px; }
+
+/* Stock and tests */
+.list-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.list-item:last-child { border-bottom: 0; }
+.list-item .main { flex: 1; min-width: 0; }
+.list-item .main b { display: block; font-size: 14px; color: var(--ink); }
+.list-item .main small { font-size: 12px; color: var(--muted); }
+.list-item .amt { font-weight: 800; color: var(--navy); font-size: 14px; text-align: right; }
+.add-btn { border: 1.5px solid var(--blue); background: #fff; color: var(--blue); border-radius: 12px; min-height: 36px; padding: 0 12px; font-weight: 700; font-size: 13px; cursor: pointer; }
+.add-btn:disabled { border-color: var(--line); color: #A0AABA; cursor: not-allowed; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 10px; background: var(--bg); color: var(--navy); }
+.privacy-note { display: flex; gap: 10px; background: #EEF5FF; border-radius: 16px; padding: 12px; font-size: 12px; color: #2B4C7E; line-height: 1.5; }
+.privacy-note svg.i { width: 18px; height: 18px; flex: none; color: var(--blue); margin-top: 1px; }
+
+/* Sticky CTA bar */
+.cta-bar {
+  flex: none; display: flex; align-items: center; gap: 14px; padding: 14px 20px 18px;
+  background: rgba(255,255,255,0.97); border-top: 1px solid var(--line);
+}
+.cta-bar .price-lbl small { display: block; font-size: 11px; color: var(--muted); font-weight: 700; }
+.cta-bar .price-lbl b { font-size: 20px; color: var(--navy); letter-spacing: -0.01em; }
+.cta-bar .btn { flex: 1; }
+
+/* Booking steps */
+.steps-top { display: flex; gap: 6px; padding: 0 20px 14px; }
+.steps-top span { flex: 1; height: 5px; border-radius: 4px; background: var(--line); }
+.steps-top span.on { background: var(--blue); }
+.target { display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 14px; }
+.target .b { flex: 1; min-width: 0; }
+.target .b b { display: block; font-size: 15px; }
+.target .b small { color: var(--muted); font-size: 12px; }
+.mini-map { height: 150px; border-radius: 20px; background: #E9F1FB; position: relative; overflow: hidden; margin-top: 10px; }
+.addr { display: flex; gap: 12px; align-items: center; padding: 14px; background: #fff; border: 1px solid var(--line); border-radius: 20px; margin-top: 10px; }
+.addr .ico { width: 42px; height: 42px; border-radius: 14px; background: var(--sky); color: var(--blue); display: grid; place-items: center; flex: none; }
+.addr .ico svg.i { width: 20px; height: 20px; }
+.addr div { flex: 1; font-size: 14px; }
+.addr small { display: block; color: var(--muted); font-size: 12px; }
+.date-strip { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 6px; scrollbar-width: none; }
+.date-strip::-webkit-scrollbar { display: none; }
+.date-chip { flex: none; width: 60px; border-radius: 16px; border: 1.5px solid var(--line); background: #fff; padding: 10px 0; text-align: center; cursor: pointer; font-family: var(--font); color: var(--ink); }
+.date-chip small { display: block; font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+.date-chip b { font-size: 18px; color: var(--navy); }
+.date-chip.on { border-color: var(--blue); background: var(--sky); }
+.sum-line { display: flex; justify-content: space-between; font-size: 14px; padding: 9px 0; color: #3E4B5E; }
+.sum-line.total { border-top: 1px dashed #C9D6E8; margin-top: 6px; padding-top: 14px; font-weight: 800; font-size: 17px; color: var(--navy); }
+.methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.method { border: 1.5px solid var(--line); border-radius: 16px; min-height: 64px; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: #fff; cursor: pointer; font-family: var(--font); color: var(--ink); padding: 8px 4px; }
+.method small { display: block; font-size: 10px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+.method.on { border-color: var(--blue); background: var(--sky); color: var(--navy); }
+.method svg.i { width: 20px; height: 20px; margin: 0 auto 4px; display: block; }
+
+/* Waiting */
+.wait { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; }
+.ring { width: 170px; height: 170px; position: relative; }
+.ring svg { width: 170px; height: 170px; transform: rotate(-90deg); }
+.ring .track { fill: none; stroke: #E1EAF6; stroke-width: 10; }
+.ring .arc { fill: none; stroke: var(--blue); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 452; stroke-dashoffset: 452; animation: arc 3s linear forwards; }
+@keyframes arc { to { stroke-dashoffset: 0; } }
+.ring .center { position: absolute; inset: 0; display: grid; place-items: center; }
+.ring .center b { font-size: 30px; color: var(--navy); }
+.ring .center small { display: block; font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* Tracking */
+.map { height: 290px; position: relative; overflow: hidden; background: #E9F1FB; }
+.map svg.base { position: absolute; inset: 0; width: 100%; height: 100%; }
+.map .route { stroke: var(--blue); stroke-width: 4; fill: none; stroke-dasharray: 2 10; stroke-linecap: round; }
+.map .mover { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: #fff; box-shadow: 0 6px 16px rgba(13,43,94,0.3); display: grid; place-items: center; color: var(--blue); animation: move 6s ease-in-out infinite alternate; }
+.map .mover svg.i { width: 20px; height: 20px; }
+@keyframes move { from { left: 22%; top: 70%; } to { left: 68%; top: 34%; } }
+.map .pin { position: absolute; left: 68%; top: 34%; transform: translate(-50%, -100%); color: var(--danger); }
+.map .pin svg.i { width: 30px; height: 30px; fill: var(--danger); stroke: #fff; stroke-width: 1.5; }
+.eta { position: absolute; left: 16px; right: 16px; bottom: 14px; background: #fff; border-radius: 20px; padding: 14px 16px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px; }
+.eta .big { font-size: 22px; font-weight: 800; color: var(--navy); }
+.eta small { color: var(--muted); font-size: 12px; display: block; font-weight: 600; }
+.timeline { margin-top: 4px; }
+.tl { display: flex; gap: 14px; position: relative; padding-bottom: 18px; }
+.tl:last-child { padding-bottom: 0; }
+.tl::before { content: ""; position: absolute; left: 11px; top: 24px; bottom: 0; width: 2px; background: var(--line); }
+.tl:last-child::before { display: none; }
+.tl.done::before { background: var(--teal); }
+.tl .dotc { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #C9D6E8; background: #fff; display: grid; place-items: center; flex: none; position: relative; z-index: 1; color: #fff; }
+.tl .dotc svg.i { width: 13px; height: 13px; stroke-width: 3; }
+.tl.done .dotc { background: var(--teal); border-color: var(--teal); }
+.tl.now .dotc { border-color: var(--blue); box-shadow: 0 0 0 5px var(--sky); }
+.tl.now .dotc::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+.tl b { font-size: 14px; display: block; }
+.tl small { color: var(--muted); font-size: 12px; }
+.tl.todo b { color: #8A97AA; }
+
+/* Visit record */
+.vitals { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.vital { background: #F5F9FE; border-radius: 16px; padding: 12px; }
+.vital small { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.vital b { display: block; font-size: 20px; color: var(--navy); margin-top: 4px; }
+.vital b span { font-size: 12px; color: var(--muted); font-weight: 600; margin-left: 2px; }
+.plan li { font-size: 14px; color: #3E4B5E; margin-bottom: 8px; line-height: 1.5; }
+.rx { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.rx:last-of-type { border-bottom: 0; }
+.rx .ico { width: 40px; height: 40px; border-radius: 13px; background: #EEF8F6; color: var(--teal-deep); display: grid; place-items: center; flex: none; }
+.rx div { flex: 1; }
+.rx small { display: block; color: var(--muted); font-size: 12px; }
+.stars-pick { display: flex; gap: 6px; }
+.stars-pick button { border: 0; background: none; padding: 2px; cursor: pointer; }
+.stars-pick svg.i { width: 32px; height: 32px; stroke: #F5A623; fill: #E4E9F1; }
+.stars-pick button.on svg.i { fill: #F5A623; }
+.ref-card { background: linear-gradient(135deg, #F3F0FF, #EEF5FF); border: 1px solid #DCD5F5; border-radius: 22px; padding: 16px; }
+
+/* Bottom sheet */
+.sheet-wrap { position: absolute; inset: 0; background: rgba(10,20,36,0.42); display: none; align-items: flex-end; z-index: 40; }
+.sheet-wrap.open { display: flex; }
+.sheet { background: #fff; width: 100%; max-height: 72%; border-radius: 30px 30px 0 0; padding: 12px 22px 30px; overflow: auto; }
+.sheet .grab { width: 44px; height: 5px; border-radius: 3px; background: #D5DDEA; margin: 0 auto 16px; }
+.sheet h3 { font-size: 18px; margin-bottom: 10px; }
+.sheet p { font-size: 14px; color: #3E4B5E; line-height: 1.6; margin-bottom: 12px; }
+
+/* Toast */
+.toast { position: absolute; left: 20px; right: 20px; bottom: 110px; background: var(--navy); color: #fff; padding: 13px 16px; border-radius: 16px; font-size: 13px; font-weight: 700; opacity: 0; transform: translateY(8px); transition: 0.2s; pointer-events: none; z-index: 50; box-shadow: var(--shadow); }
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* Index sidebar and notes flags */
+.empty-line { color: var(--muted); font-size: 14px; padding: 18px 0; text-align: center; }
+
+.next-card .btn-white, .next-card .btn-glass { border: 0; cursor: pointer; font-weight: 700; border-radius: 999px; }
+
+</style>
+</head>
+<body>
+
+<!-- Icon set: one stroke style, reused everywhere -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4M16 3v4M4 11h16"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z"/></symbol>
+  <symbol id="i-pill" viewBox="0 0 24 24"><path d="M10.5 3.5a5 5 0 017 7l-7 7a5 5 0 01-7-7z"/><path d="M8 8l8 8"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V8l8-4 8 4v13"/><path d="M9 21v-6h6v6"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-11a6 6 0 0112 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0112 0v5l2 2H4z"/><path d="M10 20a2 2 0 004 0"/></symbol>
+  <symbol id="i-chevL" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-chevR" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 006 6L16 14l5 2v4a1 1 0 01-1 1A16 16 0 014 5a1 1 0 011-1z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
+  <symbol id="i-thermo" viewBox="0 0 24 24"><path d="M14 14V5a2 2 0 00-4 0v9a4 4 0 104 0z"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></symbol>
+  <symbol id="i-steth" viewBox="0 0 24 24"><path d="M6 3v6a6 6 0 0012 0V3"/><path d="M12 15v2a4 4 0 008 0v-1"/><circle cx="20" cy="14" r="2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2.4 17.5A2 2 0 004.1 20h15.8a2 2 0 001.7-2.5L13.7 3.9a2 2 0 00-3.4 0z"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M3 13l2-5h14l2 5v4H3z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M7 20h10M5 8h14M5 8l-2 6a3 3 0 006 0L7 8M19 8l-2 6a3 3 0 006 0l-2-6"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/></symbol>
+</svg>
+
+<div class="studio">
+
+  <!-- LEFT: screen index -->
+  <aside class="index">
+    <div class="idx-brand"><span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.4;stroke-linecap:round"><path d="M12 5v14M5 12h14"/></svg></span>Street<span class="doc">DocMD</span></span></div>
+    <div class="xs muted" style="padding:0 8px 4px">Patient app · light theme · 390px</div>
+    <div id="index"></div>
+  </aside>
+
+  <!-- CENTRE: device -->
+  <main class="stage">
+    <div class="device">
+      <div class="screen" id="app"></div>
+    </div>
+  </main>
+
+  <!-- RIGHT: design notes -->
+  <aside class="notes">
+    <div class="xs muted" id="note-screen"></div>
+    <h3 id="note-title"></h3>
+    <div class="tag-row" id="note-tags"></div>
+    <div class="note-block"><h4>Why it works</h4><p id="note-body"></p></div>
+    <div class="note-block"><h4>Decisions</h4><ul id="note-list"></ul></div>
+    <div class="note-block"><h4>Keep in mind</h4><p class="muted small">Sample names, prices and medical details are placeholders. Replace them with live data before testing with users.</p></div>
+  </aside>
+
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+const ic = (n, c = '', st = '') => `<svg class="i ${c}" style="${st}"><use href="#i-${n}"/></svg>`;
+const ngn = n => '₦' + n.toLocaleString('en-NG');
+const ver = r => `<span class="verified-line">${ic('shield')} ${r} verified</span>`;
+const star = r => `<span class="rating">${ic('star', 'star')} ${r.toFixed(1)}</span>`;
+const MAP_BG = `<svg class="base" viewBox="0 0 400 290" preserveAspectRatio="none">
+  <rect width="400" height="290" fill="#E9F1FB"/>
+  <rect x="30" y="24" width="90" height="62" rx="10" fill="#D5E6F8"/>
+  <rect x="262" y="164" width="108" height="74" rx="10" fill="#D5E6F8"/>
+  <rect x="196" y="30" width="64" height="48" rx="10" fill="#DDEEDF"/>
+  <path d="M0 128 H400" stroke="#FFFFFF" stroke-width="16"/>
+  <path d="M168 0 V290" stroke="#FFFFFF" stroke-width="14"/>
+  <path d="M0 236 Q120 206 200 244 T400 214" stroke="#FFFFFF" stroke-width="10" fill="none"/>
+  <path class="route" d="M92 204 C135 150 196 180 272 98"/>
+</svg>`;
+
+const PROVIDERS = [
+  { id: 'p1', type: 'doctor', name: 'Dr. Adaeze Okonkwo', role: 'General practice', reg: 'MDCN', years: 9, rating: 4.9, reviews: 212, price: 12000, area: 'Ikeja', dist: '3.4 km', now: true, tint: '#CFE3FF', ini: 'AO', bio: 'Adaeze is a general practitioner with nine years of experience in family medicine, minor procedures and chronic disease reviews. She sees patients across Ikeja and Maryland and prefers a calm, unhurried home visit.', lang: 'English, Yoruba' },
+  { id: 'p2', type: 'doctor', name: 'Dr. Emeka Bankole', role: 'Paediatrics', reg: 'MDCN', years: 14, rating: 4.8, reviews: 340, price: 15000, area: 'Surulere', dist: '6.1 km', now: false, next: 'Free in 40 min', tint: '#CBF3EC', ini: 'EB', bio: 'Emeka cares for children from newborn to adolescence, with a focus on fevers, vaccinations and growth reviews at home.', lang: 'English' },
+  { id: 'p3', type: 'nurse', name: 'Tunde Bello', role: 'Wound care nursing', reg: 'NMCN', years: 6, rating: 4.7, reviews: 96, price: 8500, area: 'Ikeja', dist: '2.2 km', now: true, tint: '#E5DDFB', ini: 'TB', bio: 'Tunde specialises in dressings, post surgical wound checks and pressure care for patients recovering at home.', lang: 'English, Pidgin' },
+  { id: 'p4', type: 'physio', name: 'Kemi Ojo', role: 'Physiotherapy assessment', reg: 'MRTB', years: 7, rating: 4.8, reviews: 158, price: 10000, area: 'Ibadan North', dist: '4.8 km', now: false, next: 'Tomorrow, 9:00 am', tint: '#FFE6C9', ini: 'KO', bio: 'Kemi assesses mobility after surgery, stroke and injury, then plans home exercises and follow up sessions.', lang: 'English, Yoruba' },
+  { id: 'p5', type: 'doctor', name: 'Dr. Ifeoma Nwosu', role: 'Internal medicine', reg: 'MDCN', years: 11, rating: 4.9, reviews: 402, price: 18000, area: 'Lekki', dist: '12 km', now: false, next: 'Today, 4:30 pm', tint: '#D6EEFF', ini: 'IN', bio: 'Ifeoma manages blood pressure, diabetes and long term conditions, with thorough home reviews and clear written plans.', lang: 'English' }
+];
+const FACS = [
+  { id: 'f1', type: 'pharmacy', name: 'Lagoon Pharmacy Ikeja', reg: 'PCN', rating: 4.6, reviews: 88, area: 'Ikeja', dist: '1.9 km', hours: 'Open until 10 pm', tint: '#FFF1C9', ini: 'LP', delivery: 'Delivery in about 45 min' },
+  { id: 'f2', type: 'lab', name: 'Mainstay Diagnostics', reg: 'MLSCN', rating: 4.8, reviews: 310, area: 'Bodija, Ibadan', dist: '5 km', hours: 'Open 7 am to 7 pm', tint: '#D8F5EE', ini: 'MD', delivery: 'Home sample collection' },
+  { id: 'f3', type: 'hospital', name: 'Oyo Central Medical Centre', reg: 'Oyo State Ministry of Health', rating: 4.5, reviews: 120, area: 'Ring Road, Ibadan', dist: '7 km', hours: 'Open 24 hours', tint: '#FFE1E6', ini: 'OC', delivery: 'Referrals and specialist clinics' }
+];
+const TYPE_LABEL = { doctor: 'Doctor', nurse: 'Nurse', physio: 'Physiotherapist', pharmacy: 'Pharmacy', lab: 'Diagnostic lab', hospital: 'Hospital' };
+const DRUGS = [
+  { n: 'Amoxicillin 500mg', d: '21 capsules', p: 2400, s: 'in' },
+  { n: 'Paracetamol 500mg', d: '20 tablets', p: 600, s: 'in' },
+  { n: 'Metformin 500mg', d: '30 tablets', p: 1800, s: 'low', left: 3 },
+  { n: 'Salbutamol inhaler 100mcg', d: '1 inhaler', p: 3200, s: 'out' },
+  { n: 'Oral rehydration salts', d: '1 sachet', p: 500, s: 'in' },
+  { n: 'Amlodipine 5mg', d: '28 tablets', p: 2100, s: 'in' },
+  { n: 'Artemether and lumefantrine', d: '6 tablets', p: 3500, s: 'out' }
+];
+const TESTS = [
+  { n: 'Full blood count', p: 6500, t: 'Same day', tag: 'Most booked' },
+  { n: 'Malaria parasite test', p: 2500, t: 'Within 2 hours' },
+  { n: 'Lipid profile', p: 12000, t: 'Within 24 hours' },
+  { n: 'HbA1c (diabetes check)', p: 9000, t: 'Within 24 hours' },
+  { n: 'Liver function test', p: 11000, t: 'Within 48 hours' },
+  { n: 'Urinalysis', p: 3000, t: 'Same day' }
+];
+const TIMES = ['8:30 am', '10:00 am', '11:30 am', '1:00 pm', '2:30 pm', '4:00 pm'];
+const BOOKED = [29, 31], FULL = [30], TODAY = 27;
+
+/* ---------- State ---------- */
+let S = { cur: 'splash', p: {}, stack: [], slide: 0, seg: 'providers', filter: 'all', q: '', day: 28, time: null, tab: 'upcoming', rate: 0, legal: { terms: false, privacy: false }, sheet: null, splashT: null, waitT: null, last: '' };
+let B = { name: 'Dr. Adaeze Okonkwo', sub: 'General practice · Ikeja', price: 12000, kind: 'visit', pid: 'p1', forWho: 'Me', when: 'Now', date: 27, time: null, terms: false, privacy: false, method: 'Card' };
+
+/* ---------- Navigation ---------- */
+function go(name, p = {}) { S.stack.push({ cur: S.cur, p: S.p }); S.cur = name; S.p = p; S.sheet = null; render(); }
+function back() { const pr = S.stack.pop(); if (pr) { S.cur = pr.cur; S.p = pr.p; } else { S.cur = 'home'; S.p = {}; } S.sheet = null; render(); }
+function swap(name, p = {}) { S.cur = name; S.p = p; S.stack = []; S.sheet = null; render(); }
+function toast(msg) { const t = document.getElementById('toast'); if (!t) return; t.textContent = msg; t.classList.add('show'); clearTimeout(window._tt); window._tt = setTimeout(() => t.classList.remove('show'), 1800); }
+function openLegal(k) {
+  const terms = { t: 'Patient Terms of Service', b: '<p>The full Patient Terms will appear here once approved by our legal team. They explain how StreetdocMD connects you with independent licensed professionals, how bookings and payments work, and your responsibilities during a visit.</p><p>Read the full text before you pay. You can request a copy at any time at contact@streetdocmd.com.</p>' };
+  const privacy = { t: 'Privacy Policy', b: '<p>The full Privacy Policy will appear here. It explains what we collect, why we collect it, and how you control who sees your records.</p><p>Hospitals only see your first name and age until they acknowledge a referral. You choose who can see your records.</p>' };
+  S.sheet = k === 'terms' ? terms : privacy; render();
+}
+function closeSheet() { S.sheet = null; render(); }
+
+/* ---------- Render shell ---------- */
+const TABS = ['home', 'search', 'visits', 'care', 'profile'];
+const TAB_DEF = [['home', 'Home', 'home'], ['search', 'Search', 'search'], ['visits', 'Visits', 'calendar'], ['care', 'Care', 'heart'], ['profile', 'Profile', 'user']];
+function tabbarHTML() {
+  return `<nav class="tabbar">${TAB_DEF.map(([k, l, i]) => `<button class="tab ${S.cur === k ? 'on' : ''}" onclick="swap('${k}')">${ic(i)}${l}</button>`).join('')}</nav>`;
+}
+function splashHTML() {
+  return `<div class="splash"><div class="cable-wrap"></div><div class="logo-big"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div><div class="wm">Street<span>DocMD</span></div><div class="tagline">Healthcare at your convenience</div><div class="loader"><span></span></div></div>`;
+}
+function V(html, bar = '') { return { html, bar }; }
+function render() {
+  const app = document.getElementById('app');
+  const old = document.getElementById('view');
+  const keep = old && S.last === S.cur ? old.scrollTop : 0;
+  S.last = S.cur;
+  if (S.cur === 'splash') {
+    app.innerHTML = splashHTML() + `<div class="toast" id="toast"></div>`;
+    if (!S.splashT) S.splashT = setTimeout(() => { S.splashT = null; if (S.cur === 'splash') swap('onboard'); }, 2600);
+  } else {
+    const fn = VIEWS[S.cur] || (() => V('<div class="empty-line">Screen not found</div>'));
+    const v = fn();
+    app.innerHTML = `
+      <div class="statusbar"><span>9:41</span><span>4G ▮▮▮</span></div>
+      <div class="view" id="view">${v.html}</div>
+      ${v.bar || ''}
+      ${TABS.includes(S.cur) ? tabbarHTML() : ''}
+      <div class="sheet-wrap ${S.sheet ? 'open' : ''}" id="sheet" onclick="closeSheet()">${S.sheet ? `<div class="sheet" onclick="event.stopPropagation()"><div class="grab"></div><h3>${S.sheet.t}</h3>${S.sheet.b}<button class="btn btn-primary btn-block" onclick="closeSheet()" style="margin-top:6px">Close</button></div>` : ''}</div>
+      <div class="toast" id="toast"></div>`;
+    const nv = document.getElementById('view');
+    if (nv) nv.scrollTop = keep;
+  }
+  if (S.cur === 'waiting' && !S.waitT) S.waitT = setTimeout(() => { S.waitT = null; if (S.cur === 'waiting') swap('track', { mode: 'live' }); }, 3200);
+  if (S.cur !== 'waiting' && S.waitT) { clearTimeout(S.waitT); S.waitT = null; }
+  updateNotes();
+  buildIndex();
+}
+
+/* ---------- Index and notes ---------- */
+const GROUPS = [
+  { name: 'Start', items: [['splash', 'Splash', {}], ['onboard', 'Onboarding', {}], ['signup', 'Sign up', {}], ['medprofile', 'Medical profile', {}]] },
+  { name: 'Home and search', items: [['home', 'Home', {}], ['search', 'Search', {}], ['provider', 'Provider profile', { id: 'p1' }], ['facility', 'Pharmacy profile', { id: 'f1' }], ['facility', 'Lab profile', { id: 'f2' }], ['facility', 'Hospital profile', { id: 'f3' }]] },
+  { name: 'Booking and visit', items: [['booking-who', 'Who, when, where', {}], ['booking-pay', 'Review and pay', {}], ['waiting', 'Waiting for accept', {}], ['track', 'Live tracking', { mode: 'live' }], ['track', 'Scheduled visit', { mode: 'scheduled' }], ['visit', 'Visit record', {}]] },
+  { name: 'Account and care', items: [['visits', 'Visits', {}], ['care', 'Care', {}], ['profile', 'Profile', {}], ['family', 'Family members', {}]] }
+];
+function buildIndex() {
+  const idx = document.getElementById('index');
+  idx.innerHTML = GROUPS.map(g => `<div class="idx-group">${g.name}</div>` + g.items.map(([n, l, p]) => {
+    const on = S.cur === n && (n !== 'facility' && n !== 'provider' ? true : S.p.id === p.id) && (n !== 'track' || S.p.mode === p.mode || (p.mode === 'live' && S.p.mode !== 'scheduled'));
+    return `<button class="idx-btn ${on ? 'on' : ''}" onclick='swap("${n}",${JSON.stringify(p)})'>${l}</button>`;
+  }).join('')).join('');
+}
+const NOTES = {
+  splash: { t: 'Splash', tags: ['Brand moment', 'Auto advances'], body: 'The swinging stethoscope cable from the wordmark becomes the one brand motion in the app. It holds for about 2.6 seconds, then moves to onboarding. Returning users can skip it on later launches.', list: ['Uses the navy and blue trust palette from the brand.', 'Reads as a calm welcome, not a loading screen.', 'Respect reduced motion settings in the production build.'] },
+  onboard: { t: 'Onboarding', tags: ['Three promises', 'Skip always visible'], body: 'Each slide answers one reason a stranger is allowed into someone’s home: the visit, the verification, and the price. The account is only requested after the value is clear.', list: ['Skip is always visible, so returning users are not held up.', 'Dots show progress and the last button changes to Get started.', 'No personal data is asked for on these slides.'] },
+  signup: { t: 'Sign up', tags: ['Legal checkboxes unchecked', 'Read opens in a sheet'], body: 'The two legal checkboxes start unchecked and stay separate, as required. Create account stays disabled until both are ticked. Each Read link opens the full text in a sheet so people never lose their place.', list: ['Patient Terms and Privacy Policy only. Provider and facility agreements sit in their own apps.', 'Phone number comes first, because it is how a provider confirms the visit.', 'Sign in is one tap away for returning users.'] },
+  medprofile: { t: 'Medical profile', tags: ['Skippable', 'Chips, not typing'], body: 'Asked straight after sign up and never blocking. Allergies and conditions matter for safe care, so the prompt says why in plain words. Tapping chips is faster than typing on a phone.', list: ['Allergies and conditions are shown to the provider before the visit.', 'Emergency contact is a safety feature, not a marketing field.', 'Skip returns home with a gentle nudge later, not a blocking screen.'] },
+  home: { t: 'Home', tags: ['Next visit first', 'Retention layer'], body: 'Home answers one question first: what is happening with my care. The next visit leads, then unfinished work, then services. Book again, refill reminders and the profile nudge bring people back without noise.', list: ['Continue where you left off returns people to unfinished orders.', 'Book again on past providers shortens the path to a repeat visit.', 'Refill reminders turn medication needs into a reason to return.', 'Coming soon items are visible but disabled, which sets expectations.'] },
+  search: { t: 'Search', tags: ['Providers and facilities', 'Live filtering'], body: 'One search for everyone. Individuals and facilities share a single results view, split by a segmented control. Filter chips change with the segment, so the choices always make sense.', list: ['Each result shows the verified regulator, rating, distance and price before the tap.', 'Availability uses plain words: available now, or free at a given time.', 'Typing filters the list live without reloading the screen.'] },
+  'provider': { t: 'Provider profile', tags: ['Calendar schedule', 'Price in sticky bar'], body: 'The schedule is a month calendar. Green days are open, red days are partly booked and grey days are fully booked. Patients see that a slot is taken, never who booked it, which protects both sides.', list: ['The price stays in the sticky bar, so it is visible at any scroll point.', 'The verified badge and years of experience sit directly under the name.', 'Reviews and bio come after the schedule, because the time is the deciding factor.'] },
+  'facility-pharmacy': { t: 'Pharmacy profile', tags: ['Stock list', 'Text and colour together'], body: 'Medicines are a stock list. Each item says in stock, low with the count left, or out of stock. Out of stock items cannot be added, which saves a failed order later.', list: ['Search filters the list as the patient types.', 'Low stock is a warning, so people order before they run out.', 'Delivery time sits in the header, not hidden until checkout.'] },
+  'facility-lab': { t: 'Lab profile', tags: ['Tests on offer', 'Home sample collection'], body: 'Tests are listed with price and turnaround time, the two things a patient needs to decide. Home sample collection is named at the top, with the privacy note that explains what the lab sees.', list: ['The most booked test is tagged to help first time patients choose.', 'Each test has its own Book button, so the flow starts at the right test.', 'Results arrive in the app and are linked from the Care tab.'] },
+  'facility-hospital': { t: 'Hospital profile', tags: ['Live capacity', 'Privacy first'], body: 'Hospitals show capacity in plain words: beds free, or fully booked. Referral details stay private until the hospital acknowledges the referral, so patients know exactly what is shared.', list: ['Capacity uses the warning and danger pills, so status is never colour alone.', 'The referral card states exactly what the hospital receives.', 'Emergency guidance appears wherever booking starts.'] },
+  'booking-who': { t: 'Who, when, where', tags: ['Three choices', 'Emergency notice'], body: 'Three decisions on one screen: who the visit is for, when, and where. The target card stays at the top so the patient always knows what they are booking and what it costs.', list: ['Who is it for is a segmented control, because that is the most common switch.', 'Schedule reveals dates and times only when chosen, which keeps Now simple.', 'The emergency notice appears here, where booking starts.'] },
+  'booking-pay': { t: 'Review and pay', tags: ['Price before commitment', 'Paystack'], body: 'The total breaks down into fee and service charge, and payment methods sit under Paystack. Pay stays disabled until both legal boxes are ticked, and the button always shows the amount.', list: ['Legal boxes start unchecked and are never ticked by default.', 'Each Read link opens the full text without leaving the booking.', 'The total is repeated on the button, so it is the last thing read.'] },
+  waiting: { t: 'Waiting for accept', tags: ['Two minute window', 'Calm state'], body: 'A calm wait. The ring shows the acceptance window in brand blue, not alarm red. If the provider declines, the next step offers the nearest available provider, so the patient is never stuck.', list: ['The wording says what happens next in both outcomes.', 'The prototype moves to tracking after 3 seconds to show the handover.', 'Cancel is always available and never buried.'] },
+  track: { t: 'Live tracking', tags: ['Timeline is the status', 'One tap to call'], body: 'Live tracking shows the provider moving toward the address, a clear ETA and status steps in plain language. The timeline carries the meaning, so the map is support, not the only signal. Scheduled visits show a date card instead.', list: ['Each step says what it means in full, such as Heading to Ikeja, 3.4 km.', 'Calling the provider is one tap from the card.', 'Share my location lets family follow the visit without calling.'] },
+  visit: { t: 'Visit record', tags: ['Document, not a receipt', 'One next action each'], body: 'The visit record turns a consultation into a usable document: vitals, plan, prescriptions, lab orders, referral and rating. Each section ends with one clear next action, so the screen never becomes a dead end.', list: ['Send to pharmacy and home sample collection link to partners directly.', 'The referral card states what the hospital receives.', 'Rating and follow up come last, when the patient is ready to decide.'] },
+  visits: { t: 'Visits', tags: ['Upcoming and past', 'Book again'], body: 'Upcoming shows the next action, either track or reschedule. Past shows Book again, which is the strongest retention action in the product, because it turns one good visit into a relationship with a provider.', list: ['Each card shows the provider photo, so people recognise who is coming.', 'Past visits lead to the record, which is the proof of care.', 'Empty states guide a first visit instead of showing a blank list.'] },
+  care: { t: 'Care', tags: ['Long term view', 'Coming soon badges'], body: 'Care is the long term view: journey progress, results, medications and refills. Features not yet live appear as disabled items with a badge, so people know what is coming without being blocked.', list: ['Results are labelled Ready, Pending or Processing, with text and colour.', 'Refill buttons send people to a pharmacy with the medicine already chosen.', 'Coming soon items use the dashed style so they read as previews.'] },
+  profile: { t: 'Profile', tags: ['Medical details', 'Legal and support'], body: 'Profile holds the medical details that make a visit safe, plus family, legal and support. Legal links and the support email are always one tap away, which builds trust with a first time user.', list: ['Allergies and conditions are shown first, because providers need them first.', 'Support is email only, as the brief requires, with a clear reply promise.', 'Socials sit at the bottom, not in the way of the primary tasks.'] },
+  family: { t: 'Family members', tags: ['Book for someone else'], body: 'Family members are first class. Booking for Mama or a child is one of the most common uses, so people add someone once and choose them at booking. Each member keeps their own medical profile.', list: ['Each member has a name, relationship and age, and nothing else by default.', 'Booking asks who it is for in one tap.', 'Adding someone is a short form, not a setup wizard.'] }
+};
+function updateNotes() {
+  let key = S.cur;
+  if (S.cur === 'facility') key = 'facility-' + FACS.find(f => f.id === S.p.id).type;
+  const n = NOTES[key] || { t: S.cur, tags: [], body: '', list: [] };
+  document.getElementById('note-screen').textContent = 'Screen: ' + S.cur + (S.p.id ? ' · ' + S.p.id : '');
+  document.getElementById('note-title').textContent = n.t;
+  document.getElementById('note-tags').innerHTML = n.tags.map(t => `<span class="pill info">${t}</span>`).join('');
+  document.getElementById('note-body').textContent = n.body;
+  document.getElementById('note-list').innerHTML = n.list.map(x => `<li>${x}</li>`).join('');
+}
+
+/* ---------- Shared pieces ---------- */
+const stockPill = d => d.s === 'in' ? `<span class="pill ok">${ic('check')} In stock</span>` : d.s === 'low' ? `<span class="pill warn">${ic('alert')} Low, ${d.left} left</span>` : `<span class="pill bad">${ic('x')} Out of stock</span>`;
+const availPill = p => p.now ? `<span class="pill ok">${ic('clock')} Available now</span>` : `<span class="pill idle">${ic('clock')} ${p.next}</span>`;
+const avatar = (ini, tint, cls = '') => `<div class="av ${cls}" style="background:${tint}">${ini}</div>`;
+function topbar(title, right = '') {
+  return `<div class="topbar"><button class="iconbtn" onclick="back()" aria-label="Back">${ic('chevL')}</button><h2>${title}</h2>${right || '<span style="width:42px"></span>'}</div>`;
+}
+
+/* ---------- Views: entry ---------- */
+const SLIDES = [
+  { t: 'A doctor at your door', b: 'Book verified doctors, nurses and physiotherapists who come to your home in Ibadan and Lagos.', icon: 'home', float: [['steth', 'left:22px;top:52px'], ['calendar', 'right:22px;top:76px'], ['pulse', 'left:50%;bottom:30px;transform:translateX(-50%)']] },
+  { t: 'Verified before every visit', b: 'Each provider is checked with their licensing body before they can take your booking.', icon: 'shield', float: [['check', 'left:24px;top:70px'], ['lock', 'right:26px;top:52px'], ['doc', 'left:50%;bottom:32px;transform:translateX(-50%)']] },
+  { t: 'See the price before you pay', b: 'Providers set their own fees. You see the full breakdown before any payment.', icon: 'card', float: [['scale', 'left:24px;top:60px'], ['bank', 'right:24px;top:74px'], ['wallet', 'left:50%;bottom:30px;transform:translateX(-50%)']] }
+];
+function nextSlide() { if (S.slide < 2) { S.slide++; render(); } else swap('signup'); }
+function setSlide(i) { S.slide = i; render(); }
+function vOnboard() {
+  const sl = SLIDES[S.slide];
+  const floats = sl.float.map(([n, pos]) => `<div class="float" style="width:70px;height:70px;${pos}">${ic(n)}</div>`).join('');
+  return V(`<div class="onb">
+    <div class="row between" style="padding-top:8px"><span class="xs muted" style="font-weight:700">${S.slide + 1} of 3</span><button class="link" onclick="swap('signup')">Skip</button></div>
+    <div class="onb-art"><div class="onb-stage">
+      <div style="position:absolute;inset:0;display:grid;place-items:center"><div style="width:124px;height:124px;border-radius:38px;background:#fff;display:grid;place-items:center;color:var(--blue);box-shadow:var(--shadow)">${ic(sl.icon, '', 'width:56px;height:56px')}</div></div>
+      ${floats}
+    </div></div>
+    <h1>${sl.t}</h1>
+    <p class="body">${sl.b}</p>
+    <div class="dots">${[0, 1, 2].map(i => `<span class="${i === S.slide ? 'on' : ''}"></span>`).join('')}</div>
+    <button class="btn btn-primary btn-block" onclick="nextSlide()">${S.slide === 2 ? 'Get started' : 'Next'}</button>
+    <p class="small muted" style="text-align:center;margin-top:12px">Already have an account? <button class="link" onclick="toast('Sign in screen opens here')">Sign in</button></p>
+  </div>`);
+}
+function vSignup() {
+  const ready = S.legal.terms && S.legal.privacy;
+  return V(`${topbar('Create account')}
+    <div class="pad">
+      <h1 style="font-size:24px;letter-spacing:-0.02em">Let’s get you set up</h1>
+      <p class="small muted" style="margin:6px 0 20px">Takes less than a minute. Your phone number confirms every visit.</p>
+      <div class="field-wrap"><label class="field-label">Full name</label><input class="inp" placeholder="e.g. Ade Olatunji"></div>
+      <div class="field-wrap"><label class="field-label">Phone number</label><input class="inp" placeholder="+234 800 000 0000"></div>
+      <div class="field-wrap"><label class="field-label">Email</label><input class="inp" placeholder="you@example.com" type="email"></div>
+      <div class="field-wrap"><label class="field-label">Password</label><input class="inp" type="password" placeholder="At least 8 characters"></div>
+      <div style="margin-top:10px">
+        <label class="legal-row"><input type="checkbox" ${S.legal.terms ? 'checked' : ''} onchange="S.legal.terms=this.checked;render()"><span>I agree to the Patient Terms of Service <button class="link read" onclick="openLegal('terms')">Read</button></span></label>
+        <label class="legal-row"><input type="checkbox" ${S.legal.privacy ? 'checked' : ''} onchange="S.legal.privacy=this.checked;render()"><span>I acknowledge the Privacy Policy <button class="link read" onclick="openLegal('privacy')">Read</button></span></label>
+      </div>
+      <button class="btn btn-primary btn-block" style="margin-top:18px" ${ready ? '' : 'disabled'} onclick="swap('medprofile')">Create account</button>
+    </div>`);
+}
+function vMedProfile() {
+  return V(`
+    <div class="topbar"><span style="width:42px"></span><h2>Step 1 of 2</h2><button class="link" onclick="swap('home')">Skip</button></div>
+    <div class="steps-top"><span class="on"></span><span></span></div>
+    <div class="pad">
+      <h1 style="font-size:24px;letter-spacing:-0.02em">Make every visit safer</h1>
+      <p class="small muted" style="margin:6px 0 20px">Providers read this before they arrive. You can change it at any time.</p>
+      <div class="field-wrap"><label class="field-label">Date of birth</label><input class="inp" type="date" value="1991-06-14"></div>
+      <div class="field-wrap"><label class="field-label">Allergies</label>
+        <div class="chips" style="padding:0;flex-wrap:wrap;overflow:visible">${['None', 'Penicillin', 'Sulfa drugs', 'Latex', 'Nuts', 'Other'].map((c, i) => `<button class="chip multi ${i === 1 ? 'on' : ''}" onclick="this.classList.toggle('on')">${c}</button>`).join('')}</div>
+      </div>
+      <div class="field-wrap"><label class="field-label">Long term conditions</label>
+        <div class="chips" style="padding:0;flex-wrap:wrap;overflow:visible">${['None', 'Diabetes', 'Hypertension', 'Asthma', 'Heart condition', 'Pregnancy'].map((c, i) => `<button class="chip multi ${i === 2 ? 'on' : ''}" onclick="this.classList.toggle('on')">${c}</button>`).join('')}</div>
+      </div>
+      <div class="field-wrap"><label class="field-label">Emergency contact</label><input class="inp" placeholder="Name and phone number"></div>
+      <button class="btn btn-primary btn-block" style="margin-top:8px" onclick="swap('home')">Save and continue</button>
+    </div>`);
+}
+
+/* ---------- Home and search ---------- */
+function vHome() {
+  const tiles = [
+    ['General consultation', 'A doctor visits to assess and advise', '#E3EFFF', 'steth', 'search', { seg: 'providers', filter: 'doctor' }],
+    ['Wellness and labs', 'Tests with sample collected at home', '#E2F7F1', 'flask', 'search', { seg: 'facilities', filter: 'lab' }],
+    ['Wound care', 'Dressings and monitoring by a nurse', '#FFEAEE', 'heart', 'search', { seg: 'providers', filter: 'nurse' }],
+    ['Elderly review', 'Regular checks for ageing parents', '#FFF1DB', 'user', 'search', { seg: 'providers', filter: 'nurse' }],
+    ['Physiotherapy', 'Assessment and follow up sessions', '#E4F6E8', 'pulse', 'search', { seg: 'providers', filter: 'physio' }],
+    ['Buy medication', 'Delivered from a partner pharmacy', '#FFF8D9', 'pill', 'search', { seg: 'facilities', filter: 'pharmacy' }]
+  ];
+  return V(`
+    <div class="hello" style="padding-top:8px"><small>Good morning</small><h1>Ade, how are you feeling?</h1></div>
+    <div class="pad" style="margin-bottom:16px"><div class="search" onclick="swap('search')">${ic('search')}<span style="font-size:15px">Search doctors, medicines, tests</span></div></div>
+
+    <div class="next-card" onclick="go('track',{mode:'scheduled'})">
+      <div class="row between" style="position:relative;z-index:1"><span class="pill pill-glass">Next visit</span><span style="font-size:13px;color:#CFE0F7;font-weight:600">Tomorrow, 9:00 am</span></div>
+      <h3>Dr. Adaeze Okonkwo</h3>
+      <div class="meta">General consultation · Home visit, Ikeja</div>
+      <div class="countdown"><div><b>18</b><small>Hours</small></div><div><b>42</b><small>Minutes</small></div></div>
+      <div class="row-btns"><button class="btn-white" onclick="event.stopPropagation();go('track',{mode:'scheduled'})">View details</button><button class="btn-glass" onclick="event.stopPropagation();toast('Reminder set for 8:00 am')">Remind me</button></div>
+    </div>
+
+    <div class="section pad">
+      <div class="resume" onclick="go('booking-who',{})">
+        <div class="av sm" style="background:#D8F5EE">${ic('flask')}</div>
+        <div style="flex:1"><b style="font-size:14px">Full blood count</b><div class="small muted">Mainstay Diagnostics · Step 2 of 3</div><div class="bar"><span></span></div></div>
+        ${ic('chevR', '', 'color:var(--muted)')}
+      </div>
+    </div>
+
+    <div class="section pad">
+      <div class="section-head"><h3>What do you need?</h3><button class="link" onclick="swap('search')">See all</button></div>
+      <div class="svc-grid">${tiles.map(([t, s, bg, icn, , p]) => `<button class="svc-tile" style="background:${bg}" onclick='go("search",${JSON.stringify(p)})'><span class="ico">${ic(icn)}</span><span><b>${t}</b><small>${s}</small></span></button>`).join('')}</div>
+      <p class="xs muted" style="margin-top:12px">Not for emergencies. In an emergency, call 112 or go to the nearest emergency room.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-head pad"><h3>Book again</h3><button class="link" onclick="swap('visits')">History</button></div>
+      <div class="h-scroll">
+        ${PROVIDERS.slice(0, 3).map(p => `<div class="mini-card">${avatar(p.ini, p.tint, 'sm')}<b>${p.name}</b><div class="muted">${p.role}</div><div class="row between" style="margin-top:12px">${star(p.rating)}<span class="price num" style="font-weight:800;color:var(--navy)">${ngn(p.price)}</span></div><button class="btn btn-soft btn-block" style="margin-top:12px" onclick="startBooking('p','${p.id}')">Book again</button></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="section pad">
+      <div class="reminder"><div class="ico">${ic('pill')}</div><div style="flex:1"><b>Metformin runs out in 4 days</b><br><small>Order a refill from a partner pharmacy.</small></div><button class="btn-soft" style="border:0;border-radius:12px;padding:0 12px;min-height:40px;font-weight:700;cursor:pointer" onclick="go('search',{seg:'facilities',filter:'pharmacy'})">Refill</button></div>
+    </div>
+
+    <div class="section pad">
+      <div class="progress-card">
+        <div class="ring-sm"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="21" fill="none" stroke="#E1EAF6" stroke-width="5"/><circle cx="26" cy="26" r="21" fill="none" stroke="#00B5A3" stroke-width="5" stroke-linecap="round" stroke-dasharray="132" stroke-dashoffset="53"/></svg><b>60%</b></div>
+        <div class="progress-track"><b style="font-size:14px">Finish your profile</b><div class="small muted">Add allergies and an emergency contact so providers arrive ready.</div></div>
+        <button class="link" onclick="go('medprofile')">Finish</button>
+      </div>
+    </div>
+
+    <div class="section pad">
+      <div class="section-head"><h3>Coming soon</h3></div>
+      <div style="display:grid;gap:10px">
+        ${[['video', 'Video consultation', 'Talk to a doctor from your phone'], ['doc', 'Care plans', 'Ongoing programmes for long term conditions']].map(([i, t, s]) => `<div class="soon"><div class="ico">${ic(i)}</div><div style="flex:1"><b>${t}</b><small>${s}</small></div><span class="badge-soon">Soon</span></div>`).join('')}
+      </div>
+    </div>`);
+}
+function vSearch() {
+  if (S.p.seg) { S.seg = S.p.seg; S.filter = S.p.filter || 'all'; S.p = {}; }
+  return V(`
+    <div class="topbar" style="padding-bottom:6px"><span style="width:42px"></span><h2>Find care</h2><span style="width:42px"></span></div>
+    <div class="pad">
+      <div class="search">${ic('search')}<input id="q" placeholder="Name, specialty, medicine or test" value="${S.q}" oninput="setQ(this.value)"></div>
+    </div>
+    <div style="padding:14px 20px 0"><div class="seg"><button class="${S.seg === 'providers' ? 'on' : ''}" onclick="setSeg('providers')">Individuals</button><button class="${S.seg === 'facilities' ? 'on' : ''}" onclick="setSeg('facilities')">Facilities</button></div></div>
+    <div id="chips" style="margin-top:14px">${chipsHTML()}</div>
+    <div class="pad" style="margin-top:12px"><p class="xs muted" style="margin-bottom:12px">${S.seg === 'providers' ? 'Verified doctors, nurses and physiotherapists who visit you.' : 'Pharmacies, labs and hospitals. Each shows what it stocks or offers.'}</p><div id="results">${resultsHTML()}</div></div>`);
+}
+function setSeg(v) { S.seg = v; S.filter = 'all'; render(); }
+function setQ(v) { S.q = v; document.getElementById('results').innerHTML = resultsHTML(); }
+function setFilter(f) { S.filter = f; document.getElementById('chips').innerHTML = chipsHTML(); document.getElementById('results').innerHTML = resultsHTML(); }
+function chipsHTML() {
+  const list = S.seg === 'providers' ? [['all', 'All'], ['doctor', 'Doctors'], ['nurse', 'Nurses'], ['physio', 'Physiotherapy']] : [['all', 'All'], ['pharmacy', 'Pharmacies'], ['lab', 'Labs'], ['hospital', 'Hospitals']];
+  return `<div class="chips">${list.map(([id, l]) => `<button class="chip ${S.filter === id ? 'on' : ''}" onclick="setFilter('${id}')">${l}</button>`).join('')}</div>`;
+}
+function resultsHTML() {
+  const q = S.q.trim().toLowerCase();
+  const src = S.seg === 'providers' ? PROVIDERS : FACS;
+  const list = src.filter(x => (S.filter === 'all' || x.type === S.filter) && (!q || (x.name + ' ' + (x.role || '') + ' ' + x.area + ' ' + x.type).toLowerCase().includes(q)));
+  if (!list.length) return `<div class="empty-line">Nothing matches that yet. Try another name, or clear the filter.</div>`;
+  return list.map(x => S.seg === 'providers' ? `
+    <button class="result" onclick="go('provider',{id:'${x.id}'})">
+      ${avatar(x.ini, x.tint)}
+      <div class="body">
+        <div class="name">${x.name}</div>
+        <div class="sub">${x.role} · ${x.area} · ${x.dist}</div>
+        <div class="row" style="gap:10px;margin-top:4px">${star(x.rating)}<span class="small muted">${x.reviews} reviews</span></div>
+        ${ver(x.reg)}
+        <div class="foot">${availPill(x)}<div class="price num">${ngn(x.price)}<small>Home visit</small></div></div>
+      </div>
+    </button>` : `
+    <button class="result" onclick="go('facility',{id:'${x.id}'})">
+      ${avatar(x.ini, x.tint)}
+      <div class="body">
+        <div class="name">${x.name}</div>
+        <div class="sub">${TYPE_LABEL[x.type]} · ${x.area} · ${x.dist}</div>
+        <div class="row" style="gap:10px;margin-top:4px">${star(x.rating)}<span class="small muted">${x.reviews} reviews</span></div>
+        ${ver(x.reg)}
+        <div class="foot"><span class="pill teal">${ic('truck')} ${x.delivery}</span></div>
+      </div>
+    </button>`).join('');
+}
+
+/* ---------- Provider profile ---------- */
+const BOOK_STATE = d => d < TODAY ? 'past' : FULL.includes(d) ? 'full' : BOOKED.includes(d) ? 'booked' : 'open';
+function calHTML() {
+  const first = new Date(2026, 9, 1).getDay();
+  const cells = [];
+  for (let i = 0; i < first; i++) cells.push('<span></span>');
+  for (let d = 1; d <= 31; d++) {
+    const st = BOOK_STATE(d);
+    const cls = [st, d === TODAY ? 'today' : '', d === S.day ? 'sel' : ''].join(' ');
+    cells.push(`<button class="cal-d ${cls}" ${st === 'past' ? 'disabled' : ''} onclick="pickDay(${d})">${d}</button>`);
+  }
+  return `<div class="card">
+    <div class="cal-top"><b>October 2026</b><div class="row" style="gap:6px"><button class="iconbtn" style="width:34px;height:34px;border-radius:12px" disabled>${ic('chevL', '', 'width:16px;height:16px')}</button><button class="iconbtn" style="width:34px;height:34px;border-radius:12px" onclick="toast('Next month loads here')">${ic('chevR', '', 'width:16px;height:16px')}</button></div></div>
+    <div class="cal-grid">${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<div class="cal-dow">${d}</div>`).join('')}${cells.join('')}</div>
+    <div class="cal-legend"><span><i style="background:#EAF8F5"></i>Open</span><span><i style="background:#FDECEA"></i>Partly booked</span><span><i style="background:#E6EBF3"></i>Fully booked</span></div>
+    <div id="slots">${slotsHTML()}</div>
+  </div>`;
+}
+function slotsHTML() {
+  const d = S.day, st = BOOK_STATE(d);
+  const label = new Date(2026, 9, d).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  if (st === 'full') return `<div style="margin-top:16px"><b style="font-size:14px">${label}</b><p class="slot-note">Fully booked. Pick another day, or ask for the next available time.</p></div>`;
+  const taken = st === 'booked' ? [1, 4] : [];
+  return `<div style="margin-top:16px"><b style="font-size:14px">${label}</b></div>
+    <div class="slots">${TIMES.map((t, i) => `<button class="slot ${taken.includes(i) ? 'taken' : ''} ${S.time === i ? 'on' : ''}" ${taken.includes(i) ? 'disabled' : ''} onclick="pickTime(${i})">${t}</button>`).join('')}</div>
+    <p class="slot-note">${taken.length ? 'Greyed times are already booked by other patients.' : 'All times are open. Choose one to start a booking.'}</p>`;
+}
+function pickDay(d) { S.day = d; S.time = null; document.getElementById('calwrap').innerHTML = calHTML(); }
+function pickTime(i) { S.time = i; document.getElementById('slots').innerHTML = slotsHTML(); }
+function vProvider() {
+  const p = PROVIDERS.find(x => x.id === S.p.id);
+  return V(`
+    <div class="hero-band"><div class="topbar" style="padding:0"><button class="iconbtn" onclick="back()">${ic('chevL')}</button><button class="iconbtn" onclick="toast('Saved to your providers')">${ic('heart')}</button></div></div>
+    <div class="hero-info">
+      ${avatar(p.ini, p.tint, 'lg')}
+      <div style="margin-top:12px"><h1>${p.name}</h1><div class="role">${p.role} · ${TYPE_LABEL[p.type]}</div></div>
+      <div class="row" style="margin-top:10px;gap:12px;flex-wrap:wrap">${ver(p.reg)}${star(p.rating)}<span class="small muted">${p.reviews} reviews</span></div>
+      <div class="stat3"><div><b>${p.years} yrs</b><small>Experience</small></div><div><b>${p.reviews}+</b><small>Visits</small></div><div><b>${p.area}</b><small>Area</small></div></div>
+    </div>
+    <div class="pad" style="margin-top:20px">
+      <div class="card"><h4>About ${p.name.split(' ').slice(-1)[0]}</h4><p class="bio">${p.bio}</p><div class="kv" style="margin-top:10px"><span>Languages</span><b>${p.lang}</b></div></div>
+      <div class="section" style="margin-top:14px"><div class="section-head"><h3>Schedule</h3><span class="small muted">Times in Lagos time</span></div><div id="calwrap">${calHTML()}</div></div>
+      <div class="section"><div class="section-head"><h3>Home visit fee</h3></div>
+        <div class="card"><div class="kv"><span>Visit fee</span><b class="num">${ngn(p.price)}</b></div><div class="kv"><span>Service charge</span><b class="num">${ngn(Math.round(p.price * 0.05))}</b></div><div class="kv"><span>Travel</span><b>Included in ${p.area}</b></div></div>
+      </div>
+      <div class="section"><div class="section-head"><h3>Patient reviews</h3><button class="link" onclick="toast('All reviews open here')">See all</button></div>
+        <div class="card"><div class="row between">${star(5)}<span class="xs muted">2 weeks ago</span></div><p class="small" style="margin-top:8px">Came on time, explained everything clearly and left a written plan for my mother.</p></div>
+        <div class="card"><div class="row between">${star(5)}<span class="xs muted">1 month ago</span></div><p class="small" style="margin-top:8px">Very professional visit. Good bedside manner and quick to follow up by phone.</p></div>
+      </div>
+      <div class="privacy-note" style="margin-top:6px">${ic('lock')}<span>Booked times are shown as taken, but patient details are never shared with other patients.</span></div>
+    </div>`,
+    `<div class="cta-bar"><div class="price-lbl"><small>Home visit</small><b class="num">${ngn(p.price)}</b></div><button class="btn btn-primary" onclick="startBooking('p','${p.id}')">Book visit</button></div>`);
+}
+
+/* ---------- Facility profiles ---------- */
+const MEDICAL_FAC_HEAD = f => `
+  <div class="hero-band"><div class="topbar" style="padding:0"><button class="iconbtn" onclick="back()">${ic('chevL')}</button><button class="iconbtn" onclick="toast('Saved to your facilities')">${ic('heart')}</button></div></div>
+  <div class="hero-info">
+    ${avatar(f.ini, f.tint, 'lg')}
+    <div style="margin-top:12px"><h1>${f.name}</h1><div class="role">${TYPE_LABEL[f.type]} · ${f.area}</div></div>
+    <div class="row" style="margin-top:10px;gap:12px;flex-wrap:wrap">${ver(f.reg)}${star(f.rating)}<span class="small muted">${f.reviews} reviews · ${f.dist}</span></div>
+  </div>`;
+function vFacility() {
+  const f = FACS.find(x => x.id === S.p.id);
+  if (f.type === 'pharmacy') return vPharmacy(f);
+  if (f.type === 'lab') return vLab(f);
+  return vHospital(f);
+}
+function vPharmacy(f) {
+  return V(`${MEDICAL_FAC_HEAD(f)}
+    <div class="pad" style="margin-top:18px">
+      <div class="card"><div class="kv"><span>Hours</span><b>${f.hours}</b></div><div class="kv"><span>Delivery</span><b>${f.delivery}</b></div><div class="kv"><span>Regulator</span><b>${f.reg}</b></div></div>
+      <div class="section"><div class="section-head"><h3>Medicines in stock</h3><span class="small muted">Prices in Naira</span></div>
+        <div class="search" style="margin-bottom:6px">${ic('search')}<input id="drugq" placeholder="Search a medicine" oninput="filterDrugs(this.value)"></div>
+        <div class="card" style="padding:4px 16px" id="drugs">${drugsHTML('')}</div>
+      </div>
+    </div>`,
+    `<div class="cta-bar"><div class="price-lbl"><small>Delivery fee</small><b class="num">${ngn(1500)}</b></div><button class="btn btn-primary" onclick="startBooking('o','${f.id}')">Continue order</button></div>`);
+}
+function drugsHTML(q) {
+  const list = DRUGS.filter(d => d.n.toLowerCase().includes(q.toLowerCase()));
+  if (!list.length) return `<div class="empty-line">No medicine by that name here.</div>`;
+  return list.map(d => `<div class="list-item"><div class="main"><b>${d.n}</b><small>${d.d}</small><div style="margin-top:6px">${stockPill(d)}</div></div><div class="amt num">${ngn(d.p)}<div style="margin-top:6px"><button class="add-btn" ${d.s === 'out' ? 'disabled' : ''} onclick="toast('${d.n} added to your order')">${d.s === 'out' ? 'Unavailable' : 'Add'}</button></div></div></div>`).join('');
+}
+function filterDrugs(v) { document.getElementById('drugs').innerHTML = drugsHTML(v); }
+function vLab(f) {
+  return V(`${MEDICAL_FAC_HEAD(f)}
+    <div class="pad" style="margin-top:18px">
+      <div class="privacy-note">${ic('lock')}<span><strong>Home sample collection.</strong> A trained collector visits you. Results are shared only with you and the provider you choose.</span></div>
+      <div class="card" style="margin-top:14px"><div class="kv"><span>Hours</span><b>${f.hours}</b></div><div class="kv"><span>Collection</span><b>Home or at the lab</b></div><div class="kv"><span>Regulator</span><b>${f.reg}</b></div></div>
+      <div class="section"><div class="section-head"><h3>Tests on offer</h3><span class="small muted">Prices in Naira</span></div>
+        <div class="card" style="padding:4px 16px">
+          ${TESTS.map((t, i) => `<div class="list-item"><div class="main"><b>${t.n}</b><small>${t.t}</small>${t.tag ? `<div style="margin-top:6px"><span class="tag">${t.tag}</span></div>` : ''}</div><div class="amt num">${ngn(t.p)}<div style="margin-top:6px"><button class="add-btn" onclick="startBooking('t','${f.id}',${i})">Book</button></div></div></div>`).join('')}
+        </div>
+      </div>
+      <div class="section"><div class="section-head"><h3>Results</h3></div><p class="small muted">Results appear in your Care tab as soon as they are ready, with a clear Ready, Pending or Processing label.</p></div>
+    </div>`);
+}
+function vHospital(f) {
+  const cap = [['General ward', '12 beds free', 'ok', 'check'], ['Maternity', '3 beds free', 'warn', 'alert'], ['Intensive care', 'Fully booked', 'bad', 'x']];
+  return V(`${MEDICAL_FAC_HEAD(f)}
+    <div class="pad" style="margin-top:18px">
+      <div class="card"><div class="kv"><span>Hours</span><b>${f.hours}</b></div><div class="kv"><span>Regulator</span><b>${f.reg}</b></div></div>
+      <div class="section"><div class="section-head"><h3>Capacity today</h3><span class="small muted">Updated 10 min ago</span></div>
+        <div class="card" style="padding:4px 16px">${cap.map(([n, s, c, i]) => `<div class="list-item"><div class="main"><b>${n}</b></div><span class="pill ${c}">${ic(i)} ${s}</span></div>`).join('')}</div>
+      </div>
+      <div class="section"><div class="section-head"><h3>Services</h3></div><div class="tag-row">${['Specialist clinics', 'Imaging', 'Laboratory', 'Physiotherapy', 'Maternity'].map(t => `<span class="tag">${t}</span>`).join('')}</div></div>
+      <div class="section"><div class="ref-card"><b style="font-size:15px">Referrals</b><p class="small" style="margin:6px 0 10px">When your provider refers you here, the hospital receives only your first name and age until they acknowledge the referral. You choose what else is shared.</p><div class="privacy-note">${ic('lock')}<span>Your records stay private. You can see exactly what was shared in your visit record.</span></div></div></div>
+    </div>`,
+    `<div class="cta-bar"><div class="price-lbl"><small>Referral</small><b>No charge</b></div><button class="btn btn-primary" onclick="toast('Referral request opens here')">Request referral</button></div>`);
+}
+
+/* ---------- Booking ---------- */
+function startBooking(kind, id, idx) {
+  if (kind === 'p') { const p = PROVIDERS.find(x => x.id === id); Object.assign(B, { name: p.name, sub: p.role + ' · ' + p.area, price: p.price, kind: 'visit', pid: id, when: 'Now', time: null }); }
+  if (kind === 't') { const f = FACS.find(x => x.id === id), t = TESTS[idx]; Object.assign(B, { name: t.n, sub: f.name + ' · home sample', price: t.p, kind: 'test', pid: id, when: 'Now', time: null }); }
+  if (kind === 'o') { const f = FACS.find(x => x.id === id); Object.assign(B, { name: 'Medicine order', sub: f.name, price: 1500, kind: 'order', pid: id, when: 'Now', time: null }); }
+  go('booking-who');
+}
+function setB(k, v) { B[k] = v; render(); }
+function vBookingWho() {
+  const dates = [27, 28, 29, 30, 31, 32, 33];
+  const canGo = B.when === 'Now' || B.time !== null;
+  const total = B.price + Math.round(B.price * 0.05);
+  const initials = B.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+  return V(`
+    ${topbar('Book a visit')}
+    <div class="steps-top"><span class="on"></span><span></span><span></span></div>
+    <div class="notice" style="margin:0 20px 16px">${ic('alert')}<div><strong>Not for emergencies.</strong> In an emergency, call 112 or go to the nearest emergency room.</div></div>
+    <div class="pad">
+      <div class="target">${avatar(initials, '#CFE3FF', 'sm')}<div class="b"><b>${B.name}</b><small>${B.sub}</small></div><span class="num" style="font-weight:800;color:var(--navy)">${ngn(B.price)}</span></div>
+
+      <div class="section"><div class="section-head"><h3>Who is this for?</h3></div>
+        <div class="seg">${['Me', 'Mama Yemi', 'Someone else'].map(w => `<button class="${B.forWho === w ? 'on' : ''}" onclick="setB('forWho','${w}')">${w}</button>`).join('')}</div>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>When?</h3></div>
+        <div class="seg">${['Now', 'Schedule'].map(w => `<button class="${B.when === w ? 'on' : ''}" onclick="setB('when','${w}')">${w}</button>`).join('')}</div>
+        ${B.when === 'Schedule' ? `
+          <div class="date-strip" style="margin-top:14px">${dates.map(d => {
+            const dt = new Date(2026, 9, d);
+            return `<button class="date-chip ${B.date === d ? 'on' : ''}" onclick="setB('date',${d})"><small>${dt.toLocaleDateString('en-GB', { weekday: 'short' })}</small><b>${dt.getDate()}</b></button>`;
+          }).join('')}</div>
+          <div class="slots" style="margin-top:12px">${TIMES.map((t, i) => `<button class="slot ${B.time === i ? 'on' : ''}" onclick="setB('time',${i})">${t}</button>`).join('')}</div>`
+          : `<p class="small muted" style="margin-top:10px">A provider nearby accepts within about 2 minutes. If they decline, we offer the next nearest.</p>`}
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Where?</h3><button class="link" onclick="toast('Address editor opens here')">Change</button></div>
+        <div class="mini-map">${MAP_BG}<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);color:var(--danger)">${ic('pin', '', 'width:34px;height:34px;fill:rgba(180,35,24,0.15);stroke-width:2.2')}</div></div>
+        <div class="addr"><div class="ico">${ic('pin')}</div><div><b>14 Adelabu Street</b><small>Ikeja, Lagos · Flat 2B, blue gate</small></div></div>
+      </div>
+    </div>`,
+    `<div class="cta-bar"><div class="price-lbl"><small>Total with service charge</small><b class="num">${ngn(total)}</b></div><button class="btn btn-primary" ${canGo ? '' : 'disabled'} onclick="go('booking-pay')">Continue</button></div>`);
+}
+function vBookingPay() {
+  const fee = Math.round(B.price * 0.05), total = B.price + fee;
+  const ready = B.terms && B.privacy;
+  const methods = [['Card', 'card'], ['Bank transfer', 'bank'], ['USSD', 'phone']];
+  return V(`
+    ${topbar('Review and pay')}
+    <div class="steps-top"><span class="on"></span><span class="on"></span><span></span></div>
+    <div class="pad">
+      <div class="card"><div class="kv"><span>Booking</span><b>${B.name}</b></div><div class="kv"><span>For</span><b>${B.forWho}</b></div><div class="kv"><span>When</span><b>${B.when === 'Now' ? 'Now' : 'Tue 28 Oct, 9:00 am'}</b></div><div class="kv"><span>Where</span><b>Ikeja, Lagos</b></div></div>
+      <div class="card"><h4>Price</h4><div class="sum-line"><span>${B.kind === 'order' ? 'Delivery fee' : B.kind === 'test' ? 'Test price' : 'Home visit fee'}</span><span class="num">${ngn(B.price)}</span></div><div class="sum-line"><span>Service charge</span><span class="num">${ngn(fee)}</span></div><div class="sum-line total"><span>Total</span><span class="num">${ngn(total)}</span></div></div>
+      <div class="section" style="margin-top:14px"><div class="section-head"><h3>Pay with Paystack</h3></div>
+        <div class="methods">${methods.map(([l, i]) => `<button class="method ${B.method === l ? 'on' : ''}" onclick="setB('method','${l}')">${ic(i)}${l}</button>`).join('')}</div>
+      </div>
+      <div style="margin-top:18px">
+        <label class="legal-row"><input type="checkbox" ${B.terms ? 'checked' : ''} onchange="setB('terms',this.checked)"><span>I agree to the Patient Terms of Service <button class="link read" onclick="openLegal('terms')">Read</button></span></label>
+        <label class="legal-row"><input type="checkbox" ${B.privacy ? 'checked' : ''} onchange="setB('privacy',this.checked)"><span>I acknowledge the Privacy Policy <button class="link read" onclick="openLegal('privacy')">Read</button></span></label>
+      </div>
+    </div>`,
+    `<div class="cta-bar"><div class="price-lbl"><small>Total</small><b class="num">${ngn(total)}</b></div><button class="btn btn-primary" ${ready ? '' : 'disabled'} onclick="go('waiting')">Pay ${ngn(total)}</button></div>`);
+}
+function vWaiting() {
+  return V(`
+    <div class="topbar"><span style="width:42px"></span><h2>Request sent</h2><span style="width:42px"></span></div>
+    <div class="wait">
+      <div class="ring">
+        <svg viewBox="0 0 170 170"><circle class="track" cx="85" cy="85" r="72"/><circle class="arc" cx="85" cy="85" r="72"/></svg>
+        <div class="center"><div><b>2:00</b><small>to accept</small></div></div>
+      </div>
+      <h1 style="margin-top:28px;font-size:22px">Waiting for Dr. Adaeze</h1>
+      <p class="muted" style="margin-top:10px;max-width:280px;font-size:14px">Usually under 2 minutes. If they decline, we will offer the nearest available provider so you are never left waiting.</p>
+      <div class="privacy-note" style="margin-top:22px;max-width:300px;text-align:left">${ic('check')}<span>Payment is held and only released when the provider accepts.</span></div>
+    </div>
+    <div style="padding:0 20px 24px;display:grid;gap:10px"><button class="btn btn-soft btn-block" onclick="toast('Request cancelled. Nothing was charged.');swap('home')">Cancel request</button></div>`);
+}
+function vTrack() {
+  const live = S.p.mode !== 'scheduled';
+  const p = PROVIDERS[0];
+  if (!live) {
+    const steps = [['Booked', 'Tue 28 Oct, 9:00 am · Ikeja', 'done'], ['Provider confirmed', 'You will get a message the day before', 'todo'], ['Visit', 'Provider arrives at your door', 'todo'], ['Completed', 'Visit notes sent to you', 'todo']];
+    return V(`${topbar('Scheduled visit')}
+      <div class="pad">
+        <div class="card">
+          <div class="row" style="gap:12px">${avatar(p.ini, p.tint, 'sm')}<div style="flex:1"><b>${p.name}</b><div class="small muted">${p.role}</div></div>${ver(p.reg)}</div>
+          <div class="kv" style="margin-top:12px"><span>Date</span><b>Tue 28 Oct</b></div><div class="kv"><span>Time</span><b>9:00 am</b></div><div class="kv"><span>Where</span><b>14 Adelabu Street</b></div>
+        </div>
+        <div class="section"><div class="section-head"><h3>What happens next</h3></div><div class="timeline">${steps.map(([t, s, st]) => `<div class="tl ${st}"><div class="dotc">${st === 'done' ? ic('check') : ''}</div><div><b>${t}</b><small>${s}</small></div></div>`).join('')}</div></div>
+        <div class="row" style="gap:10px;margin-top:6px"><button class="btn btn-soft" style="flex:1" onclick="toast('Reschedule opens here')">Reschedule</button><button class="btn btn-soft" style="flex:1" onclick="toast('Calendar reminder added')">Add to calendar</button></div>
+      </div>`);
+  }
+  const steps = [['Accepted', 'Dr. Adaeze confirmed at 9:02 am', 'done'], ['On the way', 'Heading to your door, 3.4 km', 'now'], ['Arrived', 'Waiting outside your home', 'todo'], ['In progress', 'Visit underway', 'todo'], ['Completed', 'Notes and prescriptions sent to you', 'todo']];
+  return V(`
+    <div class="map">${MAP_BG}<div class="mover">${ic('car')}</div><div class="pin">${ic('pin')}</div>
+      <div style="position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between"><button class="iconbtn" onclick="back()">${ic('chevL')}</button><span class="pill ok" style="align-self:center">${ic('clock')} Live</span></div>
+      <div class="eta"><div style="flex:1"><small>Arriving in</small><div class="big num">12 min</div></div><div style="text-align:right"><small>Distance</small><b class="num">3.4 km</b></div></div>
+    </div>
+    <div class="pad" style="margin-top:16px">
+      <div class="card"><div class="row" style="gap:12px">${avatar(p.ini, p.tint, 'sm')}<div style="flex:1"><b>${p.name}</b><div class="small muted">General consultation</div></div>
+        <button class="iconbtn" onclick="toast('Calling Dr. Adaeze')">${ic('phone')}</button></div></div>
+      <div class="section"><div class="section-head"><h3>Visit status</h3></div><div class="timeline">${steps.map(([t, s, st]) => `<div class="tl ${st}"><div class="dotc">${st === 'done' ? ic('check') : ''}</div><div><b>${t}</b><small>${s}</small></div></div>`).join('')}</div></div>
+      <div class="row" style="gap:10px;margin-top:18px"><button class="btn btn-soft" style="flex:1" onclick="toast('Location shared with your contact')">${ic('share')} Share location</button><button class="btn btn-soft" style="flex:1" onclick="toast('Support email copied')">${ic('mail')} Get help</button></div>
+    </div>`);
+}
+function vVisit() {
+  const vitals = [['Blood pressure', '128/82', 'mmHg'], ['Pulse', '78', 'bpm'], ['Temperature', '36.8', '°C'], ['Oxygen', '98', '%']];
+  return V(`${topbar('Visit record')}
+    <div class="pad">
+      <div class="card" style="padding:16px"><div class="row" style="gap:12px">${avatar('AO', '#CFE3FF', 'sm')}<div style="flex:1"><b>Dr. Adaeze Okonkwo</b><div class="small muted">Mon 19 Oct · General consultation</div></div><span class="pill ok">${ic('check')} Completed</span></div></div>
+
+      <div class="section"><div class="section-head"><h3>Vitals</h3></div>
+        <div class="vitals">${vitals.map(([l, v, u]) => `<div class="vital"><small>${l}</small><b class="num">${v}<span>${u}</span></b></div>`).join('')}</div>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Visit notes</h3></div>
+        <div class="card"><p class="small" style="line-height:1.6">Three days of cough and mild fever. Chest clear on examination. No signs of breathing difficulty. Advised rest, fluids and symptom relief.</p></div>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Treatment plan</h3></div>
+        <div class="card"><ol class="plan" style="padding-left:18px;margin:0"><li>Paracetamol 1 g every 6 hours for 3 days</li><li>Fluids and rest for 5 days</li><li>Repeat full blood count if the fever returns after 48 hours</li><li>Book a follow up visit in 1 week</li></ol></div>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Prescriptions</h3></div>
+        <div class="card" style="padding:4px 16px">
+          <div class="rx"><div class="ico">${ic('pill')}</div><div><b>Amoxicillin 500mg</b><small>21 capsules · 1 every 8 hours</small></div></div>
+          <div class="rx"><div class="ico">${ic('pill')}</div><div><b>Paracetamol 500mg</b><small>20 tablets · as needed</small></div></div>
+        </div>
+        <button class="btn btn-primary btn-block" style="margin-top:12px" onclick="go('facility',{id:'f1'})">Send to a pharmacy</button>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Lab orders</h3></div>
+        <div class="card" style="padding:4px 16px"><div class="rx"><div class="ico" style="background:#E2F7F1">${ic('flask')}</div><div><b>Full blood count</b><small>Home sample collection · Same day</small></div></div></div>
+        <button class="btn btn-soft btn-block" style="margin-top:12px" onclick="go('facility',{id:'f2'})">Book home sample collection</button>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Referral</h3></div>
+        <div class="ref-card"><b>Oyo Central Medical Centre</b><p class="small" style="margin:6px 0 10px">For a specialist review. The hospital receives your first name and age only until they acknowledge the referral.</p><div class="privacy-note">${ic('lock')}<span>You control who sees the rest of your record.</span></div></div>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Rate your visit</h3></div>
+        <div class="card"><div class="stars-pick">${[1, 2, 3, 4, 5].map(n => `<button class="${S.rate >= n ? 'on' : ''}" onclick="S.rate=${n};render()" aria-label="${n} stars">${ic('star')}</button>`).join('')}</div>
+        <p class="small muted" style="margin-top:8px">${S.rate ? 'Thank you. Your rating helps other patients choose.' : 'Tap a star to rate Dr. Adaeze.'}</p></div>
+      </div>
+
+      <button class="btn btn-primary btn-block" style="margin-top:18px" onclick="startBooking('p','p1')">Book a follow up</button>
+    </div>`);
+}
+
+/* ---------- Visits, care, profile, family ---------- */
+function vVisits() {
+  return V(`
+    <div class="hello" style="padding-top:8px"><h1>Your visits</h1><small>Upcoming care and past records</small></div>
+    <div class="pad"><div class="seg"><button class="${S.tab === 'upcoming' ? 'on' : ''}" onclick="S.tab='upcoming';render()">Upcoming</button><button class="${S.tab === 'past' ? 'on' : ''}" onclick="S.tab='past';render()">Past</button></div></div>
+    <div class="pad" style="margin-top:16px">
+      ${S.tab === 'upcoming' ? `
+        <button class="result" style="display:block" onclick="go('track',{mode:'scheduled'})">
+          <div class="row between"><span class="pill info">${ic('calendar')} Tue 28 Oct</span><span class="small muted">9:00 am</span></div>
+          <div class="row" style="gap:12px;margin-top:12px">${avatar('AO', '#CFE3FF', 'sm')}<div style="flex:1"><div class="name">Dr. Adaeze Okonkwo</div><div class="sub">General consultation · Ikeja</div></div>${ic('chevR', '', 'color:var(--muted)')}</div>
+        </button>
+        <div class="card" style="text-align:center;padding:24px"><div class="av" style="margin:0 auto 12px;background:#F1F6FC;color:var(--blue)">${ic('steth')}</div><b>Need another visit?</b><p class="small muted" style="margin:6px 0 14px">Book a verified provider in a few taps.</p><button class="btn btn-primary" onclick="swap('search')">Find care</button></div>`
+        : `
+        <button class="result" style="display:block" onclick="go('visit')">
+          <div class="row between"><span class="pill ok">${ic('check')} Completed</span><span class="small muted">Mon 19 Oct</span></div>
+          <div class="row" style="gap:12px;margin-top:12px">${avatar('AO', '#CFE3FF', 'sm')}<div style="flex:1"><div class="name">Dr. Adaeze Okonkwo</div><div class="sub">General consultation · Visit record</div></div>${ic('chevR', '', 'color:var(--muted)')}</div>
+        </button>
+        <div class="result" style="display:block;cursor:pointer" onclick="go('visit')">
+          <div class="row between"><span class="pill ok">${ic('check')} Completed</span><span class="small muted">2 Sep</span></div>
+          <div class="row" style="gap:12px;margin-top:12px">${avatar('TB', '#E5DDFB', 'sm')}<div style="flex:1"><div class="name">Tunde Bello, RN</div><div class="sub">Wound care · Dressing review</div></div></div>
+          <div class="row between" style="margin-top:12px"><span class="small muted">Rated 5 stars</span><button class="btn btn-soft" style="min-height:40px" onclick="event.stopPropagation();startBooking('p','p3')">Book again</button></div>
+        </div>`}
+    </div>`);
+}
+function vCare() {
+  const journey = [['Assessment', 'done'], ['Lab tests', 'done'], ['Medication', 'done'], ['Follow up', 'now'], ['Recovery', 'todo']];
+  const results = [['Full blood count', '12 Oct', 'Ready', 'ok'], ['Malaria parasite test', '12 Oct', 'Negative', 'ok'], ['HbA1c', 'Today', 'Processing', 'idle']];
+  const meds = [['Metformin 500mg', '4 days left', 'warn'], ['Amlodipine 5mg', '12 days left', 'ok']];
+  return V(`
+    <div class="hello" style="padding-top:8px"><h1>Your care</h1><small>Journey, results and medicines</small></div>
+    <div class="pad">
+      <div class="progress-card"><div class="ring-sm"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="21" fill="none" stroke="#E1EAF6" stroke-width="5"/><circle cx="26" cy="26" r="21" fill="none" stroke="#00B5A3" stroke-width="5" stroke-linecap="round" stroke-dasharray="132" stroke-dashoffset="53"/></svg><b>60%</b></div>
+        <div class="progress-track"><b style="font-size:14px">Step 4 of 5: Follow up</b><div class="small muted">Book your follow up visit in 1 week.</div></div></div>
+      <div class="card" style="margin-top:14px"><div class="timeline">${journey.map(([t, st]) => `<div class="tl ${st}"><div class="dotc">${st === 'done' ? ic('check') : ''}</div><div><b>${t}</b></div></div>`).join('')}</div></div>
+
+      <div class="section"><div class="section-head"><h3>Results</h3><button class="link" onclick="toast('All results open here')">All</button></div>
+        <div class="card" style="padding:4px 16px">${results.map(([n, d, l, c]) => `<div class="list-item"><div class="main"><b>${n}</b><small>${d}</small></div><span class="pill ${c}">${l}</span></div>`).join('')}</div>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Medicines</h3></div>
+        <div class="card" style="padding:4px 16px">${meds.map(([n, d, c]) => `<div class="list-item"><div class="main"><b>${n}</b><small>Refill ${c === 'warn' ? 'soon' : 'not needed yet'}</small></div><span class="pill ${c}">${d}</span></div>`).join('')}</div>
+        <button class="btn btn-primary btn-block" style="margin-top:12px" onclick="go('search',{seg:'facilities',filter:'pharmacy'})">${ic('pill')} Buy medication</button>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Coming soon</h3></div>
+        <div style="display:grid;gap:10px">
+          ${[['video', 'Video consultation', 'Talk to a doctor from your phone'], ['heart', 'Ratings and reviews', 'Read and write reviews in one place'], ['card', 'Saved addresses and cards', 'Faster checkout next time'], ['doc', 'Care plans', 'Ongoing programmes for long term conditions']].map(([i, t, s]) => `<div class="soon"><div class="ico">${ic(i)}</div><div style="flex:1"><b>${t}</b><small>${s}</small></div><span class="badge-soon">Soon</span></div>`).join('')}
+        </div>
+      </div>
+    </div>`);
+}
+function vProfile() {
+  return V(`
+    <div class="hero-band"><div class="row" style="justify-content:space-between"><span class="xs" style="font-weight:700;color:var(--navy)">My profile</span><button class="iconbtn" onclick="go('medprofile')">${ic('edit')}</button></div></div>
+    <div class="hero-info">
+      ${avatar('AO', '#CFE3FF', 'lg')}
+      <div style="margin-top:12px"><h1>Ade Olatunji</h1><div class="role">Ikeja, Lagos · +234 800 000 0000</div></div>
+    </div>
+    <div class="pad" style="margin-top:18px">
+      <div class="card">
+        <div class="row between"><h4>Medical profile</h4><button class="link" onclick="go('medprofile')">Edit</button></div>
+        <div class="kv"><span>Date of birth</span><b>14 June 1991</b></div>
+        <div class="kv"><span>Allergies</span><div class="tag-row"><span class="tag">Penicillin</span></div></div>
+        <div class="kv"><span>Conditions</span><div class="tag-row"><span class="tag">Hypertension</span></div></div>
+        <div class="kv"><span>Emergency contact</span><b>Bisi, sister</b></div>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Account</h3></div>
+        <div class="card" style="padding:4px 16px">
+          <div class="list-item" onclick="go('family')" style="cursor:pointer"><div class="av sm" style="background:var(--sky);color:var(--blue)">${ic('user')}</div><div class="main"><b>Family members</b><small>Book for Mama Yemi or someone else</small></div>${ic('chevR', '', 'color:var(--muted)')}</div>
+          <div class="list-item" onclick="openLegal('terms')" style="cursor:pointer"><div class="av sm" style="background:var(--sky);color:var(--blue)">${ic('doc')}</div><div class="main"><b>Patient Terms</b><small>How bookings and payments work</small></div>${ic('chevR', '', 'color:var(--muted)')}</div>
+          <div class="list-item" onclick="openLegal('privacy')" style="cursor:pointer"><div class="av sm" style="background:var(--sky);color:var(--blue)">${ic('lock')}</div><div class="main"><b>Privacy Policy</b><small>Who sees your records and why</small></div>${ic('chevR', '', 'color:var(--muted)')}</div>
+          <div class="list-item" onclick="toast('Notification settings open here')" style="cursor:pointer"><div class="av sm" style="background:var(--sky);color:var(--blue)">${ic('bell')}</div><div class="main"><b>Notifications</b><small>Visit updates and reminders</small></div>${ic('chevR', '', 'color:var(--muted)')}</div>
+        </div>
+      </div>
+
+      <div class="section"><div class="section-head"><h3>Support</h3></div>
+        <div class="card" style="padding:4px 16px">
+          <div class="list-item"><div class="av sm" style="background:var(--sky);color:var(--blue)">${ic('mail')}</div><div class="main"><b>Email support</b><small>contact@streetdocmd.com</small></div></div>
+          <div class="list-item"><div class="av sm" style="background:var(--sky);color:var(--blue)">${ic('globe')}</div><div class="main"><b>Follow us</b><small>Instagram, TikTok and Facebook</small></div></div>
+        </div>
+      </div>
+
+      <button class="btn btn-soft btn-block" style="margin-top:20px" onclick="swap('signup')">${ic('logout')} Sign out</button>
+    </div>`);
+}
+function vFamily() {
+  const people = [['MY', 'Mama Yemi', 'Mother · 68', '#FFE6C9'], ['DO', 'Dami Olatunji', 'Son · 6', '#CBF3EC']];
+  return V(`${topbar('Family members')}
+    <div class="pad">
+      <p class="small muted" style="margin-bottom:14px">Each person keeps their own medical profile. You choose who to book for at checkout.</p>
+      <div class="card" style="padding:4px 16px">${people.map(([i, n, d, t]) => `<div class="list-item">${avatar(i, t, 'sm')}<div class="main"><b>${n}</b><small>${d}</small></div><button class="add-btn" onclick="startBooking('p','p1')">Book</button></div>`).join('')}</div>
+      <button class="btn btn-primary btn-block" style="margin-top:16px" onclick="toast('Add family member form opens here')">${ic('plus')} Add a family member</button>
+    </div>`);
+}
+
+/* ---------- Route table ---------- */
+const VIEWS = {
+  onboard: vOnboard, signup: vSignup, medprofile: vMedProfile,
+  home: vHome, search: vSearch, provider: vProvider, facility: vFacility,
+  'booking-who': vBookingWho, 'booking-pay': vBookingPay, waiting: vWaiting, track: vTrack, visit: vVisit,
+  visits: vVisits, care: vCare, profile: vProfile, family: vFamily
+};
+
+/* ---------- Start ---------- */
+swap('splash');
+</script>
+</body>
+</html>
