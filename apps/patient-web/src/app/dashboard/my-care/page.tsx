@@ -6,6 +6,7 @@ import { createServerSupabase } from "@/lib/supabase-server";
 import { CARE_EPISODE_STATUS_LABELS, PROFESSION_LABELS, CARE_TASK_TYPE_LABELS, FOLLOW_UP_TYPE_LABELS } from "@/lib/shared";
 import type { Profession, ServiceType } from "@/lib/shared";
 import ContinueCareButton from "./ContinueCareButton";
+import { refillItems, REFILL_SOON_DAYS } from "@/lib/refills";
 
 // A follow-up books via the same profession-based service types every
 // other visit does — see the matching map in api/bookings/route.ts.
@@ -85,7 +86,7 @@ export default async function MyCarePage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: episodes }, { data: labOrders }, { data: medOrders }] = await Promise.all([
+  const [{ data: episodes }, { data: labOrders }, { data: medOrders }, { data: prescriptions }] = await Promise.all([
     supabase.from("care_episodes").select("*").eq("patient_id", user.id).order("updated_at", { ascending: false }),
     supabase
       .from("investigation_orders")
@@ -99,7 +100,14 @@ export default async function MyCarePage() {
       .eq("patient_id", user.id)
       .order("created_at", { ascending: false })
       .limit(5),
+    supabase
+      .from("prescriptions")
+      .select("created_at, drugs")
+      .eq("patient_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20),
   ]);
+  const refills = refillItems((prescriptions ?? []) as any[]);
 
   const activeEpisode = (episodes ?? []).find(e => !["closed", "resolved"].includes(e.status)) ?? null;
 
@@ -297,6 +305,28 @@ export default async function MyCarePage() {
       </Section>
 
       <Section title="Medicines">
+        {refills.length > 0 && (
+          <Card padded={false} className="mb-3 px-4 py-1">
+            {refills.map(r => {
+              const soon = r.daysLeft <= REFILL_SOON_DAYS;
+              const pill = r.daysLeft <= 0
+                ? <Pill tone="idle">Finished</Pill>
+                : <Pill tone={soon ? "warn" : "ok"}>{r.daysLeft} day{r.daysLeft === 1 ? "" : "s"} left</Pill>;
+              return (
+                <div key={`${r.name}-${r.daysLeft}`} className="flex items-center gap-3 border-b border-line py-3.5 last:border-b-0">
+                  <div className="min-w-0 flex-1">
+                    <b className="block truncate text-ds-sm text-ink">{r.name}</b>
+                    <small className="text-ds-xs text-muted">{soon ? "Refill soon" : "Refill not needed yet"}{r.detail ? ` · ${r.detail}` : ""}</small>
+                  </div>
+                  {pill}
+                  {soon && (
+                    <Button href={`/dashboard/book/medication?add=${encodeURIComponent(r.name)}`} variant="secondary" size="xs">Refill</Button>
+                  )}
+                </div>
+              );
+            })}
+          </Card>
+        )}
         {(medOrders ?? []).length > 0 && (
           <Card padded={false} className="px-4 py-1">
             {(medOrders as any[]).map(o => {

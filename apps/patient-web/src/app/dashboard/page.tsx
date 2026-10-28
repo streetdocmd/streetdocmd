@@ -1,5 +1,6 @@
 import { createServerSupabase } from "@/lib/supabase-server";
 import HomeView from "./HomeView";
+import { refillItems, REFILL_SOON_DAYS } from "@/lib/refills";
 
 const ACTIVE_STATUSES = ["accepted", "en_route", "arrived", "in_progress"];
 
@@ -49,6 +50,15 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
 
   const careBooking = (activeBooking ?? upcomingBooking) as any;
 
+  // Refill reminder: the medicine running out soonest (5 days or fewer, not long finished)
+  const { data: prescriptions } = await supabase
+    .from("prescriptions")
+    .select("created_at, drugs")
+    .eq("patient_id", user!.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const refill = refillItems((prescriptions ?? []) as any[]).find(r => r.daysLeft <= REFILL_SOON_DAYS && r.daysLeft > -3) ?? null;
+
   return (
     <HomeView
       firstName={firstName}
@@ -63,6 +73,7 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
         providerName: careBooking.providers?.name ?? null,
       } : null}
       careIsActive={!!activeBooking}
+      refill={refill}
       now={new Date()}
     />
   );

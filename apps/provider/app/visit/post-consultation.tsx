@@ -15,6 +15,7 @@ interface Drug {
   strength: string;
   frequency: string;
   duration: string;
+  quantity: string; // units dispensed, for patient refill reminders
 }
 
 const CONTROLLED = [
@@ -22,7 +23,7 @@ const CONTROLLED = [
   "diazepam", "midazolam", "alprazolam", "clonazepam", "ketamine", "pethidine",
 ];
 
-const EMPTY_DRUG: Drug = { drug_name: "", strength: "", frequency: "", duration: "" };
+const EMPTY_DRUG: Drug = { drug_name: "", strength: "", frequency: "", duration: "", quantity: "" };
 
 export default function PostConsultationScreen() {
   const { bookingId, visitId, patientId, fromLabs } = useLocalSearchParams<{
@@ -237,6 +238,7 @@ export default function PostConsultationScreen() {
               <DrugField label="Strength / Dosage" value={drug.strength}   onChange={v => updateDrug(i, "strength", v)}   placeholder="e.g. 500mg" />
               <DrugField label="Frequency"         value={drug.frequency}  onChange={v => updateDrug(i, "frequency", v)}  placeholder="e.g. 3 times daily after meals" />
               <DrugField label="Duration"          value={drug.duration}   onChange={v => updateDrug(i, "duration", v)}   placeholder="e.g. 7 days" />
+              <DrugField label="Quantity"          value={drug.quantity}   onChange={v => updateDrug(i, "quantity", v.replace(/\D/g, ""))} placeholder="e.g. 21 (used for refill reminders)" />
             </View>
           ))}
 

@@ -26,6 +26,8 @@ export interface HomeViewProps {
   /** In-progress visit, or the soonest confirmed future visit */
   careBooking: HomeBooking | null;
   careIsActive: boolean;
+  /** Medicine running out soonest, if within the refill window */
+  refill: { name: string; daysLeft: number } | null;
   now: Date;
 }
 
@@ -161,7 +163,7 @@ function ProfileProgress({ checks }: { checks: NonNullable<HomeViewProps["profil
 }
 
 export default function HomeView({
-  firstName, justOnboarded, profileChecks, isFirstVisit, careBooking, careIsActive, now,
+  firstName, justOnboarded, profileChecks, isFirstVisit, careBooking, careIsActive, refill, now,
 }: HomeViewProps) {
   const profileIncomplete = !!profileChecks && Object.values(profileChecks).some(v => !v);
 
@@ -244,7 +246,27 @@ export default function HomeView({
       </Link>
 
       {/* TODO(design): "Book again" (past providers with rating and price) needs completed bookings, which this page doesn't load yet. */}
-      {/* TODO(design): refill reminder ("Metformin runs out in 4 days") needs a medication supply or refill schedule; no data for it exists. */}
+      {refill && (
+        <section className="mt-[26px]">
+          <div className="flex items-center gap-3 rounded-[20px] border border-warn/20 bg-warn-bg p-3.5">
+            <span className="grid h-[42px] w-[42px] flex-none place-items-center rounded-[14px] bg-white/70 text-warn">
+              <Pill size={20} aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <b className="block text-ds-sm text-ink">
+                {refill.daysLeft > 0
+                  ? `${refill.name} runs out in ${refill.daysLeft} day${refill.daysLeft === 1 ? "" : "s"}`
+                  : `${refill.name} has run out`}
+              </b>
+              <small className="text-ds-xs text-ink/70">Order a refill from a partner pharmacy.</small>
+            </div>
+            <Link href={`/dashboard/book/medication?add=${encodeURIComponent(refill.name)}`}
+              className={cx("grid min-h-10 place-items-center rounded-xl bg-white px-3 text-ds-sm font-bold text-navy", focusRing)}>
+              Refill
+            </Link>
+          </div>
+        </section>
+      )}
 
       {profileIncomplete && profileChecks && (
         <section className="mt-[26px]">

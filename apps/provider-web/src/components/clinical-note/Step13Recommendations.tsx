@@ -7,8 +7,9 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-type Drug = { name: string; dosage: string; frequency: string; duration: string };
-const BLANK_DRUG: Drug = { name: "", dosage: "", frequency: "Once daily", duration: "" };
+// quantity = units dispensed; with the frequency it tells the patient when a refill is due
+type Drug = { name: string; dosage: string; frequency: string; duration: string; quantity: string };
+const BLANK_DRUG: Drug = { name: "", dosage: "", frequency: "Once daily", duration: "", quantity: "" };
 
 type Recommendations = {
   lifestyle_advice: string;
@@ -258,6 +259,13 @@ export default function Step13Recommendations({
                     <label className="text-xs font-medium text-gray-600 block mb-1">Duration</label>
                     <input value={drug.duration} onChange={e => updateDrug(i, "duration", e.target.value)} placeholder="e.g. 5 days"
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">Quantity</label>
+                    <input value={drug.quantity} onChange={e => updateDrug(i, "quantity", e.target.value.replace(/\D/g, ""))}
+                      inputMode="numeric" placeholder="e.g. 21 tablets"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <p className="text-[11px] text-gray-400 mt-1">Units dispensed. Used to remind the patient to refill.</p>
                   </div>
                 </div>
               </div>
