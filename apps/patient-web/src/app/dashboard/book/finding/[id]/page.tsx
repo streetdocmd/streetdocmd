@@ -2,15 +2,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { Check, SearchX } from "lucide-react";
+import { Button, Card, TopBar } from "@/components/ds";
 
 export default function FindingProviderPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [status, setStatus] = useState("pending");
-  const [dots, setDots] = useState(".");
+  // Seconds since this screen opened. There is no acceptance deadline to count down from.
+  const [elapsed, setElapsed] = useState(0);
 
-  // Animate dots
   useEffect(() => {
-    const id = setInterval(() => setDots(d => d.length >= 3 ? "." : d + "."), 600);
+    const id = setInterval(() => setElapsed(e => e + 1), 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -63,60 +65,71 @@ export default function FindingProviderPage({ params }: { params: { id: string }
 
   if (status === "cancelled") {
     return (
-      <div className="max-w-md mx-auto mt-16 text-center">
-        <p className="text-5xl mb-4">😔</p>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">No providers available</h2>
-        <p className="text-gray-500 text-sm mb-6">
-          There are no available providers near you right now. Please try again in a few minutes.
-        </p>
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="btn-primary w-full"
-        >
-          Back to home
-        </button>
+      <div className="mx-auto max-w-md">
+        <TopBar title="Request sent" hideBack className="-mx-5 -mt-2 md:mx-0" />
+        <div className="px-5 py-8 text-center">
+          <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-ds bg-pending-bg text-pending">
+            <SearchX size={28} aria-hidden />
+          </span>
+          <h1 className="text-ds-xl font-bold text-navy">No providers available</h1>
+          <p className="mt-2.5 text-ds-sm text-muted">
+            There are no available providers near you right now. Please try again in a few minutes.
+          </p>
+          <Button block className="mt-6" onClick={() => router.push("/dashboard")}>Back to home</Button>
+        </div>
       </div>
     );
   }
 
+  const mins = Math.floor(elapsed / 60);
+  const secs = String(elapsed % 60).padStart(2, "0");
+  const steps = [
+    { done: true, label: "Booking created" },
+    { done: true, label: "Locating nearby providers" },
+    { done: false, label: "Awaiting provider confirmation" },
+    { done: false, label: "Provider on the way" },
+  ];
+
   return (
-    <div className="max-w-md mx-auto mt-16 text-center">
-      {/* Pulsing ring animation */}
-      <div className="relative w-28 h-28 mx-auto mb-8">
-        <div className="absolute inset-0 rounded-full bg-blue-brand/10 animate-ping" />
-        <div className="absolute inset-3 rounded-full bg-blue-brand/20 animate-ping [animation-delay:300ms]" />
-        <div className="relative flex items-center justify-center w-28 h-28 rounded-full bg-blue-brand">
-          <span className="text-4xl">🏥</span>
-        </div>
-      </div>
+    <div className="mx-auto max-w-md">
+      <TopBar title="Request sent" hideBack className="-mx-5 -mt-2 md:mx-0" />
 
-      <h2 className="text-xl font-bold text-gray-900 mb-2">
-        Finding your provider{dots}
-      </h2>
-      <p className="text-gray-500 text-sm mb-1">
-        We're matching you with the nearest available healthcare professional.
-      </p>
-      <p className="text-xs text-gray-400">This usually takes under a minute.</p>
-
-      <div className="mt-10 card p-4 text-left space-y-3">
-        {[
-          { done: true,  label: "Booking created" },
-          { done: true,  label: "Locating nearby providers" },
-          { done: false, label: "Awaiting provider confirmation" },
-          { done: false, label: "Provider en route" },
-        ].map(({ done, label }) => (
-          <div key={label} className="flex items-center gap-3">
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
-              done ? "bg-green-500 text-white" : "border-2 border-gray-200"
-            }`}>
-              {done && "✓"}
+      <div className="flex flex-col items-center px-6 pb-6 pt-6 text-center">
+        <div className="relative h-[170px] w-[170px]" role="status" aria-label="Waiting for a provider to accept">
+          <svg viewBox="0 0 170 170" className="h-[170px] w-[170px] animate-spin [animation-duration:2.4s] motion-reduce:animate-none" aria-hidden>
+            <circle cx="85" cy="85" r="72" fill="none" stroke="var(--line)" strokeWidth="10" />
+            <circle cx="85" cy="85" r="72" fill="none" stroke="var(--blue)" strokeWidth="10" strokeLinecap="round"
+              strokeDasharray="452" strokeDashoffset="330" />
+          </svg>
+          <div className="absolute inset-0 grid place-items-center">
+            <div>
+              <b className="block text-[30px] text-navy tabular-nums">{mins}:{secs}</b>
+              <small className="text-ds-2xs font-bold uppercase tracking-[0.06em] text-muted">Waiting</small>
             </div>
-            <span className={`text-sm ${done ? "text-gray-700 font-medium" : "text-gray-400"}`}>
-              {label}
-            </span>
           </div>
-        ))}
+        </div>
+
+        <h1 className="mt-7 text-ds-xl font-bold text-navy">Finding your provider</h1>
+        <p className="mt-2.5 max-w-[300px] text-ds-sm text-muted">
+          We&apos;re matching you with the nearest available healthcare professional. This usually takes under a minute.
+        </p>
       </div>
+
+      <Card padded={false} className="px-4 py-1">
+        <ol>
+          {steps.map(({ done, label }) => (
+            <li key={label} className="flex items-center gap-3 border-b border-line py-3 last:border-b-0">
+              <span className={`grid h-6 w-6 flex-none place-items-center rounded-full ${done ? "bg-success text-white" : "border-2 border-line"}`}>
+                {done && <Check size={14} strokeWidth={3} aria-hidden />}
+              </span>
+              <span className={`text-ds-sm ${done ? "font-semibold text-ink" : "text-muted"}`}>
+                {label}<span className="sr-only">{done ? ", done" : ", not yet"}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </Card>
+      {/* TODO(design): "Cancel request" needs a cancel endpoint, and the 2 minute countdown needs the acceptance deadline. */}
     </div>
   );
 }
