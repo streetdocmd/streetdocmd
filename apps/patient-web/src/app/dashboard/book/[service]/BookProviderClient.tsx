@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Search, Zap, Clock } from "lucide-react";
+import { Star, Search, Zap, Clock, Lock } from "lucide-react";
 import { SERVICE_LABELS, SERVICE_PROFESSION, formatNaira } from "@/lib/shared";
 import { serviceChargeFor } from "@/lib/service-charge";
 import type { ServiceType } from "@/lib/shared";
@@ -9,6 +9,8 @@ import FamilyMemberPicker from "./FamilyMemberPicker";
 import SchedulePicker from "./SchedulePicker";
 import LocationPicker from "@/components/LocationPicker";
 import { Avatar, Button, Card, Chip, EmergencyNotice, Notice, Pill, TopBar, VerifiedBadge, cx, focusRing } from "@/components/ds";
+import { createClient } from "@/lib/supabase";
+import ProviderSchedule, { useBusySlots } from "./ProviderSchedule";
 
 export interface BookableProvider {
   id: string;
@@ -53,6 +55,8 @@ export default function BookProviderClient({
   const [choice, setChoice] = useState<Choice>(followUpId ? "nearest" : null);
   // Provider whose profile is open (before choosing them)
   const [viewing, setViewing] = useState<BookableProvider | null>(null);
+  // A time picked on the provider's calendar, carried into the When step
+  const [presetAt, setPresetAt] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "now">("all");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -65,6 +69,7 @@ export default function BookProviderClient({
 
   const chosen = choice && choice !== "nearest" ? choice : null;
   const serviceLabel = (SERVICE_LABELS as Record<string, string>)[service];
+  const busy = useBusySlots(chosen?.id ?? null);
 
   async function book() {
     if (!coords || !scheduleReady) return;
@@ -116,7 +121,9 @@ export default function BookProviderClient({
         provider={viewing}
         regulator={REGULATOR[SERVICE_PROFESSION[service]]}
         serviceChargeRate={serviceChargeRate}
-        onBack={() => setViewing(null)}
+        presetAt={presetAt}
+        onPick={setPresetAt}
+        onBack={() => { setViewing(null); setPresetAt(null); }}
         onBook={() => setChoice(viewing)}
       />
     );
@@ -266,7 +273,14 @@ export default function BookProviderClient({
 
       <div className="mt-[26px] space-y-[26px]">
         {!followUpId && <FamilyMemberPicker onChange={setFamilyMemberId} />}
-        {!followUpId && <SchedulePicker onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }} />}
+        {!followUpId && (
+          <SchedulePicker
+            key={`${chosen?.id ?? "nearest"}-${presetAt ?? ""}`}
+            busy={busy}
+            initialAt={chosen ? presetAt : null}
+            onChange={(v, ready) => { setScheduledAt(v); setScheduleReady(ready); }}
+          />
+        )}
         <LocationPicker
           onReady={(c, a) => { setCoords(c); setAddress(a); }}
           onReset={() => { setCoords(null); setAddress(""); }}
@@ -301,6 +315,58 @@ export default function BookProviderClient({
   );
 }
 
+// Latest written reviews for a provider (reviews are publicly readable)
+function ProviderReviews({ providerId }: { providerId: string }) {
+  const [reviews, setReviews] = useState<{ rating: number; comment: string | null; created_at: string }[] | null>(null);
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    createClient()
+      .from("reviews")
+      .select("rating, comment, created_at", { count: "exact" })
+      .eq("provider_id", providerId)
+      .not("comment", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .then(({ data, count: c }) => { if (!cancelled) { setReviews(data ?? []); setCount(c ?? 0); } });
+    return () => { cancelled = true; };
+  }, [providerId]);
+
+  if (!reviews || reviews.length === 0) return null;
+  return (
+    <section className="mt-[26px]">
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2 className="text-[17px] font-bold text-navy">Patient reviews</h2>
+        <span className="text-ds-sm text-muted">{count} written</span>
+      </div>
+      <div className="space-y-3">
+        {reviews.map((r, i) => (
+          <Card key={i}>
+            <div className="flex items-center justify-between">
+              <span className="inline-flex gap-0.5" aria-label={`${r.rating} out of 5`}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <Star key={n} size={14} className={n <= r.rating ? "fill-amber-500 text-amber-500" : "fill-line text-line"} aria-hidden />
+                ))}
+              </span>
+              <span className="text-ds-xs text-muted">{timeAgo(r.created_at)}</span>
+            </div>
+            <p className="mt-2 text-ds-sm text-ink/85">{r.comment}</p>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function timeAgo(iso: string) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days < 1) return "Today";
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+  if (days < 30) return `${Math.floor(days / 7)} week${days < 14 ? "" : "s"} ago`;
+  const months = Math.floor(days / 30);
+  return `${months} month${months === 1 ? "" : "s"} ago`;
+}
+
 // Regulator that licenses each profession; every listed provider is verified against it
 const REGULATOR: Record<string, string> = { doctor: "MDCN", nurse: "NMCN", physiotherapist: "MRTB" };
 
@@ -324,10 +390,12 @@ function AvailabilityPill({ available }: { available: boolean }) {
 }
 
 // Design screen "Provider profile", built from the data the list already has.
-function ProviderProfile({ provider: p, regulator, serviceChargeRate, onBack, onBook }: {
+function ProviderProfile({ provider: p, regulator, serviceChargeRate, presetAt, onPick, onBack, onBook }: {
   provider: BookableProvider;
   regulator: string;
   serviceChargeRate: number;
+  presetAt: string | null;
+  onPick: (iso: string) => void;
   onBack: () => void;
   onBook: () => void;
 }) {
@@ -369,7 +437,13 @@ function ProviderProfile({ provider: p, regulator, serviceChargeRate, onBack, on
         </Card>
       )}
 
-      {/* TODO(design): month schedule (open, partly booked, fully booked days) needs a provider availability query; patients can't read other bookings. */}
+      <section className="mt-[26px]">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-[17px] font-bold text-navy">Schedule</h2>
+          <span className="text-ds-sm text-muted">Times in Lagos time</span>
+        </div>
+        <ProviderSchedule providerId={p.id} onPick={onPick} />
+      </section>
 
       <section className="mt-[26px]">
         <h2 className="mb-3 text-[17px] font-bold text-navy">Home visit fee</h2>
@@ -387,9 +461,12 @@ function ProviderProfile({ provider: p, regulator, serviceChargeRate, onBack, on
         </Card>
       </section>
 
-      {/* TODO(design): patient reviews need the provider's reviews loaded (reviews table exists, not queried here). */}
+      <ProviderReviews providerId={p.id} />
 
-      {/* TODO(design): privacy note ("Booked times are shown as taken...") returns with the schedule. */}
+      <div className="mt-5 flex gap-2.5 rounded-ds bg-sky p-3 text-ds-xs leading-normal text-navy">
+        <Lock size={18} className="mt-px flex-none text-brand" aria-hidden />
+        <span>Booked times are shown as taken, but patient details are never shared with other patients.</span>
+      </div>
 
       {/* Sticky price bar, sitting above the mobile tab bar */}
       <div className="sticky bottom-[76px] z-20 mt-6 flex items-center gap-3.5 rounded-ds-lg border border-line bg-surface/95 p-3.5 shadow-ds backdrop-blur md:bottom-4">
@@ -398,7 +475,11 @@ function ProviderProfile({ provider: p, regulator, serviceChargeRate, onBack, on
           <b className="text-[20px] tracking-[-0.01em] text-navy tabular-nums">{formatNaira(p.price)}</b>
           <small className="block text-ds-2xs text-muted">plus {formatNaira(serviceChargeFor(p.price, serviceChargeRate))} service charge</small>
         </div>
-        <Button className="flex-1" onClick={onBook}>Book visit</Button>
+        <Button className="flex-1" onClick={onBook}>
+          {presetAt
+            ? `Book ${new Date(presetAt).toLocaleDateString("en-NG", { weekday: "short" })}, ${new Date(presetAt).toLocaleTimeString("en-NG", { hour: "numeric", hour12: true }).toLowerCase()}`
+            : "Book visit"}
+        </Button>
       </div>
     </div>
   );
