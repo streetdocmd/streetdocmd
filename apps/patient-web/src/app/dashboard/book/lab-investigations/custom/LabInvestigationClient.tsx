@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatNaira } from "@/lib/shared";
+import { Check, Search } from "lucide-react";
+import { Button, Card, Notice, TopBar, cx, fieldLabelClass, focusRing, inputClass } from "@/components/ds";
 
 interface CatalogueItem {
   id: string;
@@ -19,6 +21,11 @@ interface SelectedTest {
   price: number;
 }
 
+function turnaround(hours: number | null) {
+  if (!hours) return "";
+  return hours < 48 ? `Results in ${hours} hours` : `Results in ${Math.round(hours / 24)} days`;
+}
+
 export default function LabInvestigationClient({
   catalogue,
 }: {
@@ -26,21 +33,21 @@ export default function LabInvestigationClient({
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<SelectedTest[]>([]);
-  const [pendingId, setPendingId] = useState("");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const available = catalogue.filter(item => !selected.some(s => s.catalogue_id === item.id));
+  const [query, setQuery] = useState("");
   const total = selected.reduce((sum, t) => sum + t.price, 0);
+  const isSelected = (id: string) => selected.some(s => s.catalogue_id === id);
+  const shown = catalogue.filter(item =>
+    !query.trim() || `${item.test_name} ${item.test_code ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()),
+  );
 
-  function addTest() {
-    const item = catalogue.find(c => c.id === pendingId);
-    if (!item) return;
+  function addTest(item: CatalogueItem) {
     setSelected(prev => [...prev, {
       catalogue_id: item.id, test_name: item.test_name, test_code: item.test_code, price: item.price,
     }]);
-    setPendingId("");
   }
 
   function removeTest(catalogueId: string) {
@@ -78,81 +85,85 @@ export default function LabInvestigationClient({
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
-      <div>
-        <h1 className="text-xl font-bold text-gray-900">Choose Specific Tests</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Search and select exactly the investigations you need</p>
-      </div>
+    <div className="mx-auto max-w-2xl">
+      <TopBar title="Specific tests" backHref="/dashboard/book/lab-investigations" className="-mx-5 -mt-2 md:mx-0" />
+      <p className="mb-4 text-ds-xs text-muted">Search and select exactly the tests you need.</p>
 
-      <div className="card p-5 space-y-3">
-        <label className="label">Add an investigation</label>
-        <div className="flex gap-2">
-          <select className="input flex-1" value={pendingId} onChange={e => setPendingId(e.target.value)}>
-            <option value="">Select a test…</option>
-            {available.map(item => (
-              <option key={item.id} value={item.id}>
-                {item.test_name}{item.test_code ? ` (${item.test_code})` : ""} — {formatNaira(item.price)}
-              </option>
-            ))}
-          </select>
-          <button type="button" onClick={addTest} disabled={!pendingId} className="btn-primary px-4 text-sm shrink-0">
-            Add
-          </button>
-        </div>
-        {available.length === 0 && catalogue.length > 0 && (
-          <p className="text-xs text-gray-400">All available tests have been added.</p>
-        )}
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2 className="text-[17px] font-bold text-navy">Tests on offer</h2>
+        <span className="text-ds-sm text-muted">Prices in Naira</span>
       </div>
+      <label className="mb-1.5 flex h-[54px] items-center gap-2.5 rounded-[18px] border-[1.5px] border-line bg-surface px-4 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent-soft">
+        <Search size={20} className="flex-none text-navy" aria-hidden />
+        <input
+          className="min-w-0 flex-1 bg-transparent text-ds-control text-ink outline-none placeholder:text-muted"
+          placeholder="Search a test"
+          aria-label="Search a test"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+      </label>
 
-      {selected.length > 0 && (
-        <div className="card p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Selected Investigations</h3>
-          <div className="space-y-2">
-            {selected.map(t => (
-              <div key={t.catalogue_id} className="flex items-center justify-between border-b border-gray-50 last:border-0 pb-2 last:pb-0">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{t.test_name}</p>
-                  {t.test_code && <p className="text-xs text-gray-400">{t.test_code}</p>}
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-700">{formatNaira(t.price)}</span>
-                  <button type="button" onClick={() => removeTest(t.catalogue_id)} className="text-xs text-red-500 hover:underline">
-                    Remove
-                  </button>
-                </div>
+      <Card padded={false} className="px-4 py-1">
+        {shown.map(item => {
+          const on = isSelected(item.id);
+          const details = [turnaround(item.turnaround_hours), item.sample_type && `${item.sample_type} sample`].filter(Boolean).join(" · ");
+          return (
+            <div key={item.id} className="flex items-center gap-3 border-b border-line py-3.5 last:border-b-0">
+              <div className="min-w-0 flex-1">
+                <b className="block text-ds-sm text-ink">{item.test_name}</b>
+                {details && <small className="block text-ds-xs text-muted">{details}</small>}
               </div>
-            ))}
-          </div>
-          <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-            <span className="text-sm font-semibold text-gray-900">Total</span>
-            <span className="text-sm font-bold text-blue-brand">{formatNaira(total)}</span>
-          </div>
-        </div>
-      )}
+              <div className="text-right">
+                <div className="text-ds-sm font-extrabold text-navy tabular-nums">{formatNaira(item.price)}</div>
+                <button
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => (on ? removeTest(item.id) : addTest(item))}
+                  className={cx(
+                    "mt-1.5 inline-flex min-h-9 items-center gap-1 rounded-xl border-[1.5px] px-3 text-[13px] font-bold",
+                    on ? "border-accent bg-accent text-white" : "border-accent bg-surface text-accent",
+                    focusRing,
+                  )}
+                >
+                  {on ? <><Check size={14} aria-hidden /> Added</> : "Add"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {shown.length === 0 && (
+          <p className="py-[18px] text-center text-ds-sm text-muted">
+            {catalogue.length === 0 ? "No tests are listed yet." : "No test by that name here."}
+          </p>
+        )}
+      </Card>
 
-      <div className="card p-5">
-        <label className="label">Reason for investigation (optional)</label>
+      <div className="mt-5">
+        <label htmlFor="lab-notes" className={fieldLabelClass}>Reason for the tests <span className="font-normal text-muted">(optional)</span></label>
         <textarea
-          className="input"
+          id="lab-notes"
+          className={inputClass(false, "min-h-24 py-3 leading-normal")}
           rows={2}
-          placeholder="e.g. Follow-up on symptoms, routine screening…"
+          placeholder="e.g. Follow up on symptoms, routine screening"
           value={notes}
           onChange={e => setNotes(e.target.value)}
         />
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
-      )}
+      {error && <Notice tone="danger" className="mt-4">{error}</Notice>}
 
-      <button
-        type="button"
-        onClick={submit}
-        disabled={submitting || selected.length === 0}
-        className="btn-primary w-full text-base py-3"
-      >
-        {submitting ? "Placing order…" : `Request ${selected.length || ""} Investigation${selected.length === 1 ? "" : "s"}`}
-      </button>
+      <div className="sticky bottom-[76px] z-20 mt-6 flex items-center gap-3.5 rounded-ds-lg border border-line bg-surface/95 p-3.5 shadow-ds backdrop-blur md:bottom-4">
+        <div>
+          <small className="block text-ds-2xs font-bold text-muted">
+            {selected.length} test{selected.length === 1 ? "" : "s"}
+          </small>
+          <b className="text-[20px] tracking-[-0.01em] text-navy tabular-nums">{formatNaira(total)}</b>
+        </div>
+        <Button className="flex-1" onClick={submit} disabled={submitting || selected.length === 0}>
+          {submitting ? "Placing order…" : `Request ${selected.length || ""} test${selected.length === 1 ? "" : "s"}`}
+        </Button>
+      </div>
     </div>
   );
 }

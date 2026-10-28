@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { formatNaira } from "@/lib/shared";
+import { Clock, FlaskConical, HeartPulse, Lock } from "lucide-react";
+import { Card, Pill, TopBar, cx, focusRing } from "@/components/ds";
 
 const STATUS_LABELS: Record<string, string> = {
   ordered: "Order Placed",
@@ -10,6 +12,8 @@ const STATUS_LABELS: Record<string, string> = {
   processing: "Processing",
   resulted: "Results Ready",
 };
+
+const sentence = (s: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : s);
 
 export default async function LabInvestigationsPage() {
   const supabase = await createServerSupabase();
@@ -33,61 +37,64 @@ export default async function LabInvestigationsPage() {
     .maybeSingle();
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Request Lab Investigations</h1>
-        <p className="text-gray-500 text-sm mt-0.5">
-          Choose a curated wellness package, or pick the specific tests you need.
-        </p>
+    <div className="mx-auto max-w-2xl">
+      <TopBar title="Wellness and labs" backHref="/dashboard" className="-mx-5 -mt-2 md:mx-0" />
+      <p className="mb-4 text-ds-xs text-muted">
+        Choose a wellness package, or pick the specific tests you need.
+      </p>
+
+      <div className="flex gap-2.5 rounded-ds bg-sky p-3 text-ds-xs leading-normal text-navy">
+        <Lock size={18} className="mt-px flex-none text-brand" aria-hidden />
+        <span><strong>Home sample collection.</strong> A trained collector visits you to take the sample.</span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Link href="/dashboard/book/wellness" className="card p-5 hover:shadow-card-md hover:border-blue-mid transition-all group">
-          <div className="text-3xl mb-3">🌿</div>
-          <h3 className="font-semibold text-gray-900 group-hover:text-blue-brand transition-colors">Wellness Check Package</h3>
-          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-            Choose a tiered package — routine screening bundled at a fixed price.
-          </p>
-          <p className="text-sm font-semibold text-blue-brand mt-3">
-            {cheapestPackage ? `From ${formatNaira(cheapestPackage.price)}` : "View packages"}
-          </p>
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <Link href="/dashboard/book/wellness"
+          className={cx("flex min-h-[148px] flex-col gap-[22px] rounded-ds-lg bg-tint-mint p-4 text-ink transition-transform active:scale-[0.98]", focusRing)}>
+          <span className="grid h-11 w-11 place-items-center rounded-[14px] bg-white/70 text-navy"><HeartPulse size={22} aria-hidden /></span>
+          <span>
+            <b className="block text-ds-control text-navy">Wellness package</b>
+            <small className="mt-[3px] block text-ds-xs leading-[1.35] text-ink/75">Routine screening bundled at a fixed price</small>
+            <span className="mt-2 block text-ds-sm font-extrabold text-navy">
+              {cheapestPackage ? `From ${formatNaira(cheapestPackage.price)}` : "View packages"}
+            </span>
+          </span>
         </Link>
-
-        <Link href="/dashboard/book/lab-investigations/custom" className="card p-5 hover:shadow-card-md hover:border-blue-mid transition-all group">
-          <div className="text-3xl mb-3">🔬</div>
-          <h3 className="font-semibold text-gray-900 group-hover:text-blue-brand transition-colors">Choose Specific Tests</h3>
-          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-            Search and select exactly the investigations you need from our lab partner's test menu.
-          </p>
-          <p className="text-sm font-semibold text-blue-brand mt-3">Priced per test</p>
+        <Link href="/dashboard/book/lab-investigations/custom"
+          className={cx("flex min-h-[148px] flex-col gap-[22px] rounded-ds-lg bg-tint-blue p-4 text-ink transition-transform active:scale-[0.98]", focusRing)}>
+          <span className="grid h-11 w-11 place-items-center rounded-[14px] bg-white/70 text-navy"><FlaskConical size={22} aria-hidden /></span>
+          <span>
+            <b className="block text-ds-control text-navy">Specific tests</b>
+            <small className="mt-[3px] block text-ds-xs leading-[1.35] text-ink/75">Pick exactly the tests you need</small>
+            <span className="mt-2 block text-ds-sm font-extrabold text-navy">Priced per test</span>
+          </span>
         </Link>
       </div>
 
       {pastOrders && pastOrders.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Your Recent Requests</h2>
-          <div className="space-y-2">
+        <section className="mt-[26px]">
+          <h2 className="mb-3 text-[17px] font-bold text-navy">Your recent requests</h2>
+          <Card padded={false} className="px-4 py-1">
             {pastOrders.map((o: any) => (
               <Link
                 key={o.id}
                 href={`/dashboard/book/lab-investigations/tracking/${o.id}`}
-                className="card p-4 flex items-center justify-between hover:shadow-card-md transition-all"
+                className={cx("flex items-center gap-3 border-b border-line py-3.5 last:border-b-0", focusRing)}
               >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {(o.tests as any[])?.map(t => t.test_name).join(", ")}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                <span className="min-w-0 flex-1">
+                  <b className="block truncate text-ds-sm text-ink">{(o.tests as any[])?.map(t => t.test_name).join(", ")}</b>
+                  <small className="block text-ds-xs text-muted">
                     {o.lab_partners?.name} · {new Date(o.ordered_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
-                  </p>
-                </div>
-                <span className="badge bg-blue-50 text-blue-700 shrink-0 ml-3">
-                  {STATUS_LABELS[o.status] ?? o.status}
+                  </small>
                 </span>
+                <Pill tone={o.status === "resulted" ? "ok" : "info"} icon={o.status === "resulted" ? undefined : Clock}>
+                  {sentence(STATUS_LABELS[o.status] ?? o.status)}
+                </Pill>
               </Link>
             ))}
-          </div>
-        </div>
+          </Card>
+          <p className="mt-3 text-ds-sm text-muted">Open a request to follow it. Results appear there as soon as they are ready.</p>
+        </section>
       )}
     </div>
   );
