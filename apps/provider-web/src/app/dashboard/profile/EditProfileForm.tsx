@@ -94,8 +94,8 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       <div id="about" className="card p-5 space-y-4 scroll-mt-24">
         <div>
-          <h3 className="font-semibold text-gray-900">About you</h3>
-          <p className="text-xs text-gray-500 mt-0.5">Shown to patients when you&apos;re matched to their visit.</p>
+          <h3 className="font-semibold text-ink">About you</h3>
+          <p className="text-xs text-muted mt-0.5">Shown to patients when you&apos;re matched to their visit.</p>
         </div>
         <div>
           <label className="label" htmlFor="bio">Bio</label>
@@ -129,8 +129,8 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
 
       <div id="availability" className="card p-5 space-y-4 scroll-mt-24">
         <div>
-          <h3 className="font-semibold text-gray-900">Working hours & service area</h3>
-          <p className="text-xs text-gray-500 mt-0.5">We only send you requests inside these hours and within this distance of you.</p>
+          <h3 className="font-semibold text-ink">Working hours & service area</h3>
+          <p className="text-xs text-muted mt-0.5">We only send you requests inside these hours and within this distance of you.</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div>
@@ -150,8 +150,8 @@ export default function EditProfileForm({ profile }: { profile: Profile }) {
 
       <div id="payouts" className="card p-5 space-y-4 scroll-mt-24">
         <div>
-          <h3 className="font-semibold text-gray-900">Bank details for payouts</h3>
-          <p className="text-xs text-gray-500 mt-0.5">Withdrawals are paid into this account. The account name should match your registered name.</p>
+          <h3 className="font-semibold text-ink">Bank details for payouts</h3>
+          <p className="text-xs text-muted mt-0.5">Withdrawals are paid into this account. The account name should match your registered name.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

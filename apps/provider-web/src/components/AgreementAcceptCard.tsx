@@ -40,16 +40,16 @@ export default function AgreementAcceptCard({ updated = false }: { updated?: boo
   }
 
   return (
-    <div className="card p-5 border-blue-mid">
+    <div className="card p-5 border-accent/40">
       <div className="flex items-start gap-3.5">
-        <div className="w-11 h-11 rounded-xl bg-blue-light flex items-center justify-center shrink-0">
-          <FileSignature size={20} className="text-blue-brand" />
+        <div className="w-11 h-11 rounded-xl bg-accent-soft flex items-center justify-center shrink-0">
+          <FileSignature size={20} className="text-accent" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-gray-900">
+          <p className="font-semibold text-ink">
             {updated ? `Review the updated ${PROVIDER_AGREEMENT_TITLE}` : `Accept the ${PROVIDER_AGREEMENT_TITLE}`}
           </p>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-muted mt-0.5">
             Version {PROVIDER_AGREEMENT_VERSION} sets out commission, payouts, insurance and conduct terms for
             providers on StreetdocMD. Please read and accept it to keep receiving bookings.
           </p>
@@ -60,9 +60,9 @@ export default function AgreementAcceptCard({ updated = false }: { updated?: boo
               checked={agreed}
               onChange={e => setAgreed(e.target.checked)}
               disabled={saving}
-              className="mt-0.5 h-4 w-4 shrink-0 accent-blue-brand"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
             />
-            <span className="text-sm leading-relaxed text-gray-700">{PROVIDER_AGREEMENT_ACCEPTANCE_LABEL}</span>
+            <span className="text-sm leading-relaxed text-ink">{PROVIDER_AGREEMENT_ACCEPTANCE_LABEL}</span>
           </label>
 
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
@@ -74,7 +74,7 @@ export default function AgreementAcceptCard({ updated = false }: { updated?: boo
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="text-sm font-semibold text-blue-brand underline-offset-2 hover:underline"
+              className="text-sm font-semibold text-accent underline-offset-2 hover:underline"
             >
               Read the agreement
             </button>

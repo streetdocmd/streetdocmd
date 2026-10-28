@@ -38,11 +38,11 @@ export default function ForgotPasswordPage() {
     <div className="w-full max-w-md">
       <AuthBrand />
 
-      <div className="bg-white rounded-2xl shadow-xl p-8">
+      <div className="card p-6 sm:p-8">
         {sent ? (
           <>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email</h2>
-            <p className="text-gray-500 text-sm mb-6">
+            <h2 className="text-ds-xl font-bold text-navy mb-2">Check your email</h2>
+            <p className="text-muted text-sm mb-6">
               If an account exists for <span className="font-medium">{email}</span>, we've sent a link to reset your password.
             </p>
             <Link href="/login" className="btn-primary w-full text-center block">
@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
           </>
         ) : (
           <>
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Reset your password</h2>
+            <h2 className="text-ds-xl font-bold text-navy mb-6">Reset your password</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -73,8 +73,8 @@ export default function ForgotPasswordPage() {
               </button>
             </form>
 
-            <p className="text-center text-sm text-gray-500 mt-6">
-              <Link href="/login" className="text-blue-brand font-medium hover:underline">
+            <p className="text-center text-sm text-muted mt-6">
+              <Link href="/login" className="text-accent font-medium hover:underline">
                 Back to sign in
               </Link>
             </p>

@@ -22,7 +22,7 @@ export default function Step6SocialHistory({ value, onChange }: {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Step 6 — Social History</h2>
+        <h2 className="text-ds-lg font-bold text-navy">Step 6 — Social History</h2>
       </div>
 
       <div className="card p-4 space-y-4">
@@ -30,9 +30,9 @@ export default function Step6SocialHistory({ value, onChange }: {
           options={["Never", "Ex-smoker", "Current smoker"]} />
         {data.smoking === "Current smoker" && (
           <div>
-            <label className="text-sm text-gray-600">Pack-years</label>
+            <label className="text-sm text-muted">Pack-years</label>
             <input type="number" min="0" value={data.pack_years ?? ""} onChange={e => set("pack_years", e.target.value)}
-              className="mt-1 w-32 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="mt-1 w-32 border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
           </div>
         )}
 
@@ -40,16 +40,16 @@ export default function Step6SocialHistory({ value, onChange }: {
           options={["Never", "Social", "Regular"]} />
 
         <div>
-          <label className="text-sm font-semibold text-gray-700">Occupation</label>
+          <label className="text-sm font-semibold text-ink">Occupation</label>
           <input type="text" value={data.occupation ?? ""} onChange={e => set("occupation", e.target.value)}
             placeholder="e.g. Teacher, Nurse..."
-            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-gray-700">Marital Status</label>
+          <label className="text-sm font-semibold text-ink">Marital Status</label>
           <select value={data.marital_status ?? ""} onChange={e => set("marital_status", e.target.value)}
-            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent bg-white">
             <option value="">Select...</option>
             {["Single", "Married", "Widowed", "Divorced", "Separated"].map(o => <option key={o}>{o}</option>)}
           </select>
@@ -65,12 +65,12 @@ export default function Step6SocialHistory({ value, onChange }: {
 function RadioGroup({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
   return (
     <div>
-      <p className="text-sm font-semibold text-gray-700 mb-2">{label}</p>
+      <p className="text-sm font-semibold text-ink mb-2">{label}</p>
       <div className="flex flex-wrap gap-2">
         {options.map(opt => (
           <label key={opt} className="flex items-center gap-2 cursor-pointer">
             <input type="radio" name={label} checked={value === opt} onChange={() => onChange(opt)} className="accent-blue-600" />
-            <span className="text-sm text-gray-700">{opt}</span>
+            <span className="text-sm text-ink">{opt}</span>
           </label>
         ))}
       </div>

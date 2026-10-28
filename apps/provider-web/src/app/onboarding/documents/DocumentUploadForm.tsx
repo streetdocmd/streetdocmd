@@ -174,24 +174,24 @@ export default function DocumentUploadForm({
       {slots.map((slot, i) => (
         <div key={slot.type} className={`card p-5 ${slot.error ? "border-red-200" : ""}`}>
           <div className="flex items-start gap-3.5">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${slot.done ? "bg-green-50" : "bg-blue-light"}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${slot.done ? "bg-green-50" : "bg-accent-soft"}`}>
               {slot.done
                 ? <CheckCircle2 size={20} className="text-green-600" />
-                : <FileText size={20} className="text-blue-brand" />}
+                : <FileText size={20} className="text-accent" />}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="font-semibold text-gray-900">
+                <h3 className="font-semibold text-ink">
                   {slot.label}
                   {!slot.onFile && <span className="text-red-500 ml-1" aria-hidden>*</span>}
                 </h3>
                 {slot.done ? (
                   <span className="badge bg-green-100 text-green-700">Uploaded</span>
                 ) : slot.onFile ? (
-                  <span className="badge bg-gray-100 text-gray-600">On file</span>
+                  <span className="badge bg-pending-bg text-muted">On file</span>
                 ) : null}
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-muted mt-0.5">
                 {slot.description} · PDF, JPG or PNG, up to 10 MB
                 {slot.onFile && !slot.done && (isReapplying ? " · upload a new copy if this one was flagged" : " · you can replace it")}
               </p>
@@ -216,7 +216,7 @@ export default function DocumentUploadForm({
                       {slot.uploading ? "Uploading…" : slot.file ? "Change file" : slot.onFile ? "Replace file" : "Select file"}
                     </button>
                     {slot.file && (
-                      <span className="text-xs text-gray-600 truncate max-w-[220px]" title={slot.file.name}>{slot.file.name}</span>
+                      <span className="text-xs text-muted truncate max-w-[220px]" title={slot.file.name}>{slot.file.name}</span>
                     )}
                   </div>
                 </>
@@ -228,34 +228,34 @@ export default function DocumentUploadForm({
       ))}
 
       {needsAgreement ? (
-        <div className="rounded-xl border border-blue-mid bg-blue-light p-4">
+        <div className="rounded-xl border border-accent/40 bg-accent-soft p-4">
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
               checked={agreed}
               onChange={e => { setAgreed(e.target.checked); setGlobalError(""); }}
               disabled={submitting}
-              className="mt-0.5 h-4 w-4 shrink-0 accent-blue-brand"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
             />
-            <span className="text-sm leading-relaxed text-gray-700">{PROVIDER_AGREEMENT_ACCEPTANCE_LABEL}</span>
+            <span className="text-sm leading-relaxed text-ink">{PROVIDER_AGREEMENT_ACCEPTANCE_LABEL}</span>
           </label>
           <div className="mt-2 flex flex-wrap items-center justify-between gap-3 pl-7">
             <button
               type="button"
               onClick={() => setShowAgreement(true)}
-              className="text-sm font-semibold text-blue-brand underline-offset-2 hover:underline"
+              className="text-sm font-semibold text-accent underline-offset-2 hover:underline"
             >
               Read the {PROVIDER_AGREEMENT_TITLE}
             </button>
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Required to continue</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">Required to continue</span>
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-2 rounded-xl border border-gray-100 bg-white px-4 py-3 text-sm text-gray-600">
+        <div className="flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-3 text-sm text-muted">
           <CheckCircle2 size={16} className="text-green-600 shrink-0" />
           <span>
             You&apos;ve accepted the {PROVIDER_AGREEMENT_TITLE} (v{PROVIDER_AGREEMENT_VERSION}).{" "}
-            <button type="button" onClick={() => setShowAgreement(true)} className="font-medium text-blue-brand hover:underline">
+            <button type="button" onClick={() => setShowAgreement(true)} className="font-medium text-accent hover:underline">
               Read it again
             </button>
           </span>
@@ -273,7 +273,7 @@ export default function DocumentUploadForm({
         {submitting ? "Submitting…" : isReapplying ? "Re-submit for verification" : "Submit for verification"}
       </button>
 
-      <p className="text-xs text-gray-400 text-center">
+      <p className="text-xs text-muted text-center">
         Your documents are stored privately and only seen by the StreetdocMD verification team.
       </p>
 

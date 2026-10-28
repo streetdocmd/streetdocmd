@@ -41,11 +41,11 @@ export default function ProviderAgreementModal({ isOpen, onClose }: { isOpen: bo
         className="flex w-full max-w-2xl max-h-[88vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
         {/* Header */}
-        <div className="flex shrink-0 items-start justify-between bg-navy-700 px-6 py-5">
+        <div className="flex shrink-0 items-start justify-between bg-navy px-6 py-5">
           <div>
             <p className="text-lg font-bold text-white">StreetdocMD</p>
             <p id="agreement-modal-title" className="mt-1 text-sm font-semibold text-white">{PROVIDER_AGREEMENT_TITLE}</p>
-            <p className="mt-0.5 text-xs text-blue-200">{PROVIDER_AGREEMENT_SUBTITLE}</p>
+            <p className="mt-0.5 text-xs text-muted">{PROVIDER_AGREEMENT_SUBTITLE}</p>
           </div>
           <button
             type="button"
@@ -58,22 +58,22 @@ export default function ProviderAgreementModal({ isOpen, onClose }: { isOpen: bo
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 pt-5 pb-2 text-[13px] leading-relaxed text-gray-600">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{PROVIDER_AGREEMENT_PARTY_LINE}</p>
-          <p className="mb-5 rounded-lg bg-gray-50 px-4 py-3">
-            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Online agreement</span>
+        <div className="flex-1 overflow-y-auto px-6 pt-5 pb-2 text-[13px] leading-relaxed text-muted">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted">{PROVIDER_AGREEMENT_PARTY_LINE}</p>
+          <p className="mb-5 rounded-lg bg-page px-4 py-3">
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">Online agreement</span>
             {PROVIDER_AGREEMENT_INTRO}
           </p>
 
           {PROVIDER_AGREEMENT_SECTIONS.map(section => (
             <section key={section.num} className="mb-5">
-              <h3 className="mb-2 text-sm font-bold text-navy-700">
+              <h3 className="mb-2 text-sm font-bold text-navy">
                 {section.num}. {section.title}
               </h3>
               <div className="space-y-1.5">
                 {section.clauses.map(([n, text]) => <Clause key={n} n={n} text={text} />)}
                 {section.bullets && (
-                  <ul className="list-disc space-y-1 pl-5 marker:text-gray-300">
+                  <ul className="list-disc space-y-1 pl-5 marker:text-line">
                     {section.bullets.map(b => <li key={b}>{b}</li>)}
                   </ul>
                 )}
@@ -83,20 +83,20 @@ export default function ProviderAgreementModal({ isOpen, onClose }: { isOpen: bo
           ))}
 
           <section className="mb-5">
-            <h3 className="mb-2 text-sm font-bold text-navy-700">Schedule 1. Provider Commercial Framework</h3>
-            <div className="overflow-x-auto rounded-lg border border-gray-100">
+            <h3 className="mb-2 text-sm font-bold text-navy">Schedule 1. Provider Commercial Framework</h3>
+            <div className="overflow-x-auto rounded-lg border border-line">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-gray-50 text-gray-500">
+                  <tr className="bg-page text-muted">
                     <th className="px-3 py-2 text-left font-semibold">Commercial item</th>
                     <th className="px-3 py-2 text-left font-semibold">Framework</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-line">
                   {PROVIDER_AGREEMENT_SCHEDULE_1.map(([item, framework]) => (
                     <tr key={item}>
-                      <td className="px-3 py-2 align-top font-medium text-gray-700">{item}</td>
-                      <td className="px-3 py-2 align-top text-gray-600">{framework}</td>
+                      <td className="px-3 py-2 align-top font-medium text-ink">{item}</td>
+                      <td className="px-3 py-2 align-top text-muted">{framework}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -105,16 +105,16 @@ export default function ProviderAgreementModal({ isOpen, onClose }: { isOpen: bo
           </section>
 
           <section className="mb-5">
-            <h3 className="mb-2 text-sm font-bold text-navy-700">Schedule 2. Professional and Operational Particulars</h3>
+            <h3 className="mb-2 text-sm font-bold text-navy">Schedule 2. Professional and Operational Particulars</h3>
             <p>{PROVIDER_AGREEMENT_SCHEDULE_2}</p>
           </section>
         </div>
 
         {/* Footer */}
-        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-gray-100 px-6 py-4">
-          <span className="text-xs text-gray-400">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-line px-6 py-4">
+          <span className="text-xs text-muted">
             Version {PROVIDER_AGREEMENT_VERSION} · {PROVIDER_AGREEMENT_YEAR} ·{" "}
-            <a href={legalUrl("provider-agreement")} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
+            <a href={legalUrl("provider-agreement")} target="_blank" rel="noopener noreferrer" className="underline hover:text-muted">
               Open full page
             </a>
           </span>
@@ -130,7 +130,7 @@ export default function ProviderAgreementModal({ isOpen, onClose }: { isOpen: bo
 function Clause({ n, text }: { n: string; text: string }) {
   return (
     <p>
-      <span className="font-semibold text-gray-700">{n}</span> {text}
+      <span className="font-semibold text-ink">{n}</span> {text}
     </p>
   );
 }

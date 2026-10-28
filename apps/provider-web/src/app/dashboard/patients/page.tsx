@@ -6,13 +6,13 @@ import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server
 import { CARE_EPISODE_STATUS_LABELS } from "@streetdocmd/shared";
 
 const STATUS_STYLES: Record<string, string> = {
-  active: "bg-blue-100 text-blue-700",
+  active: "bg-accent-soft text-accent",
   monitoring: "bg-teal-100 text-teal-700",
   follow_up_due: "bg-amber-100 text-amber-700",
   overdue: "bg-red-100 text-red-700",
   referred: "bg-purple-100 text-purple-700",
   resolved: "bg-green-100 text-green-700",
-  closed: "bg-gray-100 text-gray-500",
+  closed: "bg-pending-bg text-muted",
   escalated: "bg-red-100 text-red-700",
 };
 
@@ -85,7 +85,7 @@ export default async function MyPatientsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-6">My Patients</h1>
+      <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight mb-6">My Patients</h1>
 
       {rows.length === 0 ? (
         <EmptyState
@@ -102,12 +102,12 @@ export default async function MyPatientsPage() {
               className="card p-4 flex items-center justify-between gap-3 hover:shadow-card-md transition-shadow"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-teal-brand flex items-center justify-center text-white font-bold shrink-0">
+                <div className="w-10 h-10 rounded-full bg-teal-deep flex items-center justify-center text-white font-bold shrink-0">
                   {patient.name?.[0] ?? "?"}
                 </div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">{patient.name ?? "Patient"}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="font-semibold text-ink truncate">{patient.name ?? "Patient"}</p>
+                  <p className="text-xs text-muted">
                     {lastBooking ? `Last visit ${new Date(lastBooking.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}` : "No completed visit yet"}
                   </p>
                 </div>
@@ -121,7 +121,7 @@ export default async function MyPatientsPage() {
                     {CARE_EPISODE_STATUS_LABELS[episode.status as keyof typeof CARE_EPISODE_STATUS_LABELS] ?? episode.status}
                   </span>
                 ) : (
-                  <span className="badge bg-gray-100 text-gray-400">No active care episode</span>
+                  <span className="badge bg-pending-bg text-muted">No active care episode</span>
                 )}
               </div>
             </Link>

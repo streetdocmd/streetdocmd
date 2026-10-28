@@ -68,36 +68,36 @@ export default function DispatchCard({ request }: { request: DispatchRequest }) 
   const serviceLabel = (SERVICE_LABELS as Record<string, string>)[booking.service_type] ?? booking.service_type;
 
   return (
-    <div className="card p-5 border-l-4 border-blue-brand animate-pulse-border">
+    <div className="card p-5 border-l-4 border-accent animate-pulse-border">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
-          <span className="badge bg-blue-light text-blue-brand mb-1">New request</span>
-          <h3 className="font-bold text-gray-900 text-lg">{serviceLabel}</h3>
-          <p className="text-sm text-gray-500 mt-0.5">📍 {booking.patient_address}</p>
+          <span className="badge bg-accent-soft text-accent mb-1">New request</span>
+          <h3 className="font-bold text-ink text-lg">{serviceLabel}</h3>
+          <p className="text-sm text-muted mt-0.5">📍 {booking.patient_address}</p>
           {request.distance_km != null && (
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-muted mt-0.5">
               {request.distance_km.toFixed(1)} km away · ~{request.eta_minutes} min
             </p>
           )}
           {booking.notes && (
-            <p className="text-sm text-gray-600 mt-1 italic">"{booking.notes}"</p>
+            <p className="text-sm text-muted mt-1 italic">"{booking.notes}"</p>
           )}
         </div>
         <div className="text-right shrink-0">
-          <p className="text-xs text-gray-400 mb-1">Expires in</p>
+          <p className="text-xs text-muted mb-1">Expires in</p>
           <Countdown expiresAt={request.expires_at} />
         </div>
       </div>
 
-      <div className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3 mb-4">
+      <div className="flex items-center justify-between bg-page rounded-lg px-4 py-3 mb-4">
         <div className="text-center">
-          <p className="text-xs text-gray-400">Service fee</p>
-          <p className="font-semibold text-gray-900">{formatNaira(booking.fee)}</p>
+          <p className="text-xs text-muted">Service fee</p>
+          <p className="font-semibold text-ink">{formatNaira(booking.fee)}</p>
         </div>
-        <div className="w-px h-8 bg-gray-200" />
+        <div className="w-px h-8 bg-line" />
         <div className="text-center">
-          <p className="text-xs text-gray-400">Your payout</p>
-          <p className="font-bold text-teal-brand text-lg">{formatNaira(booking.net_payout)}</p>
+          <p className="text-xs text-muted">Your payout</p>
+          <p className="font-bold text-teal-deep text-lg">{formatNaira(booking.net_payout)}</p>
         </div>
       </div>
 

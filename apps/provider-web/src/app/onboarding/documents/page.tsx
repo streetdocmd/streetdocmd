@@ -40,13 +40,13 @@ export default async function DocumentsPage() {
       </div>
 
       <div className="text-center mb-8">
-        <div className="w-14 h-14 bg-blue-light rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <FileCheck2 size={26} className="text-blue-brand" />
+        <div className="w-14 h-14 bg-accent-soft rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <FileCheck2 size={26} className="text-accent" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight">
           {isRejected ? "Update your documents" : "Upload your credentials"}
         </h1>
-        <p className="text-gray-500 text-sm mt-2 max-w-md mx-auto">
+        <p className="text-muted text-sm mt-2 max-w-md mx-auto">
           {isRejected
             ? "Replace the documents our team flagged, then re-submit your application for review."
             : "We check every licence by hand with the issuing council before a provider can see patients. This usually takes 24–48 hours."}

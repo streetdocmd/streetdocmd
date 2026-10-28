@@ -195,16 +195,16 @@ export default function Step13Recommendations({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-bold text-gray-900">Step 13 — Recommendations</h2>
+      <h2 className="text-ds-lg font-bold text-navy">Step 13 — Recommendations</h2>
 
       {/* Prescription */}
       <div className="card p-4 space-y-3">
-        <p className="text-sm font-semibold text-gray-700">Medications Prescribed</p>
+        <p className="text-sm font-semibold text-ink">Medications Prescribed</p>
 
         {prescriptions.length > 0 ? (
           <div className="space-y-1">
             {prescriptions.map((p, i) => (
-              <div key={i} className="text-sm text-gray-600">
+              <div key={i} className="text-sm text-muted">
                 {Array.isArray(p.drugs) ? p.drugs.map((d: any) => (
                   <div key={d.name || d.drug_name} className="py-0.5">
                     • {d.name || d.drug_name} — {d.dosage || d.strength} {d.frequency}{d.duration ? ` × ${d.duration}` : ""}
@@ -214,7 +214,7 @@ export default function Step13Recommendations({
             ))}
           </div>
         ) : (
-          <p className="text-xs text-gray-400">No prescriptions yet</p>
+          <p className="text-xs text-muted">No prescriptions yet</p>
         )}
 
         {rxSaved && !showRxForm && (
@@ -222,16 +222,16 @@ export default function Step13Recommendations({
         )}
 
         {!showRxForm ? (
-          <button onClick={() => setShowRxForm(true)} className="text-sm text-blue-600 hover:underline font-medium">
+          <button onClick={() => setShowRxForm(true)} className="text-sm text-accent hover:underline font-medium">
             + Add Prescription
           </button>
         ) : (
-          <div className="border border-gray-100 rounded-xl p-3 space-y-3 bg-gray-50">
+          <div className="border border-line rounded-xl p-3 space-y-3 bg-page">
             {drugs.map((drug, i) => (
               <div key={i} className="space-y-2">
                 {i > 0 && (
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                    <p className="text-xs font-semibold text-gray-500">Drug {i + 1}</p>
+                  <div className="flex items-center justify-between pt-2 border-t border-line">
+                    <p className="text-xs font-semibold text-muted">Drug {i + 1}</p>
                     <button onClick={() => removeDrug(i)} className="text-xs text-red-500 hover:text-red-700">Remove</button>
                   </div>
                 )}
@@ -241,45 +241,45 @@ export default function Step13Recommendations({
                     { label: "Dosage", field: "dosage" as keyof Drug, placeholder: "e.g. 500mg" },
                   ].map(({ label, field, placeholder }) => (
                     <div key={field}>
-                      <label className="text-xs font-medium text-gray-600 block mb-1">{label}</label>
+                      <label className="text-xs font-medium text-muted block mb-1">{label}</label>
                       <input value={drug[field]} onChange={e => updateDrug(i, field, e.target.value)} placeholder={placeholder}
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                     </div>
                   ))}
                   <div>
-                    <label className="text-xs font-medium text-gray-600 block mb-1">Frequency</label>
+                    <label className="text-xs font-medium text-muted block mb-1">Frequency</label>
                     <select value={drug.frequency} onChange={e => updateDrug(i, "frequency", e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                      className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent bg-white">
                       {["Once daily","Twice daily","Three times daily","Four times daily","Every 8 hours","Every 6 hours","At night","As needed","Stat (one-time)"].map(o => (
                         <option key={o}>{o}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-600 block mb-1">Duration</label>
+                    <label className="text-xs font-medium text-muted block mb-1">Duration</label>
                     <input value={drug.duration} onChange={e => updateDrug(i, "duration", e.target.value)} placeholder="e.g. 5 days"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-600 block mb-1">Quantity</label>
+                    <label className="text-xs font-medium text-muted block mb-1">Quantity</label>
                     <input value={drug.quantity} onChange={e => updateDrug(i, "quantity", e.target.value.replace(/\D/g, ""))}
                       inputMode="numeric" placeholder="e.g. 21 tablets"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    <p className="text-[11px] text-gray-400 mt-1">Units dispensed. Used to remind the patient to refill.</p>
+                      className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
+                    <p className="text-[11px] text-muted mt-1">Units dispensed. Used to remind the patient to refill.</p>
                   </div>
                 </div>
               </div>
             ))}
-            <button onClick={addDrug} className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-blue-400 hover:text-blue-500 transition-colors">
+            <button onClick={addDrug} className="w-full py-2 border border-dashed border-line rounded-lg text-xs text-muted hover:border-accent hover:text-accent transition-colors">
               + Add another drug
             </button>
             <div className="flex gap-2 pt-1">
               <button onClick={savePrescription} disabled={savingRx || !drugs.some(d => d.name.trim())}
-                className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors">
+                className="flex-1 py-2.5 bg-accent text-white rounded-xl text-sm font-semibold hover:bg-accent-hover disabled:opacity-40 transition-colors">
                 {savingRx ? "Saving…" : "Save Prescription"}
               </button>
               <button onClick={() => { setShowRxForm(false); setDrugs([{ ...BLANK_DRUG }]); }}
-                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50">
+                className="flex-1 py-2.5 border border-line text-muted rounded-xl text-sm font-medium hover:bg-page">
                 Cancel
               </button>
             </div>
@@ -289,22 +289,22 @@ export default function Step13Recommendations({
 
       {/* Investigations */}
       <div className="card p-4 space-y-3">
-        <p className="text-sm font-semibold text-gray-700">Investigations Ordered</p>
+        <p className="text-sm font-semibold text-ink">Investigations Ordered</p>
 
         {investigations.length > 0 ? (
           <div className="space-y-1">
             {investigations.map((inv, i) => (
-              <div key={i} className="text-sm text-gray-600">
+              <div key={i} className="text-sm text-muted">
                 {Array.isArray(inv.tests)
                   ? inv.tests.map((t: any) => (
-                    <div key={t.test_name} className="py-0.5">• {t.test_name} <span className="text-xs text-gray-400">({inv.status})</span></div>
+                    <div key={t.test_name} className="py-0.5">• {t.test_name} <span className="text-xs text-muted">({inv.status})</span></div>
                   ))
-                  : <div>• Investigation <span className="text-xs text-gray-400">({inv.status})</span></div>}
+                  : <div>• Investigation <span className="text-xs text-muted">({inv.status})</span></div>}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-xs text-gray-400">No investigations ordered yet</p>
+          <p className="text-xs text-muted">No investigations ordered yet</p>
         )}
 
         {invSaved && !showInvForm && (
@@ -312,34 +312,34 @@ export default function Step13Recommendations({
         )}
 
         {!showInvForm ? (
-          <button onClick={() => { setShowInvForm(true); loadCatalogue(); }} className="text-sm text-blue-600 hover:underline font-medium">
+          <button onClick={() => { setShowInvForm(true); loadCatalogue(); }} className="text-sm text-accent hover:underline font-medium">
             + Order Investigations
           </button>
         ) : (
-          <div className="border border-gray-100 rounded-xl p-3 space-y-3 bg-gray-50">
-            <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <div className="border border-line rounded-xl p-3 space-y-3 bg-page">
+            <input className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
               placeholder="Search tests…" value={invSearch} onChange={e => setInvSearch(e.target.value)} />
 
             {loadingCatalogue ? (
-              <p className="text-xs text-gray-400 text-center py-3">Loading catalogue…</p>
+              <p className="text-xs text-muted text-center py-3">Loading catalogue…</p>
             ) : (
               <div className="space-y-1 max-h-52 overflow-y-auto">
                 {filteredCatalogue.length === 0 && invSearch ? (
-                  <p className="text-xs text-gray-400 text-center py-3">No tests found</p>
+                  <p className="text-xs text-muted text-center py-3">No tests found</p>
                 ) : filteredCatalogue.length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center py-3">No lab partner configured yet</p>
+                  <p className="text-xs text-muted text-center py-3">No lab partner configured yet</p>
                 ) : filteredCatalogue.map(item => {
                   const selected = !!selectedTests.find(t => t.catalogue_id === item.id);
                   return (
                     <button key={item.id} onClick={() => toggleTest(item)}
                       className={`w-full text-left flex items-center justify-between px-3 py-2 rounded-lg border transition-colors ${
-                        selected ? "border-teal-400 bg-teal-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                        selected ? "border-teal-400 bg-teal-50" : "border-line hover:border-line bg-white"
                       }`}>
                       <div>
-                        <p className={`text-sm font-medium ${selected ? "text-teal-700" : "text-gray-800"}`}>{item.test_name}</p>
-                        <p className="text-xs text-gray-400">{item.sample_type} · {item.turnaround_hours}h TAT</p>
+                        <p className={`text-sm font-medium ${selected ? "text-teal-700" : "text-ink"}`}>{item.test_name}</p>
+                        <p className="text-xs text-muted">{item.sample_type} · {item.turnaround_hours}h TAT</p>
                       </div>
-                      <span className="text-xs font-semibold text-gray-500 ml-2 shrink-0">₦{item.price?.toLocaleString()}</span>
+                      <span className="text-xs font-semibold text-muted ml-2 shrink-0">₦{item.price?.toLocaleString()}</span>
                     </button>
                   );
                 })}
@@ -351,10 +351,10 @@ export default function Step13Recommendations({
             )}
 
             <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1">Clinical Indication</label>
+              <label className="text-xs font-medium text-muted block mb-1">Clinical Indication</label>
               <textarea rows={2} value={invNotes} onChange={e => setInvNotes(e.target.value)}
                 placeholder="Reason for investigation…"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none" />
             </div>
 
             <div className="flex gap-2">
@@ -363,7 +363,7 @@ export default function Step13Recommendations({
                 {savingInv ? "Saving…" : "Save Order"}
               </button>
               <button onClick={() => { setShowInvForm(false); setSelectedTests([]); setInvSearch(""); }}
-                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50">
+                className="flex-1 py-2.5 border border-line text-muted rounded-xl text-sm font-medium hover:bg-page">
                 Cancel
               </button>
             </div>
@@ -374,8 +374,8 @@ export default function Step13Recommendations({
       {/* Nurse follow-up (elderly review only) */}
       {serviceType === "elderly_review" && (
         <div className="card p-4 space-y-3">
-          <p className="text-sm font-semibold text-gray-700">Nurse Follow-up</p>
-          <p className="text-xs text-gray-500">
+          <p className="text-sm font-semibold text-ink">Nurse Follow-up</p>
+          <p className="text-xs text-muted">
             Based on this diagnosis, does this patient need a nurse to visit for follow-up care?
           </p>
 
@@ -391,7 +391,7 @@ export default function Step13Recommendations({
               <button
                 onClick={requestNurseFollowUp}
                 disabled={requestingFollowUp}
-                className="text-sm text-blue-600 hover:underline font-medium disabled:opacity-40"
+                className="text-sm text-accent hover:underline font-medium disabled:opacity-40"
               >
                 {requestingFollowUp ? "Requesting…" : "+ Request Nurse Follow-up"}
               </button>
@@ -402,11 +402,11 @@ export default function Step13Recommendations({
 
       {/* Referral */}
       <div className="card p-4 space-y-3">
-        <p className="text-sm font-semibold text-gray-700">Hospital Referral</p>
+        <p className="text-sm font-semibold text-ink">Hospital Referral</p>
         <div className="flex gap-2">
           {[false, true].map(v => (
             <button key={String(v)} onClick={() => set("referral_required", v)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${data.referral_required === v ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+              className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${data.referral_required === v ? "bg-accent text-white border-accent" : "border-line text-muted hover:bg-page"}`}>
               {v ? "Yes" : "No"}
             </button>
           ))}
@@ -416,20 +416,20 @@ export default function Step13Recommendations({
         {sentReferrals.length > 0 && (
           <div className="space-y-2">
             {sentReferrals.map(r => (
-              <div key={r.id} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm">
+              <div key={r.id} className="flex items-center justify-between bg-page border border-line rounded-lg px-3 py-2 text-sm">
                 <div>
                   <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mr-2 ${
                     r.urgency === "emergency" ? "bg-red-100 text-red-700" :
                     r.urgency === "urgent" ? "bg-amber-100 text-amber-700" :
-                    "bg-gray-100 text-gray-600"
+                    "bg-pending-bg text-muted"
                   }`}>{r.urgency}</span>
-                  <span className="text-gray-700 font-medium">{(r.hospital_partners as any)?.name ?? "Hospital"}</span>
+                  <span className="text-ink font-medium">{(r.hospital_partners as any)?.name ?? "Hospital"}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 capitalize">{r.status}</span>
+                  <span className="text-xs text-muted capitalize">{r.status}</span>
                   {r.pdf_url && (
                     <a href={r.pdf_url} target="_blank" rel="noreferrer"
-                      className="text-xs text-blue-600 hover:underline font-medium">View Letter</a>
+                      className="text-xs text-accent hover:underline font-medium">View Letter</a>
                   )}
                 </div>
               </div>
@@ -438,12 +438,12 @@ export default function Step13Recommendations({
         )}
 
         {data.referral_required && (
-          <div className="border border-gray-100 rounded-xl p-3 space-y-3 bg-gray-50">
-            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Referral Details</p>
+          <div className="border border-line rounded-xl p-3 space-y-3 bg-page">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wide">Referral Details</p>
 
             {/* Urgency */}
             <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1">Urgency *</label>
+              <label className="text-xs font-medium text-muted block mb-1">Urgency *</label>
               <div className="flex gap-2">
                 {(["routine", "urgent", "emergency"] as const).map(u => (
                   <button key={u} type="button" onClick={() => setReferralForm(f => ({ ...f, urgency: u }))}
@@ -452,7 +452,7 @@ export default function Step13Recommendations({
                         ? u === "emergency" ? "bg-red-600 text-white border-red-600"
                           : u === "urgent" ? "bg-amber-500 text-white border-amber-500"
                           : "bg-teal-600 text-white border-teal-600"
-                        : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                        : "border-line text-muted hover:bg-page"
                     }`}>
                     {u}
                   </button>
@@ -466,13 +466,13 @@ export default function Step13Recommendations({
             {/* Hospital selection — only for non-emergency */}
             {referralForm.urgency !== "emergency" && (
               <div>
-                <label className="text-xs font-medium text-gray-600 block mb-1">Hospital *</label>
+                <label className="text-xs font-medium text-muted block mb-1">Hospital *</label>
                 {hospitals.length === 0 ? (
-                  <p className="text-xs text-gray-400">No hospital partners configured yet.</p>
+                  <p className="text-xs text-muted">No hospital partners configured yet.</p>
                 ) : (
                   <select value={referralForm.hospitalPartnerId}
                     onChange={e => setReferralForm(f => ({ ...f, hospitalPartnerId: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    className="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-accent">
                     {hospitals.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                   </select>
                 )}
@@ -481,20 +481,20 @@ export default function Step13Recommendations({
 
             {/* Reason */}
             <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1">Reason for Referral *</label>
+              <label className="text-xs font-medium text-muted block mb-1">Reason for Referral *</label>
               <textarea rows={2} value={referralForm.reason}
                 onChange={e => setReferralForm(f => ({ ...f, reason: e.target.value }))}
                 placeholder="Primary reason for referral…"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none" />
             </div>
 
             {/* Clinical summary */}
             <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1">Clinical Summary (for the hospital)</label>
+              <label className="text-xs font-medium text-muted block mb-1">Clinical Summary (for the hospital)</label>
               <textarea rows={3} value={referralForm.clinicalSummary}
                 onChange={e => setReferralForm(f => ({ ...f, clinicalSummary: e.target.value }))}
                 placeholder="Brief clinical history, relevant findings, current medications…"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none" />
             </div>
 
             {referralSent && (
@@ -530,7 +530,7 @@ export default function Step13Recommendations({
                   }
                 }}
                 disabled={sendingReferral || !referralForm.reason.trim() || (referralForm.urgency !== "emergency" && !referralForm.hospitalPartnerId)}
-                className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors">
+                className="flex-1 py-2.5 bg-accent text-white rounded-xl text-sm font-semibold hover:bg-accent-hover disabled:opacity-40 transition-colors">
                 {sendingReferral ? "Sending…" : referralForm.urgency === "emergency" ? "Dispatch Emergency Referral" : "Send Referral Letter"}
               </button>
             </div>
@@ -540,46 +540,46 @@ export default function Step13Recommendations({
 
       {/* Lifestyle */}
       <div className="card p-4 space-y-2">
-        <label className="text-sm font-semibold text-gray-700">Lifestyle Advice</label>
+        <label className="text-sm font-semibold text-ink">Lifestyle Advice</label>
         <textarea value={data.lifestyle_advice ?? ""} onChange={e => set("lifestyle_advice", e.target.value)} rows={3}
           placeholder="Physical activity, smoking cessation, sleep advice etc."
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+          className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none" />
       </div>
 
       {/* Dietary */}
       <div className="card p-4 space-y-2">
-        <label className="text-sm font-semibold text-gray-700">Dietary Advice</label>
+        <label className="text-sm font-semibold text-ink">Dietary Advice</label>
         <textarea value={data.dietary_advice ?? ""} onChange={e => set("dietary_advice", e.target.value)} rows={3}
           placeholder="Specific dietary recommendations..."
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+          className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none" />
       </div>
 
       {/* Rest */}
       <div className="card p-4 space-y-3">
-        <p className="text-sm font-semibold text-gray-700">Rest Advised</p>
+        <p className="text-sm font-semibold text-ink">Rest Advised</p>
         <div className="flex gap-2">
           {[false, true].map(v => (
             <button key={String(v)} onClick={() => set("rest_advised", v)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${data.rest_advised === v ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+              className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${data.rest_advised === v ? "bg-accent text-white border-accent" : "border-line text-muted hover:bg-page"}`}>
               {v ? "Yes" : "No"}
             </button>
           ))}
         </div>
         {data.rest_advised && (
           <div>
-            <label className="text-sm text-gray-600">Duration (days)</label>
+            <label className="text-sm text-muted">Duration (days)</label>
             <input type="number" min="1" value={data.rest_days ?? ""} onChange={e => set("rest_days", e.target.value)}
-              className="mt-1 w-24 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="mt-1 w-24 border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
           </div>
         )}
       </div>
 
       {/* Additional */}
       <div className="card p-4 space-y-2">
-        <label className="text-sm font-semibold text-gray-700">Additional Recommendations</label>
+        <label className="text-sm font-semibold text-ink">Additional Recommendations</label>
         <textarea value={data.additional ?? ""} onChange={e => set("additional", e.target.value)} rows={3}
           placeholder="Anything else..."
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+          className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none" />
       </div>
     </div>
   );

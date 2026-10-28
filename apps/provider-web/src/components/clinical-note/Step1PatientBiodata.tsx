@@ -35,11 +35,11 @@ export default function Step1PatientBiodata({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-bold text-gray-900">Step 1 — Patient Biodata</h2>
+      <h2 className="text-ds-lg font-bold text-navy">Step 1 — Patient Biodata</h2>
 
       {/* Read-only card */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Auto-populated from patient profile</p>
+      <div className="bg-page border border-line rounded-xl p-4 space-y-3">
+        <p className="text-xs text-muted font-medium uppercase tracking-wide">Auto-populated from patient profile</p>
         <div className="grid grid-cols-2 gap-3">
           <Bio label="Full Name" value={patient?.name} />
           <Bio label="Age" value={calcAge(patient?.dob)} />
@@ -60,8 +60,8 @@ export default function Step1PatientBiodata({
       {/* People in attendance */}
       <div className="card p-4 space-y-3">
         <div>
-          <p className="font-semibold text-gray-900">Who was present during the consultation?</p>
-          <p className="text-xs text-gray-400 mt-0.5">Required — select all that apply</p>
+          <p className="font-semibold text-ink">Who was present during the consultation?</p>
+          <p className="text-xs text-muted mt-0.5">Required — select all that apply</p>
         </div>
         <div className="space-y-2">
           {ATTENDANCE_OPTIONS.map(opt => (
@@ -72,7 +72,7 @@ export default function Step1PatientBiodata({
                 onChange={() => toggle(opt)}
                 className="w-4 h-4 accent-blue-600"
               />
-              <span className="text-sm text-gray-700">{opt}</span>
+              <span className="text-sm text-ink">{opt}</span>
             </label>
           ))}
         </div>
@@ -82,7 +82,7 @@ export default function Step1PatientBiodata({
             value={otherText}
             onChange={e => handleOther(e.target.value)}
             placeholder="Please specify..."
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           />
         )}
         {selected.length === 0 && (
@@ -96,8 +96,8 @@ export default function Step1PatientBiodata({
 function Bio({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
-      <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{label}</p>
-      <p className="text-sm text-gray-800 mt-0.5">{value ?? "—"}</p>
+      <p className="text-xs text-muted font-medium uppercase tracking-wide">{label}</p>
+      <p className="text-sm text-ink mt-0.5">{value ?? "—"}</p>
     </div>
   );
 }

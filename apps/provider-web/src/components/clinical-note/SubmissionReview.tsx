@@ -39,21 +39,21 @@ export default function SubmissionReview({ noteData, vitalsData, diagnosesData, 
   return (
     <div className="space-y-4 pb-20">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Review & Submit</h2>
-        <p className="text-sm text-gray-500 mt-0.5">Check that all required sections are complete before submitting</p>
+        <h2 className="text-ds-lg font-bold text-navy">Review & Submit</h2>
+        <p className="text-sm text-muted mt-0.5">Check that all required sections are complete before submitting</p>
       </div>
 
       {/* Section checklist */}
       <div className="card overflow-hidden">
         {sections.map((s, i) => (
-          <div key={i} className={`flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-0 ${s.required && !s.complete ? "bg-red-50" : ""}`}>
+          <div key={i} className={`flex items-center justify-between px-4 py-3 border-b border-line last:border-0 ${s.required && !s.complete ? "bg-red-50" : ""}`}>
             <div className="flex items-center gap-2">
-              <span className={`text-sm ${s.required && !s.complete ? "text-red-700 font-medium" : "text-gray-700"}`}>
+              <span className={`text-sm ${s.required && !s.complete ? "text-red-700 font-medium" : "text-ink"}`}>
                 {i + 1}. {s.label}
               </span>
               {s.required && <span className="text-xs text-red-500 font-medium">Required</span>}
             </div>
-            <span className={`text-base ${s.complete ? "text-green-500" : "text-gray-300"}`}>
+            <span className={`text-base ${s.complete ? "text-green-500" : "text-line"}`}>
               {s.complete ? "✓" : "✗"}
             </span>
           </div>
@@ -63,14 +63,14 @@ export default function SubmissionReview({ noteData, vitalsData, diagnosesData, 
       {/* Summary of key data */}
       {diagnosesData.length > 0 && (
         <div className="card p-4 space-y-2">
-          <p className="text-sm font-semibold text-gray-700">Diagnoses</p>
+          <p className="text-sm font-semibold text-ink">Diagnoses</p>
           {diagnosesData.map((d, i) => (
-            <div key={i} className="text-sm text-gray-600">
-              <span className={`text-xs px-1.5 py-0.5 rounded font-medium mr-2 ${i === 0 ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+            <div key={i} className="text-sm text-muted">
+              <span className={`text-xs px-1.5 py-0.5 rounded font-medium mr-2 ${i === 0 ? "bg-green-100 text-green-700" : "bg-pending-bg text-muted"}`}>
                 {i === 0 ? "Primary" : "Secondary"}
               </span>
               {d.clinical_description}
-              {d.icd10_code && d.icd10_code !== "Uncodified" && <span className="text-gray-400 ml-1">({d.icd10_code})</span>}
+              {d.icd10_code && d.icd10_code !== "Uncodified" && <span className="text-muted ml-1">({d.icd10_code})</span>}
             </div>
           ))}
         </div>
@@ -78,9 +78,9 @@ export default function SubmissionReview({ noteData, vitalsData, diagnosesData, 
 
       {vitalsData.bp_systolic && (
         <div className="card p-4 space-y-1">
-          <p className="text-sm font-semibold text-gray-700">Vitals Summary</p>
-          <p className="text-sm text-gray-600">BP: {vitalsData.bp_systolic}/{vitalsData.bp_diastolic} mmHg · PR: {vitalsData.pulse_rate} bpm {vitalsData.pulse_rhythm}</p>
-          {vitalsData.temperature && <p className="text-sm text-gray-600">Temp: {vitalsData.temperature}°{vitalsData.temp_unit} · SpO₂: {vitalsData.spo2}%</p>}
+          <p className="text-sm font-semibold text-ink">Vitals Summary</p>
+          <p className="text-sm text-muted">BP: {vitalsData.bp_systolic}/{vitalsData.bp_diastolic} mmHg · PR: {vitalsData.pulse_rate} bpm {vitalsData.pulse_rhythm}</p>
+          {vitalsData.temperature && <p className="text-sm text-muted">Temp: {vitalsData.temperature}°{vitalsData.temp_unit} · SpO₂: {vitalsData.spo2}%</p>}
         </div>
       )}
 
@@ -97,7 +97,7 @@ export default function SubmissionReview({ noteData, vitalsData, diagnosesData, 
 
         <button
           onClick={onBack}
-          className="w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+          className="w-full py-3 rounded-xl border border-line text-ink font-semibold hover:bg-page transition-colors"
         >
           ← Back to Step 14
         </button>
@@ -116,7 +116,7 @@ export default function SubmissionReview({ noteData, vitalsData, diagnosesData, 
           {submitting ? "Submitting..." : "Submit Clinical Note"}
         </button>
 
-        <p className="text-xs text-center text-gray-400">
+        <p className="text-xs text-center text-muted">
           Once submitted, this note is locked and cannot be edited without admin approval.
         </p>
       </div>

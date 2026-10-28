@@ -125,10 +125,10 @@ export default function PhysioEncounterClient({
     <div className="max-w-2xl mx-auto space-y-4 pb-24">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Physiotherapy Encounter</h1>
-          <p className="text-sm text-gray-500">{patient?.name ?? "Patient"}</p>
+          <h1 className="text-ds-xl font-bold text-navy">Physiotherapy Encounter</h1>
+          <p className="text-sm text-muted">{patient?.name ?? "Patient"}</p>
         </div>
-        {showSaved && <span className="text-xs text-teal-brand font-medium">Draft saved</span>}
+        {showSaved && <span className="text-xs text-teal-deep font-medium">Draft saved</span>}
       </div>
 
       <Section title="1. Referral / Reason">
@@ -146,7 +146,7 @@ export default function PhysioEncounterClient({
           {PAIN_SCALE.map(n => (
             <button key={n} type="button" onClick={() => setPainScore(n)}
               className={`w-8 h-8 rounded-full text-xs font-medium border transition-colors ${
-                painScore === n ? "bg-teal-brand text-white border-teal-brand" : "bg-white text-gray-600 border-gray-200"
+                painScore === n ? "bg-teal-deep text-white border-teal-deep" : "bg-white text-muted border-line"
               }`}>
               {n}
             </button>
@@ -181,8 +181,8 @@ export default function PhysioEncounterClient({
             <button key={opt} type="button" onClick={() => toggleIntervention(opt)}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                 interventionsDone.includes(opt)
-                  ? "bg-teal-brand text-white border-teal-brand"
-                  : "bg-white text-gray-600 border-gray-200"
+                  ? "bg-teal-deep text-white border-teal-deep"
+                  : "bg-white text-muted border-line"
               }`}>
               {opt.replace(/_/g, " ")}
             </button>
@@ -202,7 +202,7 @@ export default function PhysioEncounterClient({
           {PROGRESS_OPTIONS.map(opt => (
             <button key={opt} type="button" onClick={() => setProgressStatus(opt)}
               className={`text-xs px-3 py-1.5 rounded-full border capitalize transition-colors ${
-                progressStatus === opt ? "bg-teal-brand text-white border-teal-brand" : "bg-white text-gray-600 border-gray-200"
+                progressStatus === opt ? "bg-teal-deep text-white border-teal-deep" : "bg-white text-muted border-line"
               }`}>
               {opt}
             </button>
@@ -234,8 +234,8 @@ export default function PhysioEncounterClient({
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{submitError}</div>
       )}
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex gap-3 max-w-2xl mx-auto">
-        <button type="button" onClick={saveDraft} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm font-medium text-gray-600">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-line p-4 flex gap-3 max-w-2xl mx-auto">
+        <button type="button" onClick={saveDraft} className="flex-1 border border-line rounded-lg py-2.5 text-sm font-medium text-muted">
           Save draft
         </button>
         <button type="button" onClick={handleSubmit} disabled={submitting} className="btn-teal flex-1 py-2.5 text-sm">
@@ -249,7 +249,7 @@ export default function PhysioEncounterClient({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="card p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">{title}</h3>
+      <h3 className="text-sm font-semibold text-ink mb-3">{title}</h3>
       {children}
     </div>
   );
@@ -258,7 +258,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function LabeledInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <label className="text-xs text-gray-400 block mb-1">{label}</label>
+      <label className="text-xs text-muted block mb-1">{label}</label>
       <input className="input" value={value} onChange={e => onChange(e.target.value)} />
     </div>
   );

@@ -35,15 +35,15 @@ export default function ResetPasswordPage() {
     <div className="w-full max-w-md">
       <AuthBrand />
 
-      <div className="bg-white rounded-2xl shadow-xl p-8">
+      <div className="card p-6 sm:p-8">
         {status === "checking" && (
-          <p className="text-gray-500 text-sm text-center py-4">Verifying your reset link…</p>
+          <p className="text-muted text-sm text-center py-4">Verifying your reset link…</p>
         )}
 
         {(status === "confirm" || status === "verifying") && (
           <>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Reset your password</h2>
-            <p className="text-gray-500 text-sm mb-6">Tap continue to choose a new password for your account.</p>
+            <h2 className="text-ds-xl font-bold text-navy mb-2">Reset your password</h2>
+            <p className="text-muted text-sm mb-6">Tap continue to choose a new password for your account.</p>
             <button type="button" onClick={continueReset} disabled={status === "verifying"} className="btn-primary w-full text-center block">
               {status === "verifying" ? "Checking your link…" : "Continue"}
             </button>
@@ -52,8 +52,8 @@ export default function ResetPasswordPage() {
 
         {status === "expired" && (
           <>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Link expired</h2>
-            <p className="text-gray-500 text-sm mb-6">
+            <h2 className="text-ds-xl font-bold text-navy mb-2">Link expired</h2>
+            <p className="text-muted text-sm mb-6">
               {EXPIRED_MESSAGE}
             </p>
             <Link href="/forgot-password" className="btn-primary w-full text-center block">
@@ -64,7 +64,7 @@ export default function ResetPasswordPage() {
 
         {status === "ready" && !done && (
           <>
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Set a new password</h2>
+            <h2 className="text-ds-xl font-bold text-navy mb-6">Set a new password</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -97,8 +97,8 @@ export default function ResetPasswordPage() {
 
         {done && (
           <>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Password updated</h2>
-            <p className="text-gray-500 text-sm">Redirecting you to sign in…</p>
+            <h2 className="text-ds-xl font-bold text-navy mb-2">Password updated</h2>
+            <p className="text-muted text-sm">Redirecting you to sign in…</p>
           </>
         )}
       </div>

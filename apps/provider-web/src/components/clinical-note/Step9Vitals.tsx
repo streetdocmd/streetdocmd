@@ -39,7 +39,7 @@ function VitalInput({
   const flagged = isFlagged(field, value, unit);
   return (
     <div>
-      <label className="text-sm text-gray-600">{label}</label>
+      <label className="text-sm text-muted">{label}</label>
       <div className="flex items-center mt-1">
         <input
           type={type}
@@ -47,7 +47,7 @@ function VitalInput({
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${flagged ? "border-red-500 focus:ring-red-400" : "border-gray-200"}`}
+          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent ${flagged ? "border-red-500 focus:ring-red-400" : "border-line"}`}
         />
         {flagged && <FlagIcon />}
       </div>
@@ -78,18 +78,18 @@ export default function Step9Vitals({ value, onChange }: {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Step 9 — Vitals</h2>
-        <p className="text-sm text-gray-500 mt-0.5">Blood pressure and pulse rate are required <span className="text-red-500">*</span></p>
+        <h2 className="text-ds-lg font-bold text-navy">Step 9 — Vitals</h2>
+        <p className="text-sm text-muted mt-0.5">Blood pressure and pulse rate are required <span className="text-red-500">*</span></p>
       </div>
 
       {/* Blood Pressure */}
       <div className="card p-4 space-y-2">
-        <p className="text-sm font-semibold text-gray-800">Blood Pressure</p>
+        <p className="text-sm font-semibold text-ink">Blood Pressure</p>
         <div className="flex items-center gap-2">
           <div className="flex-1">
             <VitalInput label="Systolic (mmHg)" field="bp_systolic" value={data.bp_systolic ?? ""} onChange={v => set("bp_systolic", v)} placeholder="e.g. 120" />
           </div>
-          <span className="text-2xl text-gray-300 mt-5 font-light">/</span>
+          <span className="text-2xl text-line mt-5 font-light">/</span>
           <div className="flex-1">
             <VitalInput label="Diastolic (mmHg)" field="bp_diastolic" value={data.bp_diastolic ?? ""} onChange={v => set("bp_diastolic", v)} placeholder="e.g. 80" />
           </div>
@@ -98,16 +98,16 @@ export default function Step9Vitals({ value, onChange }: {
 
       {/* Pulse Rate */}
       <div className="card p-4 space-y-3">
-        <p className="text-sm font-semibold text-gray-800">Pulse Rate</p>
+        <p className="text-sm font-semibold text-ink">Pulse Rate</p>
         <VitalInput label="Beats per minute" field="pulse_rate" value={data.pulse_rate ?? ""} onChange={v => set("pulse_rate", v)} placeholder="e.g. 72" />
         <div>
-          <p className="text-xs text-gray-500 mb-1">Rhythm</p>
+          <p className="text-xs text-muted mb-1">Rhythm</p>
           <div className="flex gap-2">
             {["Regular", "Irregular"].map(r => (
               <button
                 key={r}
                 onClick={() => set("pulse_rhythm", r)}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${data.pulse_rhythm === r ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${data.pulse_rhythm === r ? "bg-accent text-white border-accent" : "border-line text-muted hover:bg-page"}`}
               >{r}</button>
             ))}
           </div>
@@ -116,7 +116,7 @@ export default function Step9Vitals({ value, onChange }: {
 
       {/* Temperature */}
       <div className="card p-4 space-y-3">
-        <p className="text-sm font-semibold text-gray-800">Temperature</p>
+        <p className="text-sm font-semibold text-ink">Temperature</p>
         <div className="flex items-start gap-2">
           <div className="flex-1">
             <VitalInput label={`Degrees ${data.temp_unit ?? "C"}`} field="temperature" unit={data.temp_unit} value={data.temperature ?? ""} onChange={v => set("temperature", v)} placeholder={data.temp_unit === "F" ? "e.g. 98.6" : "e.g. 37.0"} />
@@ -127,7 +127,7 @@ export default function Step9Vitals({ value, onChange }: {
                 <button
                   key={u}
                   onClick={() => set("temp_unit", u)}
-                  className={`w-10 h-10 rounded-lg text-sm font-bold border transition-colors ${data.temp_unit === u ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}
+                  className={`w-10 h-10 rounded-lg text-sm font-bold border transition-colors ${data.temp_unit === u ? "bg-accent text-white border-accent" : "border-line text-muted hover:bg-page"}`}
                 >°{u}</button>
               ))}
             </div>
@@ -137,50 +137,50 @@ export default function Step9Vitals({ value, onChange }: {
 
       {/* SpO2 */}
       <div className="card p-4 space-y-2">
-        <p className="text-sm font-semibold text-gray-800">Oxygen Saturation (SpO₂)</p>
+        <p className="text-sm font-semibold text-ink">Oxygen Saturation (SpO₂)</p>
         <div className="flex items-center gap-2">
           <div className="flex-1">
             <VitalInput label="%" field="spo2" value={data.spo2 ?? ""} onChange={v => set("spo2", v)} placeholder="e.g. 98" min={0} max={100} />
           </div>
-          <span className="text-gray-400 text-sm mt-5">%</span>
+          <span className="text-muted text-sm mt-5">%</span>
         </div>
       </div>
 
       {/* Respiratory Rate */}
       <div className="card p-4 space-y-2">
-        <p className="text-sm font-semibold text-gray-800">Respiratory Rate</p>
+        <p className="text-sm font-semibold text-ink">Respiratory Rate</p>
         <VitalInput label="Breaths per minute" field="respiratory_rate" value={data.respiratory_rate ?? ""} onChange={v => set("respiratory_rate", v)} placeholder="e.g. 16" />
       </div>
 
       {/* Weight & Height */}
       <div className="card p-4 space-y-3">
-        <p className="text-sm font-semibold text-gray-800">Weight & Height (Optional)</p>
+        <p className="text-sm font-semibold text-ink">Weight & Height (Optional)</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm text-gray-600">Weight (kg)</label>
+            <label className="text-sm text-muted">Weight (kg)</label>
             <input
               type="number" min="0" step="0.1"
               value={data.weight ?? ""}
               onChange={e => set("weight", e.target.value)}
               placeholder="e.g. 70"
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
           <div>
-            <label className="text-sm text-gray-600">Height (cm)</label>
+            <label className="text-sm text-muted">Height (cm)</label>
             <input
               type="number" min="0" step="0.1"
               value={data.height ?? ""}
               onChange={e => set("height", e.target.value)}
               placeholder="e.g. 170"
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
         </div>
         {bmi && (
-          <div className="bg-blue-50 rounded-lg px-3 py-2 text-sm">
-            <span className="font-semibold text-blue-800">BMI: {bmi}</span>
-            <span className="text-blue-600 ml-2">
+          <div className="bg-accent-soft rounded-lg px-3 py-2 text-sm">
+            <span className="font-semibold text-navy">BMI: {bmi}</span>
+            <span className="text-accent ml-2">
               {parseFloat(bmi) < 18.5 ? "Underweight" : parseFloat(bmi) < 25 ? "Normal weight" : parseFloat(bmi) < 30 ? "Overweight" : "Obese"}
             </span>
           </div>

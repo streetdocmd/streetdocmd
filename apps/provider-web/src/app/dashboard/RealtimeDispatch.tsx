@@ -26,8 +26,8 @@ export default function RealtimeDispatch({ providerId }: { providerId: string })
   }, [providerId, router]);
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-teal-brand">
-      <span className="w-1.5 h-1.5 bg-teal-brand rounded-full animate-pulse" />
+    <span className="inline-flex items-center gap-1.5 text-xs text-teal-deep">
+      <span className="w-1.5 h-1.5 bg-teal-deep rounded-full animate-pulse" />
       Live
     </span>
   );

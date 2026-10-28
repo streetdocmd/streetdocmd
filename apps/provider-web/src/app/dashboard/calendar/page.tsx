@@ -40,8 +40,8 @@ export default async function CalendarPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Calendar</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Your upcoming and in-progress visits</p>
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight">Calendar</h1>
+        <p className="text-muted text-sm mt-0.5">Your upcoming and in-progress visits</p>
       </div>
 
       {sortedDates.length === 0 ? (
@@ -61,7 +61,7 @@ export default async function CalendarPage() {
 
             return (
               <div key={dateKey}>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{dateLabel}</h2>
+                <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">{dateLabel}</h2>
                 <div className="space-y-2">
                   {dayBookings.map((b: any) => {
                     const at = b.scheduled_at ?? b.accepted_at;
@@ -76,20 +76,20 @@ export default async function CalendarPage() {
                         className="card p-4 flex items-center gap-4 hover:shadow-card-md transition-all"
                       >
                         <div className="text-center shrink-0 w-16">
-                          <p className="text-sm font-bold text-navy-700">{timeLabel}</p>
-                          <p className="text-xs text-gray-400">–{endLabel}</p>
+                          <p className="text-sm font-bold text-navy">{timeLabel}</p>
+                          <p className="text-xs text-muted">–{endLabel}</p>
                         </div>
-                        <div className="w-px self-stretch bg-gray-100" />
+                        <div className="w-px self-stretch bg-pending-bg" />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-semibold text-gray-900">
+                            <p className="font-semibold text-ink">
                               {(SERVICE_LABELS as Record<string, string>)[b.service_type]}
                             </p>
                             {!b.scheduled_at && (
                               <span className="badge bg-amber-100 text-amber-800 text-xs">ASAP</span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500 truncate">{b.patients?.name} · {b.patient_address}</p>
+                          <p className="text-sm text-muted truncate">{b.patients?.name} · {b.patient_address}</p>
                         </div>
                       </Link>
                     );

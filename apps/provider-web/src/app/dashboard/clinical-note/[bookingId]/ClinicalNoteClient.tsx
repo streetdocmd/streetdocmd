@@ -178,16 +178,16 @@ export default function ClinicalNoteClient({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-page flex flex-col">
       {/* Fixed Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
+      <div className="bg-white border-b border-line px-4 py-3 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-500">Patient</p>
-            <p className="font-semibold text-gray-900">{patient?.name ?? "Unknown Patient"}</p>
+            <p className="text-xs text-muted">Patient</p>
+            <p className="font-semibold text-ink">{patient?.name ?? "Unknown Patient"}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-400 font-mono">{bookingId.slice(0, 8).toUpperCase()}</p>
+            <p className="text-xs text-muted font-mono">{bookingId.slice(0, 8).toUpperCase()}</p>
             {showSaved && <p className="text-xs text-green-600 transition-opacity">Draft saved</p>}
           </div>
         </div>
@@ -207,18 +207,18 @@ export default function ClinicalNoteClient({
                     className={`flex flex-col items-center min-w-[3.2rem] group ${n < step ? "cursor-pointer" : "cursor-default"}`}
                   >
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors
-                      ${isComplete ? "bg-green-500 text-white" : isCurrent ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-400"}`}>
+                      ${isComplete ? "bg-green-500 text-white" : isCurrent ? "bg-accent text-white" : "bg-line text-muted"}`}>
                       {isComplete ? "✓" : n}
                     </div>
                     <span className={`text-[9px] mt-0.5 leading-tight text-center
-                      ${isComplete ? "text-green-600" : isCurrent ? "text-blue-600 font-semibold" : "text-gray-400"}`}>
+                      ${isComplete ? "text-green-600" : isCurrent ? "text-accent font-semibold" : "text-muted"}`}>
                       {label}
                     </span>
                   </button>
                 );
               })}
             </div>
-            <div className="mt-1.5 h-1 bg-gray-200 rounded-full">
+            <div className="mt-1.5 h-1 bg-line rounded-full">
               <div
                 className="h-1 bg-green-500 rounded-full transition-all duration-500"
                 style={{ width: `${((step - 1) / 14) * 100}%` }}
@@ -242,17 +242,17 @@ export default function ClinicalNoteClient({
 
       {/* Bottom Nav */}
       {step <= 14 && (
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3">
+        <div className="sticky bottom-0 bg-white border-t border-line px-4 py-3">
           <div className="max-w-3xl mx-auto flex gap-3">
             {step > 1 && (
-              <button onClick={goBack} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors">
+              <button onClick={goBack} className="flex-1 py-3 rounded-xl border border-line text-ink font-semibold hover:bg-page transition-colors">
                 ← Back
               </button>
             )}
             <button onClick={saveDraft} className="px-4 py-3 rounded-xl border border-teal-200 text-teal-700 font-medium hover:bg-teal-50 transition-colors text-sm">
               Save Draft
             </button>
-            <button onClick={goNext} className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
+            <button onClick={goNext} className="flex-1 py-3 rounded-xl bg-accent text-white font-semibold hover:bg-accent-hover transition-colors">
               {step === 14 ? "Review & Submit →" : "Next →"}
             </button>
           </div>

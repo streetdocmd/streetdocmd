@@ -96,14 +96,14 @@ export default function ProviderMap({ patientLat, patientLng, patientName }: Pro
     <div className="space-y-2">
       <div
         ref={containerRef}
-        className="rounded-xl overflow-hidden border border-gray-100"
+        className="rounded-xl overflow-hidden border border-line"
         style={{ height: "260px", width: "100%" }}
       />
       <a
         href={mapsUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-blue-200 text-blue-700 text-sm font-medium hover:bg-blue-50 transition-colors"
+        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-accent/30 text-accent text-sm font-medium hover:bg-accent-soft transition-colors"
       >
         🗺️ Open in Google Maps
       </a>

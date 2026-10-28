@@ -8,13 +8,13 @@ import {
 } from "@streetdocmd/shared";
 
 const STATUS_STYLES: Record<string, string> = {
-  active: "bg-blue-100 text-blue-700",
+  active: "bg-accent-soft text-accent",
   monitoring: "bg-teal-100 text-teal-700",
   follow_up_due: "bg-amber-100 text-amber-700",
   overdue: "bg-red-100 text-red-700",
   referred: "bg-purple-100 text-purple-700",
   resolved: "bg-green-100 text-green-700",
-  closed: "bg-gray-100 text-gray-500",
+  closed: "bg-pending-bg text-muted",
   escalated: "bg-red-100 text-red-700",
 };
 
@@ -43,8 +43,8 @@ export default function PatientCareClient({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{patient.name ?? "Patient"}</h1>
-        <p className="text-sm text-gray-500">{patient.phone}</p>
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{patient.name ?? "Patient"}</h1>
+        <p className="text-sm text-muted">{patient.phone}</p>
       </div>
 
       {!activeEpisode ? (
@@ -80,11 +80,11 @@ export default function PatientCareClient({
 
       {episodes.length > 1 && (
         <div className="card p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Other Episodes</h3>
+          <h3 className="text-sm font-semibold text-ink mb-3">Other Episodes</h3>
           <div className="space-y-2">
             {episodes.filter(e => e.id !== activeEpisode?.id).map(e => (
               <div key={e.id} className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">{e.title}</span>
+                <span className="text-ink">{e.title}</span>
                 <span className={`badge ${STATUS_STYLES[e.status] ?? ""}`}>
                   {CARE_EPISODE_STATUS_LABELS[e.status as keyof typeof CARE_EPISODE_STATUS_LABELS] ?? e.status}
                 </span>
@@ -138,8 +138,8 @@ function NoEpisodeState({ patientId, providerId, contextBooking, supabase, route
     return (
       <div className="card p-8 text-center">
         <p className="text-3xl mb-2">📋</p>
-        <p className="font-semibold text-gray-700">No active care episode</p>
-        <p className="text-sm text-gray-400 mt-1 mb-4">This patient has only had standalone visits so far.</p>
+        <p className="font-semibold text-ink">No active care episode</p>
+        <p className="text-sm text-muted mt-1 mb-4">This patient has only had standalone visits so far.</p>
         <button onClick={() => setShowForm(true)} className="btn-primary">Start a care episode</button>
       </div>
     );
@@ -147,7 +147,7 @@ function NoEpisodeState({ patientId, providerId, contextBooking, supabase, route
 
   return (
     <form onSubmit={createEpisode} className="card p-5 space-y-3">
-      <h3 className="text-sm font-semibold text-gray-900">New care episode</h3>
+      <h3 className="text-sm font-semibold text-ink">New care episode</h3>
       <div>
         <label className="label">Title</label>
         <input className="input" placeholder="e.g. Hypertension management" value={title} onChange={e => setTitle(e.target.value)} required />
@@ -158,7 +158,7 @@ function NoEpisodeState({ patientId, providerId, contextBooking, supabase, route
       </div>
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <div className="flex gap-2">
-        <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-200 rounded-lg py-2 text-sm font-medium text-gray-600">Cancel</button>
+        <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-line rounded-lg py-2 text-sm font-medium text-muted">Cancel</button>
         <button type="submit" disabled={saving} className="btn-primary flex-1 text-sm">{saving ? "Creating…" : "Create episode"}</button>
       </div>
     </form>
@@ -170,14 +170,14 @@ function EpisodeHeader({ episode }: { episode: any }) {
     <div className="card p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="font-bold text-gray-900">{episode.title}</h2>
-          {episode.reason && <p className="text-sm text-gray-500 mt-0.5">{episode.reason}</p>}
+          <h2 className="font-bold text-ink">{episode.title}</h2>
+          {episode.reason && <p className="text-sm text-muted mt-0.5">{episode.reason}</p>}
         </div>
         <span className={`badge ${STATUS_STYLES[episode.status] ?? ""} shrink-0`}>
           {CARE_EPISODE_STATUS_LABELS[episode.status as keyof typeof CARE_EPISODE_STATUS_LABELS] ?? episode.status}
         </span>
       </div>
-      <p className="text-xs text-gray-400 mt-2">
+      <p className="text-xs text-muted mt-2">
         Started {new Date(episode.start_date).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
       </p>
     </div>
@@ -196,9 +196,9 @@ function FollowUpContextSection({ followUp, lastEncounter, diagnoses, labs }: an
   return (
     <div className="card p-5 border-2 border-amber-200 bg-amber-50/40">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <h3 className="text-sm font-semibold text-gray-900">Follow-up Context</h3>
+        <h3 className="text-sm font-semibold text-ink">Follow-up Context</h3>
         <div className="flex items-center gap-2">
-          <span className="badge bg-gray-100 text-gray-600">
+          <span className="badge bg-pending-bg text-muted">
             {(FOLLOW_UP_TYPE_LABELS as Record<string, string>)[followUp.follow_up_type] ?? followUp.follow_up_type}
           </span>
           <span className="badge bg-amber-100 text-amber-800">
@@ -209,41 +209,41 @@ function FollowUpContextSection({ followUp, lastEncounter, diagnoses, labs }: an
 
       {followUp.reason && (
         <div className="mb-3">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Follow-up Reason</p>
-          <p className="text-sm text-gray-700">{followUp.reason}</p>
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide">Follow-up Reason</p>
+          <p className="text-sm text-ink">{followUp.reason}</p>
         </div>
       )}
 
       <div className="grid sm:grid-cols-2 gap-3">
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Last Encounter</p>
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide">Last Encounter</p>
           {booking ? (
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-ink">
               {(SERVICE_LABELS as Record<string, string>)[booking.service_type] ?? booking.service_type}
               {booking.completed_at && ` · ${new Date(booking.completed_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}`}
             </p>
           ) : (
-            <p className="text-sm text-gray-400">No prior completed visit on record.</p>
+            <p className="text-sm text-muted">No prior completed visit on record.</p>
           )}
         </div>
 
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Relevant Diagnoses</p>
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide">Relevant Diagnoses</p>
           {diagnoses.length > 0 ? (
-            <ul className="text-sm text-gray-700 space-y-0.5">
+            <ul className="text-sm text-ink space-y-0.5">
               {diagnoses.map((d: any, i: number) => (
                 <li key={i}>{d.plain_language_diagnosis || d.clinical_description}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-400">None recorded.</p>
+            <p className="text-sm text-muted">None recorded.</p>
           )}
         </div>
 
         <div className="sm:col-span-2">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Relevant Labs</p>
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide">Relevant Labs</p>
           {labs.length > 0 ? (
-            <ul className="text-sm text-gray-700 space-y-0.5">
+            <ul className="text-sm text-ink space-y-0.5">
               {labs.map((l: any) => (
                 <li key={l.id}>
                   {(l.tests as any[])?.map((t: any) => t.test_name).join(", ") || "Investigation"} — {l.status}
@@ -252,7 +252,7 @@ function FollowUpContextSection({ followUp, lastEncounter, diagnoses, labs }: an
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-400">None ordered.</p>
+            <p className="text-sm text-muted">None ordered.</p>
           )}
         </div>
       </div>
@@ -295,28 +295,28 @@ function CareTeamSection({ episodeId, team, isOnTeam, currentProvider, supabase,
 
   return (
     <div className="card p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Care Team</h3>
+      <h3 className="text-sm font-semibold text-ink mb-3">Care Team</h3>
       <div className="space-y-2 mb-3">
         {team.map((t: any) => (
           <div key={t.id} className="flex items-center justify-between text-sm">
-            <span className="text-gray-700">
+            <span className="text-ink">
               {t.provider?.name ?? "Provider"}
               {t.is_lead && <span className="ml-1.5 text-xs text-amber-600 font-medium">(Lead)</span>}
             </span>
-            <span className="text-xs text-gray-400">{PROFESSION_LABELS[t.provider?.profession as keyof typeof PROFESSION_LABELS] ?? t.provider?.profession}</span>
+            <span className="text-xs text-muted">{PROFESSION_LABELS[t.provider?.profession as keyof typeof PROFESSION_LABELS] ?? t.provider?.profession}</span>
           </div>
         ))}
-        {team.length === 0 && <p className="text-sm text-gray-400">No team members yet.</p>}
+        {team.length === 0 && <p className="text-sm text-muted">No team members yet.</p>}
       </div>
 
       {!isOnTeam && (
-        <button onClick={joinTeam} disabled={saving} className="text-sm text-teal-brand font-medium hover:underline mr-4">
+        <button onClick={joinTeam} disabled={saving} className="text-sm text-teal-deep font-medium hover:underline mr-4">
           + Join this care team
         </button>
       )}
 
       {!showForm ? (
-        <button onClick={() => setShowForm(true)} className="text-sm text-teal-brand font-medium hover:underline">
+        <button onClick={() => setShowForm(true)} className="text-sm text-teal-deep font-medium hover:underline">
           + Add a colleague
         </button>
       ) : (
@@ -372,26 +372,26 @@ function CareTeamChatSection({ episodeId, initialMessages, team, currentProvider
   return (
     <div className="card p-5">
       <div className="flex items-center gap-2 mb-3">
-        <h3 className="text-sm font-semibold text-gray-900">Care Team Updates</h3>
-        <span className="inline-flex items-center gap-1 text-xs text-teal-brand">
-          <span className="w-1.5 h-1.5 bg-teal-brand rounded-full animate-pulse" />
+        <h3 className="text-sm font-semibold text-ink">Care Team Updates</h3>
+        <span className="inline-flex items-center gap-1 text-xs text-teal-deep">
+          <span className="w-1.5 h-1.5 bg-teal-deep rounded-full animate-pulse" />
           Live
         </span>
       </div>
-      <p className="text-xs text-gray-400 mb-3">Visible only to providers on this care team — not shown to the patient.</p>
+      <p className="text-xs text-muted mb-3">Visible only to providers on this care team — not shown to the patient.</p>
 
       <div className="max-h-72 overflow-y-auto space-y-3 mb-3 pr-1">
         {messages.length === 0 && (
-          <p className="text-sm text-gray-400">No updates yet. Drop a note for the rest of the team.</p>
+          <p className="text-sm text-muted">No updates yet. Drop a note for the rest of the team.</p>
         )}
         {messages.map((m) => {
           const mine = m.provider_id === currentProvider.id;
           return (
             <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-              <div className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${mine ? "bg-teal-brand text-white" : "bg-gray-100 text-gray-800"}`}>
+              <div className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${mine ? "bg-teal-deep text-white" : "bg-pending-bg text-ink"}`}>
                 {m.message}
               </div>
-              <span className="text-[11px] text-gray-400 mt-0.5">
+              <span className="text-[11px] text-muted mt-0.5">
                 {mine ? "You" : providerName(m.provider_id)} · {new Date(m.created_at).toLocaleString("en-NG", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
               </span>
             </div>
@@ -449,8 +449,8 @@ function CarePlanSection({ episodeId, plan, providerId, canEdit, supabase, route
   if (!plan && !editing) {
     return (
       <div className="card p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-2">Care Plan</h3>
-        <p className="text-sm text-gray-400 mb-3">No care plan yet.</p>
+        <h3 className="text-sm font-semibold text-ink mb-2">Care Plan</h3>
+        <p className="text-sm text-muted mb-3">No care plan yet.</p>
         {canEdit && <button onClick={() => setEditing(true)} className="btn-primary text-sm">Create care plan</button>}
       </div>
     );
@@ -459,7 +459,7 @@ function CarePlanSection({ episodeId, plan, providerId, canEdit, supabase, route
   if (editing) {
     return (
       <form onSubmit={save} className="card p-5 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900">Care Plan</h3>
+        <h3 className="text-sm font-semibold text-ink">Care Plan</h3>
         <div>
           <label className="label">Instructions</label>
           <textarea className="input" rows={2} value={instructions} onChange={e => setInstructions(e.target.value)} />
@@ -477,7 +477,7 @@ function CarePlanSection({ episodeId, plan, providerId, canEdit, supabase, route
           <input type="date" className="input" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} />
         </div>
         <div className="flex gap-2">
-          <button type="button" onClick={() => setEditing(false)} className="flex-1 border border-gray-200 rounded-lg py-2 text-sm font-medium text-gray-600">Cancel</button>
+          <button type="button" onClick={() => setEditing(false)} className="flex-1 border border-line rounded-lg py-2 text-sm font-medium text-muted">Cancel</button>
           <button type="submit" disabled={saving} className="btn-primary flex-1 text-sm">{saving ? "Saving…" : "Save"}</button>
         </div>
       </form>
@@ -487,8 +487,8 @@ function CarePlanSection({ episodeId, plan, providerId, canEdit, supabase, route
   return (
     <div className="card p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-900">Care Plan</h3>
-        {canEdit && <button onClick={() => setEditing(true)} className="text-xs text-teal-brand font-medium hover:underline">Edit</button>}
+        <h3 className="text-sm font-semibold text-ink">Care Plan</h3>
+        {canEdit && <button onClick={() => setEditing(true)} className="text-xs text-teal-deep font-medium hover:underline">Edit</button>}
       </div>
       {plan.instructions && <Field label="Instructions" value={plan.instructions} />}
       {plan.notes && <Field label="Notes" value={plan.notes} />}
@@ -503,8 +503,8 @@ function CarePlanSection({ episodeId, plan, providerId, canEdit, supabase, route
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="mb-2 last:mb-0">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-      <p className="text-sm text-gray-700">{value}</p>
+      <p className="text-xs font-semibold text-muted uppercase tracking-wide">{label}</p>
+      <p className="text-sm text-ink">{value}</p>
     </div>
   );
 }
@@ -541,29 +541,29 @@ function CareTasksSection({ episodeId, tasks, providerId, canEdit, supabase, rou
 
   return (
     <div className="card p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Care Tasks</h3>
+      <h3 className="text-sm font-semibold text-ink mb-3">Care Tasks</h3>
       <div className="space-y-2 mb-3">
         {tasks.map((t: any) => (
           <div key={t.id} className="flex items-center justify-between gap-3 text-sm">
             <label className="flex items-center gap-2 min-w-0">
               <input type="checkbox" checked={t.status === "completed"} onChange={() => canEdit && toggleComplete(t)} disabled={!canEdit} />
-              <span className={`truncate ${t.status === "completed" ? "line-through text-gray-400" : "text-gray-700"}`}>{t.description}</span>
+              <span className={`truncate ${t.status === "completed" ? "line-through text-muted" : "text-ink"}`}>{t.description}</span>
             </label>
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs text-gray-400">{CARE_TASK_TYPE_LABELS[t.task_type as keyof typeof CARE_TASK_TYPE_LABELS]}</span>
+              <span className="text-xs text-muted">{CARE_TASK_TYPE_LABELS[t.task_type as keyof typeof CARE_TASK_TYPE_LABELS]}</span>
               {t.due_date && (
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-muted">
                   {new Date(t.due_date).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}
                 </span>
               )}
             </div>
           </div>
         ))}
-        {tasks.length === 0 && <p className="text-sm text-gray-400">No tasks yet.</p>}
+        {tasks.length === 0 && <p className="text-sm text-muted">No tasks yet.</p>}
       </div>
 
       {canEdit && (!showForm ? (
-        <button onClick={() => setShowForm(true)} className="text-sm text-teal-brand font-medium hover:underline">+ Add task</button>
+        <button onClick={() => setShowForm(true)} className="text-sm text-teal-deep font-medium hover:underline">+ Add task</button>
       ) : (
         <form onSubmit={addTask} className="space-y-2">
           <input className="input" placeholder="e.g. Take medication, Monitor BP" value={description} onChange={e => setDescription(e.target.value)} />
@@ -574,7 +574,7 @@ function CareTasksSection({ episodeId, tasks, providerId, canEdit, supabase, rou
             <input type="date" className="input" value={dueDate} onChange={e => setDueDate(e.target.value)} />
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-gray-200 rounded-lg py-2 text-sm font-medium text-gray-600">Cancel</button>
+            <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-line rounded-lg py-2 text-sm font-medium text-muted">Cancel</button>
             <button type="submit" disabled={saving} className="btn-teal flex-1 text-sm">{saving ? "Adding…" : "Add"}</button>
           </div>
         </form>
@@ -587,14 +587,14 @@ function TimelineSection({ timeline }: { timeline: { at: string; label: string; 
   if (timeline.length === 0) return null;
   return (
     <div className="card p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Timeline</h3>
+      <h3 className="text-sm font-semibold text-ink mb-3">Timeline</h3>
       <div className="space-y-3">
         {timeline.map((event, i) => (
           <div key={i} className="flex items-start gap-2.5 text-sm">
             <span className="shrink-0">{event.icon}</span>
             <div className="min-w-0 flex-1">
-              <p className="text-gray-700">{event.label}</p>
-              <p className="text-xs text-gray-400">
+              <p className="text-ink">{event.label}</p>
+              <p className="text-xs text-muted">
                 {new Date(event.at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
               </p>
             </div>

@@ -28,12 +28,12 @@ export default function ClinicalNoteView({
   const rec = note.recommendations ?? {};
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
+    <div className="min-h-screen bg-page">
+      <div className="bg-white border-b border-line px-4 py-3 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-500">Patient</p>
-            <p className="font-semibold text-gray-900">{patient?.name ?? "Unknown Patient"}</p>
+            <p className="text-xs text-muted">Patient</p>
+            <p className="font-semibold text-ink">{patient?.name ?? "Unknown Patient"}</p>
           </div>
           <span className="text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-3 py-1 font-medium">
             ✓ Submitted{note.submitted_at ? ` · ${new Date(note.submitted_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}` : ""}
@@ -131,7 +131,7 @@ export default function ClinicalNoteView({
             <div className="space-y-3">
               {Object.entries(systemic).map(([system, fields]: [string, any]) => (
                 <div key={system}>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 capitalize">{system}</p>
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1 capitalize">{system}</p>
                   <KeyValueList data={fields} />
                 </div>
               ))}
@@ -144,11 +144,11 @@ export default function ClinicalNoteView({
             <div className="space-y-2">
               {diagnoses.map((d, i) => (
                 <p key={i}>
-                  <span className={`text-xs px-1.5 py-0.5 rounded font-medium mr-2 ${d.diagnosis_type === "primary" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                  <span className={`text-xs px-1.5 py-0.5 rounded font-medium mr-2 ${d.diagnosis_type === "primary" ? "bg-green-100 text-green-700" : "bg-pending-bg text-muted"}`}>
                     {d.diagnosis_type ?? "primary"}
                   </span>
                   {d.clinical_description}{d.icd10_code && d.icd10_code !== "Uncodified" ? ` (${d.icd10_code})` : ""}
-                  {d.plain_language_diagnosis && <span className="block text-xs text-gray-500 mt-0.5">{d.plain_language_diagnosis}</span>}
+                  {d.plain_language_diagnosis && <span className="block text-xs text-muted mt-0.5">{d.plain_language_diagnosis}</span>}
                 </p>
               ))}
             </div>
@@ -171,8 +171,8 @@ export default function ClinicalNoteView({
           </div>
 
           {prescriptions.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Prescriptions</p>
+            <div className="mt-3 pt-3 border-t border-line">
+              <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Prescriptions</p>
               {prescriptions.map((p, i) => (
                 Array.isArray(p.drugs) ? p.drugs.map((d: any, j: number) => (
                   <p key={`${i}-${j}`}>• {d.name || d.drug_name} — {d.dosage || d.strength} {d.frequency}{d.duration ? ` × ${d.duration}` : ""}</p>
@@ -182,19 +182,19 @@ export default function ClinicalNoteView({
           )}
 
           {investigations.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Investigations Ordered</p>
+            <div className="mt-3 pt-3 border-t border-line">
+              <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Investigations Ordered</p>
               {investigations.map((inv, i) => (
                 Array.isArray(inv.tests) ? inv.tests.map((t: any, j: number) => (
-                  <p key={`${i}-${j}`}>• {t.test_name} <span className="text-xs text-gray-400">({inv.status})</span></p>
+                  <p key={`${i}-${j}`}>• {t.test_name} <span className="text-xs text-muted">({inv.status})</span></p>
                 )) : null
               ))}
             </div>
           )}
 
           {referrals.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Hospital Referrals</p>
+            <div className="mt-3 pt-3 border-t border-line">
+              <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Hospital Referrals</p>
               {referrals.map((r, i) => (
                 <p key={i}>• {r.hospital_partners?.name ?? "Hospital"} ({r.urgency}) — {r.status}</p>
               ))}
@@ -216,7 +216,7 @@ export default function ClinicalNoteView({
 
         <Link
           href="/dashboard/bookings"
-          className="block text-center border border-gray-200 rounded-lg py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
+          className="block text-center border border-line rounded-lg py-2.5 text-sm font-medium text-muted hover:bg-page"
         >
           ← Back to Bookings
         </Link>
@@ -228,8 +228,8 @@ export default function ClinicalNoteView({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="card p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-2">{title}</h3>
-      <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{children}</div>
+      <h3 className="text-sm font-semibold text-ink mb-2">{title}</h3>
+      <div className="text-sm text-ink leading-relaxed whitespace-pre-wrap">{children}</div>
     </div>
   );
 }
@@ -237,14 +237,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, value }: { label: string; value: any }) {
   return (
     <div>
-      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-xs text-muted">{label}</p>
       <p className="font-medium">{value}</p>
     </div>
   );
 }
 
 function Empty({ text = "Not recorded." }: { text?: string }) {
-  return <span className="text-gray-400 italic">{text}</span>;
+  return <span className="text-muted italic">{text}</span>;
 }
 
 // Generic renderer for a flat object of short string/boolean values — used
@@ -257,7 +257,7 @@ function KeyValueList({ data, labels, skip }: { data: Record<string, any>; label
     <div className="space-y-1.5">
       {entries.map(([k, v]) => (
         <p key={k}>
-          <span className="text-gray-500">{labels?.[k] ?? k.replace(/_/g, " ")}:</span>{" "}
+          <span className="text-muted">{labels?.[k] ?? k.replace(/_/g, " ")}:</span>{" "}
           <span className="font-medium">{typeof v === "boolean" ? (v ? "Yes" : "No") : String(v)}</span>
         </p>
       ))}

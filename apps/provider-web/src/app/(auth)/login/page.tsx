@@ -41,9 +41,9 @@ export default function LoginPage() {
     <div className="w-full max-w-md">
       <AuthBrand subtitle="Provider Portal · Home healthcare, on demand" />
 
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h1>
-        <p className="text-gray-500 text-sm mb-6">Sign in to manage your visits and earnings</p>
+      <div className="card p-6 sm:p-8">
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-1">Welcome back</h1>
+        <p className="text-muted text-sm mb-6">Sign in to manage your visits and earnings</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -62,7 +62,7 @@ export default function LoginPage() {
           <div>
             <div className="flex items-center justify-between">
               <label className="label" htmlFor="password">Password</label>
-              <Link href="/forgot-password" className="text-xs text-blue-brand font-medium hover:underline">
+              <Link href="/forgot-password" className="text-xs text-accent font-medium hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -88,10 +88,10 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500 mb-3">New to StreetdocMD?</p>
+          <p className="text-sm text-muted mb-3">New to StreetdocMD?</p>
           <Link
             href="/register"
-            className="block w-full border border-blue-brand text-blue-brand font-medium py-2.5 rounded-xl text-sm hover:bg-blue-50 transition-colors"
+            className="block w-full border border-accent text-accent font-medium py-2.5 rounded-xl text-sm hover:bg-accent-soft transition-colors"
           >
             Apply to join as a provider
           </Link>

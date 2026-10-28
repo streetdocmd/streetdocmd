@@ -113,8 +113,8 @@ export default function ServicesClient({
             <div key={s.id} className="card p-4 flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-gray-900">{s.name}</p>
-                  <span className={`badge ${s.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                  <p className="font-semibold text-ink">{s.name}</p>
+                  <span className={`badge ${s.active ? "bg-green-100 text-green-700" : "bg-pending-bg text-muted"}`}>
                     {s.active ? "Active" : "Inactive"}
                   </span>
                   {s.service_type && (
@@ -123,21 +123,21 @@ export default function ServicesClient({
                     </span>
                   )}
                 </div>
-                {s.description && <p className="text-sm text-gray-500 mt-0.5">{s.description}</p>}
-                <p className="text-sm font-medium text-teal-brand mt-1">
+                {s.description && <p className="text-sm text-muted mt-0.5">{s.description}</p>}
+                <p className="text-sm font-medium text-teal-deep mt-1">
                   {formatNaira(s.price)}{s.duration_minutes ? ` · ${s.duration_minutes} min` : ""}
                 </p>
               </div>
               <button
                 onClick={() => toggleActive(s)}
-                className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:bg-gray-50 shrink-0"
+                className="text-xs border border-line rounded-lg px-3 py-1.5 text-muted hover:bg-page shrink-0"
               >
                 {s.active ? "Deactivate" : "Activate"}
               </button>
             </div>
           ))}
           {!showForm && (
-            <button onClick={() => setShowForm(true)} className="text-sm text-blue-brand font-medium hover:underline">
+            <button onClick={() => setShowForm(true)} className="text-sm text-accent font-medium hover:underline">
               + Add another service
             </button>
           )}
@@ -146,7 +146,7 @@ export default function ServicesClient({
 
       {showForm && (
         <form onSubmit={addService} className="card p-5 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-900">New service</h3>
+          <h3 className="text-sm font-semibold text-ink">New service</h3>
           <div>
             <label className="label">Name</label>
             <input className="input" placeholder="e.g. Wound Care Visit" value={form.name} onChange={e => set("name", e.target.value)} required />
@@ -164,7 +164,7 @@ export default function ServicesClient({
                   <option key={st} value={st}>{SERVICE_LABELS[st]}</option>
                 ))}
               </select>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-muted mt-1">
                 If set, patients booking this service type from you will pay this price instead of the standard rate.
               </p>
             </div>

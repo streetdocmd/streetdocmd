@@ -29,9 +29,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const displayName = (provider.name as string).split(" ").slice(0, 2).join(" ");
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-page">
       <Navbar providerName={displayName} specialty={provider.specialty} profession={provider.profession} />
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-5 py-6 sm:py-8 pb-28 md:pb-8">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-5 pt-5 pb-28 md:pt-8 md:pb-10">
         {children}
       </main>
     </div>

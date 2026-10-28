@@ -88,8 +88,8 @@ export default function RegisterIndividualPage() {
     <div className="w-full max-w-xl">
       <AuthBrand subtitle="Join StreetdocMD as a healthcare provider" />
 
-      <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
-        <Link href="/register" className="text-xs text-gray-400 hover:text-gray-600 inline-flex items-center gap-1 mb-5">
+      <div className="card p-6 sm:p-8">
+        <Link href="/register" className="text-xs text-muted hover:text-muted inline-flex items-center gap-1 mb-5">
           <ArrowLeft size={13} /> Change registration type
         </Link>
 
@@ -97,14 +97,14 @@ export default function RegisterIndividualPage() {
           <OnboardingSteps current={0} />
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Create your provider account</h1>
-        <p className="text-sm text-gray-500 mb-6">
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy mb-1">Create your provider account</h1>
+        <p className="text-sm text-muted mb-6">
           Takes about 3 minutes. You&apos;ll upload your certificate and licence in the next step.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <fieldset className="space-y-4">
-            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Your details</legend>
+            <legend className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Your details</legend>
             <div>
               <label className="label" htmlFor="name">Full name<Req /></label>
               <input id="name" autoComplete="name" className="input" placeholder="Dr. Amaka Obi" value={form.name} onChange={e => set("name", e.target.value)} required />
@@ -126,7 +126,7 @@ export default function RegisterIndividualPage() {
           </fieldset>
 
           <fieldset className="space-y-4">
-            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Professional details</legend>
+            <legend className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Professional details</legend>
             <div>
               <label className="label" htmlFor="specialty">Specialty<Req /></label>
               <select id="specialty" className="input" value={form.specialty} onChange={e => set("specialty", e.target.value)} required>
@@ -173,12 +173,12 @@ export default function RegisterIndividualPage() {
           </fieldset>
 
           <fieldset className="space-y-4">
-            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Help us get to know you</legend>
-            <p className="text-xs text-gray-400 -mt-2">Optional — this doesn&apos;t affect your verification.</p>
+            <legend className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Help us get to know you</legend>
+            <p className="text-xs text-muted -mt-2">Optional — this doesn&apos;t affect your verification.</p>
             <div>
               <label className="label" htmlFor="expected_rate">What would you consider a reasonable amount per visit?</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">₦</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted">₦</span>
                 <input
                   id="expected_rate"
                   type="number"
@@ -205,21 +205,21 @@ export default function RegisterIndividualPage() {
             </div>
           </fieldset>
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4">
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-page p-4">
             <input
               type="checkbox"
               checked={ndpr}
               onChange={e => { setNdpr(e.target.checked); if (error) setError(""); }}
-              className="mt-0.5 h-4 w-4 shrink-0 accent-blue-brand"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
             />
-            <span className="text-sm leading-relaxed text-gray-600">
+            <span className="text-sm leading-relaxed text-muted">
               I consent to StreetdocMD processing my personal and professional data to verify my credentials and
               operate my provider account, in line with the Nigeria Data Protection Act.{" "}
               <a
                 href={legalUrl("privacy-policy")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-blue-brand underline-offset-2 hover:underline"
+                className="font-semibold text-accent underline-offset-2 hover:underline"
               >
                 Read our Privacy Policy
               </a>
@@ -238,9 +238,9 @@ export default function RegisterIndividualPage() {
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-muted mt-6">
           Already registered?{" "}
-          <Link href="/login" className="text-blue-brand font-medium hover:underline">Sign in</Link>
+          <Link href="/login" className="text-accent font-medium hover:underline">Sign in</Link>
         </p>
       </div>
     </div>

@@ -104,10 +104,10 @@ export default async function DashboardPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-[1.65rem] leading-tight font-bold text-gray-900 tracking-tight">
+        <h1 className="text-[1.65rem] leading-tight font-bold text-ink tracking-tight">
           Hello, {greetingName} <span aria-hidden>👋</span>
         </h1>
-        <p className="text-gray-500 mt-1 text-[15px] leading-snug">
+        <p className="text-muted mt-1 text-[15px] leading-snug">
           {provider.available
             ? "You're online — new visit requests will appear below."
             : "Go online when you're ready to receive home-visit requests."}
@@ -132,24 +132,24 @@ export default async function DashboardPage({
       {activeBooking && (
         <Link
           href={`/dashboard/active/${activeBooking.id}`}
-          className="card p-4 flex items-center gap-3.5 border-teal-brand/30 bg-teal-light hover:shadow-card-md transition-all group"
+          className="card p-4 flex items-center gap-3.5 border-teal-deep/30 bg-teal-soft hover:shadow-card-md transition-all group"
         >
-          <div className="w-11 h-11 rounded-xl bg-teal-brand flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-teal-deep flex items-center justify-center shrink-0">
             <Activity size={20} className="text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-teal-brand uppercase tracking-wide">Active visit</p>
-            <p className="text-sm font-semibold text-gray-900 truncate">
+            <p className="text-xs font-semibold text-teal-deep uppercase tracking-wide">Active visit</p>
+            <p className="text-sm font-semibold text-ink truncate">
               {(SERVICE_LABELS as Record<string, string>)[activeBooking.service_type]}
             </p>
-            <p className="text-xs text-gray-500 truncate">
+            <p className="text-xs text-muted truncate">
               {(BOOKING_STATUS_LABELS as Record<string, string>)[activeBooking.status]} · {activeBooking.patient_address}
             </p>
           </div>
           <span className="hidden sm:inline-flex btn-teal text-sm items-center gap-1">
             Continue <ArrowRight size={15} />
           </span>
-          <ArrowRight size={18} className="sm:hidden text-teal-brand shrink-0" />
+          <ArrowRight size={18} className="sm:hidden text-teal-deep shrink-0" />
         </Link>
       )}
 
@@ -164,7 +164,7 @@ export default async function DashboardPage({
           {/* Dispatch requests */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <h2 className="text-sm font-semibold text-muted uppercase tracking-wide">
                 Incoming requests
               </h2>
               <RealtimeDispatch providerId={provider.id} />
@@ -172,11 +172,11 @@ export default async function DashboardPage({
 
             {requests.length === 0 ? (
               <div className="card p-10 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-blue-light flex items-center justify-center mx-auto mb-3">
-                  <Inbox size={22} className="text-blue-brand" />
+                <div className="w-12 h-12 rounded-2xl bg-accent-soft flex items-center justify-center mx-auto mb-3">
+                  <Inbox size={22} className="text-accent" />
                 </div>
-                <p className="font-semibold text-gray-800">No pending requests</p>
-                <p className="text-sm text-gray-500 mt-1 max-w-xs mx-auto">
+                <p className="font-semibold text-ink">No pending requests</p>
+                <p className="text-sm text-muted mt-1 max-w-xs mx-auto">
                   {provider.available
                     ? "New requests will appear here automatically — keep this page open."
                     : "Go online above to start receiving requests from patients near you."}
@@ -203,11 +203,11 @@ export default async function DashboardPage({
           {!allDone && (
             <div className="card p-5">
               <div className="flex items-center justify-between mb-1">
-                <p className="font-semibold text-gray-900">Get ready for your first visit</p>
-                <span className="text-xs font-semibold text-blue-brand">{completed}/{checklist.length}</span>
+                <p className="font-semibold text-ink">Get ready for your first visit</p>
+                <span className="text-xs font-semibold text-accent">{completed}/{checklist.length}</span>
               </div>
-              <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden mb-4">
-                <div className="h-full bg-blue-brand rounded-full transition-all" style={{ width: `${(completed / checklist.length) * 100}%` }} />
+              <div className="h-1.5 rounded-full bg-pending-bg overflow-hidden mb-4">
+                <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${(completed / checklist.length) * 100}%` }} />
               </div>
               <ul className="space-y-1">
                 {checklist.map(item => (
@@ -215,12 +215,12 @@ export default async function DashboardPage({
                     <Link
                       href={item.href}
                       className={`flex items-start gap-2.5 rounded-lg px-2 py-2 -mx-2 text-sm transition-colors ${
-                        item.done ? "text-gray-400" : "text-gray-700 hover:bg-gray-50"
+                        item.done ? "text-muted" : "text-ink hover:bg-page"
                       }`}
                     >
                       {item.done
                         ? <CheckCircle2 size={17} className="text-green-600 shrink-0 mt-px" />
-                        : <Circle size={17} className="text-gray-300 shrink-0 mt-px" />}
+                        : <Circle size={17} className="text-line shrink-0 mt-px" />}
                       <span className={item.done ? "line-through" : ""}>{item.label}</span>
                     </Link>
                   </li>
@@ -232,7 +232,7 @@ export default async function DashboardPage({
           {provider.referral_code && <ReferralCodeCard code={provider.referral_code} />}
 
           <div className="space-y-3">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">On the way</h2>
+            <h2 className="text-sm font-semibold text-muted uppercase tracking-wide">On the way</h2>
             <ComingSoonItem
               icon={MessageSquareHeart}
               title="Ratings & reviews"
@@ -255,12 +255,12 @@ function Stat({
 }: { icon: typeof Users; label: string; value: string; href?: string; accent?: boolean }) {
   const body = (
     <>
-      <div className={`hidden lg:flex w-10 h-10 rounded-xl items-center justify-center shrink-0 ${accent ? "bg-teal-light" : "bg-blue-light"}`}>
-        <Icon size={19} className={accent ? "text-teal-brand" : "text-blue-brand"} />
+      <div className={`hidden lg:flex w-10 h-10 rounded-xl items-center justify-center shrink-0 ${accent ? "bg-teal-soft" : "bg-accent-soft"}`}>
+        <Icon size={19} className={accent ? "text-teal-deep" : "text-accent"} />
       </div>
       <div className="min-w-0 text-center lg:text-left">
-        <p className={`text-lg sm:text-xl font-bold truncate ${accent ? "text-teal-brand" : "text-gray-900"}`}>{value}</p>
-        <p className="text-xs text-gray-500">{label}</p>
+        <p className={`text-lg sm:text-xl font-bold truncate ${accent ? "text-teal-deep" : "text-ink"}`}>{value}</p>
+        <p className="text-xs text-muted">{label}</p>
       </div>
     </>
   );

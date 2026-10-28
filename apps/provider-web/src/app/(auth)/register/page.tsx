@@ -12,16 +12,16 @@ export default function RegisterFork() {
       <div className="grid gap-5 sm:grid-cols-2">
         <Link
           href="/register/individual"
-          className="group bg-white rounded-2xl shadow-xl p-6 flex flex-col hover:shadow-2xl hover:-translate-y-0.5 transition-all"
+          className="group card p-6 flex flex-col hover:shadow-2xl hover:-translate-y-0.5 transition-all"
         >
-          <div className="w-11 h-11 rounded-xl bg-blue-light flex items-center justify-center mb-4">
-            <Stethoscope size={22} className="text-blue-brand" />
+          <div className="w-11 h-11 rounded-xl bg-accent-soft flex items-center justify-center mb-4">
+            <Stethoscope size={22} className="text-accent" />
           </div>
-          <h2 className="text-lg font-bold text-gray-900">Individual practitioner</h2>
-          <p className="text-sm text-gray-500 mt-1.5 flex-1">
+          <h2 className="text-ds-lg font-bold text-navy">Individual practitioner</h2>
+          <p className="text-sm text-muted mt-1.5 flex-1">
             You personally visit patients at home and get bookings sent directly to you.
           </p>
-          <ul className="text-xs text-gray-500 mt-4 space-y-1">
+          <ul className="text-xs text-muted mt-4 space-y-1">
             <li>• Medical Doctor — General or Specialist</li>
             <li>• Registered Nurse</li>
             <li>• Physiotherapist</li>
@@ -34,16 +34,16 @@ export default function RegisterFork() {
 
         <a
           href={FACILITY_REGISTRATION_URL}
-          className="group bg-white rounded-2xl shadow-xl p-6 flex flex-col hover:shadow-2xl hover:-translate-y-0.5 transition-all"
+          className="group card p-6 flex flex-col hover:shadow-2xl hover:-translate-y-0.5 transition-all"
         >
-          <div className="w-11 h-11 rounded-xl bg-teal-light flex items-center justify-center mb-4">
-            <Building2 size={22} className="text-teal-brand" />
+          <div className="w-11 h-11 rounded-xl bg-teal-soft flex items-center justify-center mb-4">
+            <Building2 size={22} className="text-teal-deep" />
           </div>
-          <h2 className="text-lg font-bold text-gray-900">Organization</h2>
-          <p className="text-sm text-gray-500 mt-1.5 flex-1">
+          <h2 className="text-ds-lg font-bold text-navy">Organization</h2>
+          <p className="text-sm text-muted mt-1.5 flex-1">
             Your business partners with StreetdocMD — a hospital, laboratory, or pharmacy.
           </p>
-          <ul className="text-xs text-gray-500 mt-4 space-y-1">
+          <ul className="text-xs text-muted mt-4 space-y-1">
             <li>• Hospital</li>
             <li>• Medical Laboratory</li>
             <li>• Pharmacy</li>
@@ -54,7 +54,7 @@ export default function RegisterFork() {
         </a>
       </div>
 
-      <p className="text-center text-sm text-blue-200 mt-6">
+      <p className="text-center text-sm text-muted mt-6">
         Already registered?{" "}
         <Link href="/login" className="text-white font-medium hover:underline">Sign in</Link>
       </p>

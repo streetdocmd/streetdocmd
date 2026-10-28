@@ -43,29 +43,29 @@ export default function Step14FollowUp({ noteId, patientId, value, onChange }: {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Step 14 — Follow-Up Date</h2>
-        <p className="text-sm text-gray-500 mt-0.5">Schedule patient follow-up and complete safeguarding check</p>
+        <h2 className="text-ds-lg font-bold text-navy">Step 14 — Follow-Up Date</h2>
+        <p className="text-sm text-muted mt-0.5">Schedule patient follow-up and complete safeguarding check</p>
       </div>
 
       {/* Follow-up date */}
       <div className="card p-4 space-y-3">
-        <label className="text-sm font-semibold text-gray-700">Follow-up Date</label>
+        <label className="text-sm font-semibold text-ink">Follow-up Date</label>
         <input
           type="date"
           min={minDate}
           value={date}
           onChange={e => handleDate(e.target.value)}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-line rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
         />
 
         {date && (
           <>
             <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1">Follow-up type</label>
+              <label className="text-sm font-semibold text-ink block mb-1">Follow-up type</label>
               <select
                 value={type}
                 onChange={e => handleType(e.target.value as FollowUpType)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-line rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 {FOLLOW_UP_TYPES_BY_PROFESSION.doctor.map(t => (
                   <option key={t} value={t}>{FOLLOW_UP_TYPE_LABELS[t]}</option>
@@ -73,13 +73,13 @@ export default function Step14FollowUp({ noteId, patientId, value, onChange }: {
               </select>
             </div>
             <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1">Reason for follow-up (optional)</label>
+              <label className="text-sm font-semibold text-ink block mb-1">Reason for follow-up (optional)</label>
               <input
                 type="text"
                 value={reason}
                 onChange={e => handleReason(e.target.value)}
                 placeholder="e.g. Reassess blood pressure control"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-line rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-1">

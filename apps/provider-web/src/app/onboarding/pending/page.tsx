@@ -39,8 +39,8 @@ export default async function PendingPage() {
         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
           <XCircle size={32} className="text-red-500" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-2">Your application needs changes</h1>
-        <p className="text-gray-500 text-sm mb-5 max-w-md mx-auto">
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight mb-2">Your application needs changes</h1>
+        <p className="text-muted text-sm mb-5 max-w-md mx-auto">
           Our team couldn&apos;t verify your application as submitted. Please review the note below,
           upload corrected documents and re-submit — we&apos;ll review it again within 24–48 hours.
         </p>
@@ -67,10 +67,10 @@ export default async function PendingPage() {
         <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
           {inReview ? <Search size={30} className="text-amber-600" /> : <Clock size={30} className="text-amber-600" />}
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-2">
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight mb-2">
           {inReview ? "Your credentials are being checked" : `Thanks, ${firstName} — application received`}
         </h1>
-        <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
+        <p className="text-muted text-sm mb-6 max-w-md mx-auto">
           {inReview
             ? "A member of our team is verifying your licence with the issuing council. We'll email you as soon as it's done."
             : "Our team will verify your credentials, usually within 24–48 hours. We'll email you once your account is approved — then just sign in here to start receiving bookings."}
@@ -86,10 +86,10 @@ export default async function PendingPage() {
 
       {(docs ?? []).length > 0 && (
         <div className="card p-5 mb-5">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">What you sent us</p>
+          <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">What you sent us</p>
           <ul className="space-y-2">
             {uploadedTypes.map(t => (
-              <li key={t} className="flex items-center gap-2 text-sm text-gray-700">
+              <li key={t} className="flex items-center gap-2 text-sm text-ink">
                 <Check size={15} className="text-green-600 shrink-0" />
                 {DOC_LABELS[t] ?? t}
               </li>
@@ -98,8 +98,8 @@ export default async function PendingPage() {
         </div>
       )}
 
-      <div className="rounded-xl bg-blue-light border border-blue-mid p-4 text-sm text-gray-700">
-        <p className="font-semibold text-gray-900 mb-1">While you wait</p>
+      <div className="rounded-xl bg-accent-soft border border-accent/40 p-4 text-sm text-ink">
+        <p className="font-semibold text-ink mb-1">While you wait</p>
         <p>
           Once you&apos;re approved, have your bank details and working hours ready — you&apos;ll add them on your
           profile so payouts and bookings can start straight away.
@@ -116,12 +116,12 @@ function Step({ state, label }: { state: "done" | "current" | "next"; label: str
         className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
           state === "done" ? "bg-green-100 text-green-700"
             : state === "current" ? "bg-amber-100 text-amber-700"
-            : "bg-gray-100 text-gray-400"
+            : "bg-pending-bg text-muted"
         }`}
       >
         {state === "done" ? <Check size={13} strokeWidth={3} /> : state === "current" ? <Clock size={13} /> : <span className="w-1.5 h-1.5 rounded-full bg-current" />}
       </div>
-      <span className={`text-sm ${state === "next" ? "text-gray-400" : "text-gray-900 font-medium"}`}>{label}</span>
+      <span className={`text-sm ${state === "next" ? "text-muted" : "text-ink font-medium"}`}>{label}</span>
     </div>
   );
 }

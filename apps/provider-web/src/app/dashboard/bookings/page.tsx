@@ -68,7 +68,7 @@ export default async function BookingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-6">Bookings</h1>
+      <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight mb-6">Bookings</h1>
 
       {enriched.length === 0 ? (
         <EmptyState

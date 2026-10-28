@@ -91,13 +91,13 @@ export default function ActiveBookingClient({
             return (
               <div key={step.status} className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                  done   ? "bg-teal-brand text-white" :
-                  active ? "bg-blue-brand text-white" :
-                           "bg-gray-100 text-gray-400"
+                  done   ? "bg-teal-deep text-white" :
+                  active ? "bg-accent text-white" :
+                           "bg-pending-bg text-muted"
                 }`}>
                   {done ? "✓" : i + 1}
                 </div>
-                <span className={`text-sm ${active ? "font-semibold text-gray-900" : done ? "text-gray-500" : "text-gray-300"}`}>
+                <span className={`text-sm ${active ? "font-semibold text-ink" : done ? "text-muted" : "text-line"}`}>
                   {step.label}
                 </span>
               </div>
@@ -110,15 +110,15 @@ export default function ActiveBookingClient({
       <a href={`tel:${patientPhone}`} className="card p-4 flex items-center gap-3 hover:shadow-card-md transition-shadow">
         <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl">📞</div>
         <div>
-          <p className="font-semibold text-gray-900">Call patient</p>
-          <p className="text-sm text-gray-500">{patientPhone}</p>
+          <p className="font-semibold text-ink">Call patient</p>
+          <p className="text-sm text-muted">{patientPhone}</p>
         </div>
       </a>
 
       {/* Continue visit note (arrived or in_progress — provider navigated back) */}
       {(status === "arrived" || status === "in_progress") && (
         <a href={encounterHref}
-          className="w-full py-3 rounded-xl font-semibold text-white bg-teal-brand hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
+          className="w-full py-3 rounded-xl font-semibold text-white bg-teal-deep hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
           📋 Continue Visit Note →
         </a>
       )}
@@ -126,7 +126,7 @@ export default function ActiveBookingClient({
       {/* Advance button (non-completion steps) */}
       {status !== "completed" && nextStatus && status !== "arrived" && status !== "in_progress" && (
         <button onClick={advance} disabled={loading}
-          className="w-full py-3 rounded-xl font-semibold text-white transition-colors disabled:opacity-50 bg-blue-brand hover:bg-blue-700">
+          className="w-full py-3 rounded-xl font-semibold text-white transition-colors disabled:opacity-50 bg-accent hover:bg-accent-hover">
           {loading ? "Updating…" : currentStep.action}
         </button>
       )}

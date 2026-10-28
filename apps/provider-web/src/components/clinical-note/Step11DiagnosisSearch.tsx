@@ -31,8 +31,8 @@ export default function Step11DiagnosisSearch({ noteId, providerId, patientId, v
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Step 11 — Diagnosis</h2>
-        <p className="text-sm text-gray-500 mt-0.5">Impression / Assessment / Diagnosis <span className="text-red-500">*Required</span></p>
+        <h2 className="text-ds-lg font-bold text-navy">Step 11 — Diagnosis</h2>
+        <p className="text-sm text-muted mt-0.5">Impression / Assessment / Diagnosis <span className="text-red-500">*Required</span></p>
       </div>
 
       <div className="space-y-3">
@@ -50,7 +50,7 @@ export default function Step11DiagnosisSearch({ noteId, providerId, patientId, v
       </div>
 
       {diagnoses.length < 5 && (
-        <button onClick={add} className="w-full border-2 border-dashed border-gray-300 rounded-xl py-3 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors font-medium">
+        <button onClick={add} className="w-full border-2 border-dashed border-line rounded-xl py-3 text-sm text-muted hover:border-accent hover:text-accent transition-colors font-medium">
           + Add Another Diagnosis
         </button>
       )}

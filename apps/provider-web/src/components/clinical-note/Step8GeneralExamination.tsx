@@ -28,8 +28,8 @@ export default function Step8GeneralExamination({ value, onChange }: {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Step 8 — General Examination</h2>
-        <p className="text-sm text-gray-500 mt-0.5">Select all that apply</p>
+        <h2 className="text-ds-lg font-bold text-navy">Step 8 — General Examination</h2>
+        <p className="text-sm text-muted mt-0.5">Select all that apply</p>
       </div>
 
       <div className="card p-4 space-y-2">
@@ -42,20 +42,20 @@ export default function Step8GeneralExamination({ value, onChange }: {
                 onChange={() => toggle(f)}
                 className="w-4 h-4 accent-blue-600"
               />
-              <span className="text-sm text-gray-700">{f}</span>
+              <span className="text-sm text-ink">{f}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="card p-4 space-y-2">
-        <label className="text-sm font-semibold text-gray-700">Additional Findings</label>
+        <label className="text-sm font-semibold text-ink">Additional Findings</label>
         <textarea
           value={additional}
           onChange={e => updateAdditional(e.target.value)}
           rows={3}
           placeholder="Any additional examination findings..."
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
         />
       </div>
     </div>

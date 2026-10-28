@@ -43,44 +43,44 @@ export default function ProfileMenu({
         onClick={() => setOpen(o => !o)}
         aria-label="Account menu"
         aria-expanded={open}
-        className="flex items-center gap-1 rounded-full hover:bg-white/10 transition-colors p-1 pr-1.5 sm:pr-2"
+        className="flex items-center gap-1 rounded-full hover:bg-page transition-colors p-1 pr-1.5 sm:pr-2"
       >
-        <div className="w-8 h-8 rounded-full bg-blue-brand flex items-center justify-center text-xs font-semibold text-white shrink-0">
+        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-semibold text-white shrink-0">
           {userName.charAt(0).toUpperCase() || "P"}
         </div>
-        <ChevronDown size={14} className={`hidden sm:block text-blue-200 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={14} className={`hidden sm:block text-muted transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 text-gray-900 py-1">
-          <div className="px-3.5 py-2 border-b border-gray-50">
-            <p className="text-sm font-semibold text-gray-900 truncate">{userName}</p>
-            {subtitle && <p className="text-xs text-gray-400 truncate">{subtitle}</p>}
+        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-line overflow-hidden z-50 text-ink py-1">
+          <div className="px-3.5 py-2 border-b border-line">
+            <p className="text-sm font-semibold text-ink truncate">{userName}</p>
+            {subtitle && <p className="text-xs text-muted truncate">{subtitle}</p>}
           </div>
           <Link
             href="/dashboard/profile"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-ink hover:bg-page transition-colors"
           >
-            <User size={15} className="text-gray-400" /> Profile & payouts
+            <User size={15} className="text-muted" /> Profile & payouts
           </Link>
           <Link
             href="/dashboard/patients"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors md:hidden"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-ink hover:bg-page transition-colors md:hidden"
           >
-            <Users size={15} className="text-gray-400" /> My patients
+            <Users size={15} className="text-muted" /> My patients
           </Link>
           {showServices && (
             <Link
               href="/dashboard/services"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors md:hidden"
+              className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-ink hover:bg-page transition-colors md:hidden"
             >
-              <Stethoscope size={15} className="text-gray-400" /> My services
+              <Stethoscope size={15} className="text-muted" /> My services
             </Link>
           )}
-          <SocialLinks className="px-3.5 py-2 border-t border-gray-50" />
+          <SocialLinks className="px-3.5 py-2 border-t border-line" />
           <button
             onClick={signOut}
             disabled={signingOut}

@@ -28,8 +28,8 @@ export default async function ServicesPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Services</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Services</h1>
+        <p className="text-sm text-muted mt-0.5">
           List the services you offer and their price. Patients see these on your profile.
         </p>
       </div>

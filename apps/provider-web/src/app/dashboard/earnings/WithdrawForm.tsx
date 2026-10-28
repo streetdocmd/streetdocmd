@@ -76,9 +76,9 @@ export default function WithdrawForm({
   return (
     <div className="card p-5 space-y-4">
       <div>
-        <p className="text-sm font-medium text-gray-700">Withdraw to</p>
-        <p className="text-sm text-gray-900 mt-0.5 font-semibold">{bankAccountName}</p>
-        <p className="text-xs text-gray-400">{bankName} · {bankAccount}</p>
+        <p className="text-sm font-medium text-ink">Withdraw to</p>
+        <p className="text-sm text-ink mt-0.5 font-semibold">{bankAccountName}</p>
+        <p className="text-xs text-muted">{bankName} · {bankAccount}</p>
       </div>
 
       <form onSubmit={submit} className="space-y-3">
@@ -87,7 +87,7 @@ export default function WithdrawForm({
             Amount (max {formatNaira(walletBalance)})
           </label>
           <div className="relative mt-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₦</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">₦</span>
             <input
               type="number"
               min={min}
@@ -100,7 +100,7 @@ export default function WithdrawForm({
               required
             />
           </div>
-          <p className="text-xs text-gray-400 mt-1">Minimum: {formatNaira(min)}</p>
+          <p className="text-xs text-muted mt-1">Minimum: {formatNaira(min)}</p>
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
@@ -114,7 +114,7 @@ export default function WithdrawForm({
         </button>
 
         {walletBalance < min && (
-          <p className="text-xs text-center text-gray-400">
+          <p className="text-xs text-center text-muted">
             Complete more visits to reach the {formatNaira(min)} minimum.
           </p>
         )}

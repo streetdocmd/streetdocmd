@@ -13,8 +13,8 @@ export default function NursingEncounterView({ encounter, patient }: { encounter
     <div className="max-w-2xl mx-auto space-y-4 pb-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Nursing Encounter</h1>
-          <p className="text-sm text-gray-500">{patient?.name ?? "Patient"}</p>
+          <h1 className="text-ds-xl font-bold text-navy">Nursing Encounter</h1>
+          <p className="text-sm text-muted">{patient?.name ?? "Patient"}</p>
         </div>
         <span className="text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-3 py-1 font-medium">
           ✓ Submitted{encounter.submitted_at ? ` · ${new Date(encounter.submitted_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}` : ""}
@@ -26,7 +26,7 @@ export default function NursingEncounterView({ encounter, patient }: { encounter
 
       <Section title="3. Vital Signs">
         {hasVitals ? (
-          <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
+          <div className="grid grid-cols-2 gap-3 text-sm text-ink">
             {vitals.bp_systolic && <Field label="BP Systolic" value={vitals.bp_systolic} />}
             {vitals.bp_diastolic && <Field label="BP Diastolic" value={vitals.bp_diastolic} />}
             {vitals.pulse_rate && <Field label="Pulse Rate" value={vitals.pulse_rate} />}
@@ -43,7 +43,7 @@ export default function NursingEncounterView({ encounter, patient }: { encounter
         {encounter.intervention?.performed?.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2">
             {encounter.intervention.performed.map((opt: string) => (
-              <span key={opt} className="text-xs px-3 py-1.5 rounded-full bg-teal-brand text-white">
+              <span key={opt} className="text-xs px-3 py-1.5 rounded-full bg-teal-deep text-white">
                 {opt.replace(/_/g, " ")}
               </span>
             ))}
@@ -56,7 +56,7 @@ export default function NursingEncounterView({ encounter, patient }: { encounter
 
       <Section title="7. Outcome">
         {encounter.outcome?.status && (
-          <span className="text-xs px-3 py-1.5 rounded-full bg-teal-brand text-white capitalize inline-block mb-2">
+          <span className="text-xs px-3 py-1.5 rounded-full bg-teal-deep text-white capitalize inline-block mb-2">
             {encounter.outcome.status}
           </span>
         )}
@@ -71,9 +71,9 @@ export default function NursingEncounterView({ encounter, patient }: { encounter
         {encounter.care_tasks?.length > 0 ? (
           <div className="space-y-1.5">
             {encounter.care_tasks.map((t: any, i: number) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+              <div key={i} className="flex items-center gap-2 text-sm text-ink">
                 <span>{t.completed ? "☑" : "☐"}</span>
-                <span className={t.completed ? "line-through text-gray-400" : ""}>{t.task}</span>
+                <span className={t.completed ? "line-through text-muted" : ""}>{t.task}</span>
               </div>
             ))}
           </div>
@@ -83,10 +83,10 @@ export default function NursingEncounterView({ encounter, patient }: { encounter
       <Section title="10. Follow-up">
         {encounter.follow_up_date ? (
           <>
-            <p className="text-sm text-gray-700 font-medium">
+            <p className="text-sm text-ink font-medium">
               {new Date(encounter.follow_up_date).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}
             </p>
-            {encounter.follow_up_notes && <p className="text-sm text-gray-600 mt-1">{encounter.follow_up_notes}</p>}
+            {encounter.follow_up_notes && <p className="text-sm text-muted mt-1">{encounter.follow_up_notes}</p>}
           </>
         ) : <Empty text="No follow-up scheduled." />}
       </Section>
@@ -99,7 +99,7 @@ export default function NursingEncounterView({ encounter, patient }: { encounter
 
       <Link
         href="/dashboard/bookings"
-        className="block text-center border border-gray-200 rounded-lg py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
+        className="block text-center border border-line rounded-lg py-2.5 text-sm font-medium text-muted hover:bg-page"
       >
         ← Back to Bookings
       </Link>
@@ -110,8 +110,8 @@ export default function NursingEncounterView({ encounter, patient }: { encounter
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="card p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-2">{title}</h3>
-      <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{children}</div>
+      <h3 className="text-sm font-semibold text-ink mb-2">{title}</h3>
+      <div className="text-sm text-ink leading-relaxed whitespace-pre-wrap">{children}</div>
     </div>
   );
 }
@@ -119,12 +119,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, value }: { label: string; value: any }) {
   return (
     <div>
-      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-xs text-muted">{label}</p>
       <p className="font-medium">{value}</p>
     </div>
   );
 }
 
 function Empty({ text = "Not recorded." }: { text?: string }) {
-  return <span className="text-gray-400 italic">{text}</span>;
+  return <span className="text-muted italic">{text}</span>;
 }

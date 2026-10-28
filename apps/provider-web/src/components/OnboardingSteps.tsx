@@ -15,23 +15,23 @@ export default function OnboardingSteps({ current, tone = "light" }: { current: 
             <span
               aria-current={active ? "step" : undefined}
               className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
-                done ? "bg-teal-brand text-white"
-                  : active ? "bg-blue-brand text-white ring-4 " + (dark ? "ring-white/15" : "ring-blue-light")
-                  : dark ? "bg-white/10 text-blue-200" : "bg-gray-200 text-gray-500"
+                done ? "bg-teal-deep text-white"
+                  : active ? "bg-accent text-white ring-4 " + (dark ? "ring-white/15" : "ring-accent-soft")
+                  : dark ? "bg-white/10 text-muted" : "bg-line text-muted"
               }`}
             >
               {done ? <Check size={13} strokeWidth={3} /> : i + 1}
             </span>
             <span
               className={`text-xs font-medium ${
-                active ? (dark ? "text-white" : "text-gray-900")
-                  : dark ? "text-blue-200" : "text-gray-400"
+                active ? (dark ? "text-white" : "text-ink")
+                  : dark ? "text-muted" : "text-muted"
               } ${active ? "" : "hidden sm:inline"}`}
             >
               {label}
             </span>
             {i < STEPS.length - 1 && (
-              <span className={`h-px w-4 sm:w-6 ${done ? "bg-teal-brand" : dark ? "bg-white/15" : "bg-gray-200"}`} />
+              <span className={`h-px w-4 sm:w-6 ${done ? "bg-teal-deep" : dark ? "bg-white/15" : "bg-line"}`} />
             )}
           </li>
         );

@@ -14,11 +14,11 @@ export default function EmptyState({
 }) {
   return (
     <div className="card p-10 sm:p-12 text-center">
-      <div className="w-12 h-12 rounded-2xl bg-blue-light flex items-center justify-center mx-auto mb-3">
-        <Icon size={22} className="text-blue-brand" />
+      <div className="w-12 h-12 rounded-2xl bg-accent-soft flex items-center justify-center mx-auto mb-3">
+        <Icon size={22} className="text-accent" />
       </div>
-      <p className="font-semibold text-gray-800">{title}</p>
-      {description && <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto">{description}</p>}
+      <p className="font-semibold text-ink">{title}</p>
+      {description && <p className="text-sm text-muted mt-1 max-w-sm mx-auto">{description}</p>}
       {children && <div className="mt-4">{children}</div>}
     </div>
   );

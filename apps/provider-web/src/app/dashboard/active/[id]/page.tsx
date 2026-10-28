@@ -37,22 +37,22 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
   return (
     <div className="max-w-lg mx-auto space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{serviceLabel}</h1>
-        <p className="text-gray-500 text-sm mt-0.5">📍 {booking.patient_address}</p>
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{serviceLabel}</h1>
+        <p className="text-muted text-sm mt-0.5">📍 {booking.patient_address}</p>
         {booking.notes && (
-          <p className="text-sm text-gray-500 italic mt-1">Patient note: "{booking.notes}"</p>
+          <p className="text-sm text-muted italic mt-1">Patient note: "{booking.notes}"</p>
         )}
       </div>
 
       <div className="card p-4 flex justify-around text-center">
         <div>
-          <p className="text-xs text-gray-400">Patient</p>
-          <p className="font-semibold text-gray-900">{patient?.name ?? "—"}</p>
+          <p className="text-xs text-muted">Patient</p>
+          <p className="font-semibold text-ink">{patient?.name ?? "—"}</p>
         </div>
-        <div className="w-px bg-gray-100" />
+        <div className="w-px bg-pending-bg" />
         <div>
-          <p className="text-xs text-gray-400">Your payout</p>
-          <p className="font-bold text-teal-brand">{formatNaira(booking.net_payout)}</p>
+          <p className="text-xs text-muted">Your payout</p>
+          <p className="font-bold text-teal-deep">{formatNaira(booking.net_payout)}</p>
         </div>
       </div>
 

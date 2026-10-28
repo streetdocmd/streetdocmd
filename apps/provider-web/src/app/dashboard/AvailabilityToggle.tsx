@@ -85,12 +85,12 @@ export default function AvailabilityToggle({
     <div className={`card p-4 sm:p-5 space-y-2 ${available ? "border-green-200" : ""}`}>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${available ? "bg-green-50" : "bg-gray-100"}`}>
-            <Radio size={20} className={available ? "text-green-online" : "text-gray-400"} />
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${available ? "bg-green-50" : "bg-pending-bg"}`}>
+            <Radio size={20} className={available ? "text-green-online" : "text-muted"} />
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-gray-900">{available ? "You're online" : "You're offline"}</p>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="font-semibold text-ink">{available ? "You're online" : "You're offline"}</p>
+            <p className="text-sm text-muted mt-0.5">
               {loading
                 ? (available ? "Going offline…" : "Getting your location…")
                 : available ? "Accepting home-visit requests near you" : "Not receiving requests"}
@@ -104,8 +104,8 @@ export default function AvailabilityToggle({
           aria-label={available ? "Go offline" : "Go online"}
           onClick={toggle}
           disabled={loading}
-          className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-brand focus-visible:ring-offset-2 disabled:opacity-50 ${
-            available ? "bg-green-online" : "bg-gray-200"
+          className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:opacity-50 ${
+            available ? "bg-green-online" : "bg-line"
           }`}
         >
           <span

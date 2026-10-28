@@ -4,7 +4,7 @@ import Link from "next/link";
 import { formatNaira, getEncounterRoute, type Profession } from "@streetdocmd/shared";
 
 const STATUS_COLORS: Record<string, string> = {
-  accepted:    "bg-blue-100 text-blue-800",
+  accepted:    "bg-accent-soft text-navy",
   en_route:    "bg-violet-100 text-violet-800",
   arrived:     "bg-indigo-100 text-indigo-800",
   in_progress: "bg-amber-100 text-amber-800",
@@ -36,8 +36,8 @@ export default function ProviderBookingCard({
       <div className="p-5 flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-gray-900">{serviceLabel}</h3>
-            <span className={`badge ${STATUS_COLORS[booking.status] ?? "bg-gray-100 text-gray-600"}`}>
+            <h3 className="font-semibold text-ink">{serviceLabel}</h3>
+            <span className={`badge ${STATUS_COLORS[booking.status] ?? "bg-pending-bg text-muted"}`}>
               {statusLabel}
             </span>
             {pdfUrl && (
@@ -46,12 +46,12 @@ export default function ProviderBookingCard({
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-500 mt-0.5 truncate">
+          <p className="text-sm text-muted mt-0.5 truncate">
             {booking.patients?.name ?? "Patient"} · {booking.patient_address}
           </p>
           <div className="flex items-center gap-4 mt-1">
-            <span className="text-teal-brand font-bold text-sm">{formatNaira(booking.net_payout)}</span>
-            <span className="text-gray-400 text-xs">
+            <span className="text-teal-deep font-bold text-sm">{formatNaira(booking.net_payout)}</span>
+            <span className="text-muted text-xs">
               {new Date(booking.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
             </span>
           </div>
@@ -66,7 +66,7 @@ export default function ProviderBookingCard({
           {isCompleted && (
             <button
               onClick={() => setOpen(o => !o)}
-              className="text-xs text-teal-brand font-medium hover:underline"
+              className="text-xs text-teal-deep font-medium hover:underline"
             >
               {open ? "Hide notes ▲" : "View notes ▼"}
             </button>
@@ -75,13 +75,13 @@ export default function ProviderBookingCard({
       </div>
 
       {open && isCompleted && (
-        <div className="border-t border-gray-100 p-5 bg-gray-50/50 space-y-4">
+        <div className="border-t border-line p-5 bg-page/50 space-y-4">
           {noteSubmitted ? (
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-green-700">✓ Visit note submitted</p>
                 {encounter.submitted_at && (
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-muted mt-0.5">
                     {new Date(encounter.submitted_at).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}
                   </p>
                 )}
@@ -97,32 +97,32 @@ export default function ProviderBookingCard({
             <>
               {visit.diagnosis && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Diagnosis</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{visit.diagnosis}</p>
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Diagnosis</p>
+                  <p className="text-sm text-ink leading-relaxed">{visit.diagnosis}</p>
                 </div>
               )}
               {visit.treatment && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Treatment</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{visit.treatment}</p>
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Treatment</p>
+                  <p className="text-sm text-ink leading-relaxed">{visit.treatment}</p>
                 </div>
               )}
               {visit.follow_up_plan && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Follow-up Plan</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{visit.follow_up_plan}</p>
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Follow-up Plan</p>
+                  <p className="text-sm text-ink leading-relaxed">{visit.follow_up_plan}</p>
                 </div>
               )}
               {drugs.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Medications Prescribed</p>
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Medications Prescribed</p>
                   <div className="space-y-1">
                     {drugs.map((d: any, i: number) => (
-                      <div key={i} className="text-sm text-gray-700">
+                      <div key={i} className="text-sm text-ink">
                         <span className="font-medium">{d.name || d.drug_name}</span>
-                        {(d.dosage || d.strength) && <span className="text-gray-500"> · {d.dosage || d.strength}</span>}
-                        {d.frequency && <span className="text-gray-500"> · {d.frequency}</span>}
-                        {d.duration && <span className="text-gray-500"> for {d.duration}</span>}
+                        {(d.dosage || d.strength) && <span className="text-muted"> · {d.dosage || d.strength}</span>}
+                        {d.frequency && <span className="text-muted"> · {d.frequency}</span>}
+                        {d.duration && <span className="text-muted"> for {d.duration}</span>}
                       </div>
                     ))}
                   </div>
@@ -140,7 +140,7 @@ export default function ProviderBookingCard({
               )}
             </>
           ) : (
-            <p className="text-sm text-gray-400">No notes recorded for this visit.</p>
+            <p className="text-sm text-muted">No notes recorded for this visit.</p>
           )}
         </div>
       )}

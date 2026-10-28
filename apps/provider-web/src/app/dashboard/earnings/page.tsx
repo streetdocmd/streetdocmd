@@ -6,7 +6,7 @@ import WithdrawForm from "./WithdrawForm";
 
 const WITHDRAWAL_STATUS: Record<string, string> = {
   pending:   "bg-amber-100 text-amber-700",
-  approved:  "bg-blue-100 text-blue-700",
+  approved:  "bg-accent-soft text-accent",
   processed: "bg-green-100 text-green-700",
   failed:    "bg-red-100 text-red-700",
 };
@@ -45,27 +45,27 @@ export default async function EarningsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Earnings</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Your wallet, payouts and completed visits.</p>
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy tracking-tight">Earnings</h1>
+        <p className="text-sm text-muted mt-0.5">Your wallet, payouts and completed visits.</p>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="card p-5 text-center col-span-2 sm:col-span-1">
-          <p className="text-2xl sm:text-3xl font-bold text-teal-brand">{formatNaira(provider.wallet_balance)}</p>
-          <p className="text-sm text-gray-400 mt-1">Available balance</p>
+          <p className="text-2xl sm:text-3xl font-bold text-teal-deep">{formatNaira(provider.wallet_balance)}</p>
+          <p className="text-sm text-muted mt-1">Available balance</p>
         </div>
         <div className="card p-5 text-center">
-          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{formatNaira(totalEarned)}</p>
-          <p className="text-sm text-gray-400 mt-1">Total earned</p>
+          <p className="text-2xl sm:text-3xl font-bold text-ink">{formatNaira(totalEarned)}</p>
+          <p className="text-sm text-muted mt-1">Total earned</p>
         </div>
         <div className="card p-5 text-center">
-          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{provider.total_visits}</p>
-          <p className="text-sm text-gray-400 mt-1">Total visits</p>
+          <p className="text-2xl sm:text-3xl font-bold text-ink">{provider.total_visits}</p>
+          <p className="text-sm text-muted mt-1">Total visits</p>
         </div>
         <div className="card p-5 text-center">
-          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{formatNaira(totalWithdrawn)}</p>
-          <p className="text-sm text-gray-400 mt-1">Total withdrawn</p>
+          <p className="text-2xl sm:text-3xl font-bold text-ink">{formatNaira(totalWithdrawn)}</p>
+          <p className="text-sm text-muted mt-1">Total withdrawn</p>
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export default async function EarningsPage() {
 
       {/* Withdrawal request */}
       <div>
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Request Withdrawal</h2>
+        <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">Request Withdrawal</h2>
         <WithdrawForm
           walletBalance={provider.wallet_balance}
           bankName={provider.bank_name}
@@ -89,19 +89,19 @@ export default async function EarningsPage() {
       {/* Withdrawal history */}
       {(withdrawals ?? []).length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Withdrawal history</h2>
+          <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">Withdrawal history</h2>
           <div className="space-y-2">
             {(withdrawals ?? []).map((w) => (
               <div key={w.id} className="card p-4 flex items-center justify-between gap-3">
                 <div>
-                  <p className="font-semibold text-gray-900">{formatNaira(w.amount)}</p>
-                  <p className="text-xs text-gray-400">{w.bank_name} · {w.account_number}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="font-semibold text-ink">{formatNaira(w.amount)}</p>
+                  <p className="text-xs text-muted">{w.bank_name} · {w.account_number}</p>
+                  <p className="text-xs text-muted">
                     Requested {new Date(w.requested_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
                     {w.processed_at && ` · Paid ${new Date(w.processed_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}`}
                   </p>
                 </div>
-                <span className={`badge ${WITHDRAWAL_STATUS[w.status] ?? "bg-gray-100 text-gray-500"}`}>
+                <span className={`badge ${WITHDRAWAL_STATUS[w.status] ?? "bg-pending-bg text-muted"}`}>
                   {w.status}
                 </span>
               </div>
@@ -112,34 +112,34 @@ export default async function EarningsPage() {
 
       {/* Earnings history */}
       <div>
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">
           Completed visits ({earnings.length})
         </h2>
         {earnings.length === 0 ? (
           <div className="card p-8 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-teal-light flex items-center justify-center mx-auto mb-3">
-              <Wallet size={22} className="text-teal-brand" />
+            <div className="w-12 h-12 rounded-2xl bg-teal-soft flex items-center justify-center mx-auto mb-3">
+              <Wallet size={22} className="text-teal-deep" />
             </div>
-            <p className="font-semibold text-gray-800">No completed visits yet</p>
-            <p className="text-sm text-gray-500 mt-1">Your payout for each visit appears here once its notes are submitted.</p>
+            <p className="font-semibold text-ink">No completed visits yet</p>
+            <p className="text-sm text-muted mt-1">Your payout for each visit appears here once its notes are submitted.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {earnings.map((b) => (
               <div key={b.id} className="card p-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900 text-sm">
+                  <p className="font-medium text-ink text-sm">
                     {(SERVICE_LABELS as Record<string, string>)[b.service_type] ?? b.service_type.replace(/_/g, " ")}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-muted">
                     {b.completed_at
                       ? new Date(b.completed_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })
                       : "—"}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-teal-brand">{formatNaira(b.net_payout)}</p>
-                  <p className="text-xs text-gray-400">of {formatNaira(b.fee)}</p>
+                  <p className="font-bold text-teal-deep">{formatNaira(b.net_payout)}</p>
+                  <p className="text-xs text-muted">of {formatNaira(b.fee)}</p>
                 </div>
               </div>
             ))}
