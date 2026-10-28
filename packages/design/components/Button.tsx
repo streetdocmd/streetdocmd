@@ -4,18 +4,19 @@ import { cx, focusRing } from "./cx";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
 
+// Border colour lives here, not in the base, so the two never compete
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-white hover:bg-accent-hover",
-  secondary: "bg-surface text-navy border-line hover:border-accent hover:text-accent",
-  ghost: "bg-transparent text-accent px-3 hover:bg-accent-soft",
-  danger: "bg-danger text-white hover:opacity-90",
-  success: "bg-success text-white hover:opacity-90",
+  primary: "border-transparent bg-accent text-white hover:bg-accent-hover",
+  secondary: "border-line bg-surface text-navy hover:border-accent hover:text-accent",
+  ghost: "border-transparent bg-transparent text-accent px-3 hover:bg-accent-soft",
+  danger: "border-transparent bg-danger text-white hover:opacity-90",
+  success: "border-transparent bg-success text-white hover:opacity-90",
 };
 
 /** Classes for anything that should look like a button (a link, a label). */
 export function buttonClass(variant: ButtonVariant = "primary", block = false, className?: string): string {
   return cx(
-    "inline-flex items-center justify-center gap-2 min-h-12 px-6 rounded-pill border-[1.5px] border-transparent",
+    "inline-flex items-center justify-center gap-2 min-h-12 px-6 rounded-pill border-[1.5px]",
     "text-ds-control font-semibold leading-none no-underline cursor-pointer select-none",
     "transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98]",
     "disabled:bg-disabled disabled:text-disabled-fg disabled:border-transparent disabled:cursor-not-allowed disabled:active:scale-100",

@@ -1,8 +1,11 @@
 "use client";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import AuthShell from "@/components/AuthShell";
+import { ChevronDown, X } from "lucide-react";
+import {
+  Button, Chip, Input, Notice, SegmentedControl, TopBar, cx, fieldLabelClass, focusRing, inputClass,
+} from "@/components/ds";
 import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -20,58 +23,100 @@ type Initial = {
   emergency_contact_relationship: string | null;
 };
 
+// Common answers shown as tap chips; anything else is typed into the box below them.
+const ALLERGY_CHIPS = ["Penicillin", "Sulfa drugs", "Latex", "Nuts"];
+const CONDITION_CHIPS = ["Diabetes", "Hypertension", "Asthma", "Heart condition", "Pregnancy"];
+
+const optional = <span className="font-normal text-muted">(optional)</span>;
+
 function TagInput({
   label,
   placeholder,
   values,
   onChange,
   pendingRef,
+  presets = [],
 }: {
   label: string;
   placeholder: string;
   values: string[];
   onChange: (v: string[]) => void;
   pendingRef: React.MutableRefObject<string>;
+  /** Tap chips for common answers. "None" clears the list (it is never stored). */
+  presets?: string[];
 }) {
   const [input, setInput] = useState("");
+  const [saidNone, setSaidNone] = useState(false);
+  const inputId = useId();
 
   function add() {
     const trimmed = input.trim();
-    if (trimmed && !values.includes(trimmed)) onChange([...values, trimmed]);
+    if (trimmed && !values.includes(trimmed)) { onChange([...values, trimmed]); setSaidNone(false); }
     setInput("");
     // pendingRef is intentionally left as-is: if Save is clicked straight
     // from this box, the blur-triggered add may not have re-rendered yet,
     // and withPending() dedupes it either way.
   }
 
+  function toggle(v: string) {
+    setSaidNone(false);
+    onChange(values.includes(v) ? values.filter(x => x !== v) : [...values, v]);
+  }
+
+  const custom = values.filter(v => !presets.includes(v));
+
   return (
     <div>
-      <label className="label">{label} <span className="font-normal text-gray-400">(optional)</span></label>
-      <div className="flex gap-2">
+      <label htmlFor={inputId} className={fieldLabelClass}>{label} {optional}</label>
+      <div className="flex flex-wrap gap-2">
+        {presets.length > 0 && (
+          <Chip multi selected={saidNone && values.length === 0} onClick={() => { setSaidNone(true); pendingRef.current = ""; onChange([]); }}>
+            None
+          </Chip>
+        )}
+        {presets.map(p => (
+          <Chip key={p} multi selected={values.includes(p)} onClick={() => toggle(p)}>{p}</Chip>
+        ))}
+        {custom.map(v => (
+          <Chip key={v} multi selected aria-label={`Remove ${v}`}
+            onClick={() => { pendingRef.current = ""; onChange(values.filter(x => x !== v)); }}>
+            {v} <X size={14} aria-hidden />
+          </Chip>
+        ))}
+      </div>
+      <div className={`flex gap-2 ${presets.length > 0 || custom.length > 0 ? "mt-2.5" : ""}`}>
         <input
-          className="input flex-1"
+          id={inputId}
+          className={inputClass(false, "flex-1")}
           placeholder={placeholder}
           value={input}
           onChange={e => { setInput(e.target.value); pendingRef.current = e.target.value; }}
           onBlur={add}
           onKeyDown={e => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(); } }}
         />
-        <button type="button" onClick={add}
-          className="px-3 py-2 bg-blue-light text-blue-brand border border-blue-mid rounded-lg text-sm font-medium hover:bg-blue-100">
-          Add
-        </button>
+        <Button variant="secondary" onClick={add} className="min-h-[52px] px-5">Add</Button>
       </div>
-      {values.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          {values.map(v => (
-            <span key={v} className="inline-flex items-center gap-1 bg-blue-light text-blue-700 text-xs px-2.5 py-1 rounded-full">
-              {v}
-              <button type="button" aria-label={`Remove ${v}`} onClick={() => { pendingRef.current = ""; onChange(values.filter(x => x !== v)); }}
-                className="ml-0.5 text-blue-400 hover:text-blue-600 font-medium">×</button>
-            </span>
-          ))}
-        </div>
-      )}
+    </div>
+  );
+}
+
+// Native select styled like the other fields, with its own chevron
+function SelectField({ id, label, value, onChange, children }: {
+  id: string;
+  label: React.ReactNode;
+  value: string;
+  onChange: (v: string) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className={fieldLabelClass} htmlFor={id}>{label}</label>
+      <div className="relative">
+        <select id={id} className={inputClass(false, "appearance-none pr-10")} value={value} onChange={e => onChange(e.target.value)}>
+          {children}
+        </select>
+        <ChevronDown size={18} aria-hidden className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted" />
+      </div>
     </div>
   );
 }
@@ -151,90 +196,80 @@ export default function MedicalOnboardingForm({ initial }: { initial: Initial })
   }
 
   return (
-    <AuthShell subtitle="Step 2 of 2 · Medical profile" maxWidth="max-w-xl">
-      <h1 className="text-xl font-bold text-gray-900 mb-1">Your medical profile</h1>
-      <p className="text-gray-500 text-sm mb-6">
-        This helps the clinician who visits you give you safe, informed care. You can update it anytime from your profile.
-      </p>
+    <main className="min-h-[100dvh] bg-page">
+      <div className="mx-auto max-w-md pb-8">
+        {/* Sign up is step 1; this skippable profile is step 2 */}
+        <TopBar
+          title="Step 2 of 2"
+          hideBack
+          className="pt-4"
+          right={
+            <Link href="/dashboard" className={cx("w-11 text-right text-[13px] font-bold text-accent rounded-sm", focusRing)}>
+              Skip
+            </Link>
+          }
+        />
+        <div className="flex gap-1.5 px-5 pb-3.5" aria-hidden>
+          <span className="h-[5px] flex-1 rounded bg-accent" />
+          <span className="h-[5px] flex-1 rounded bg-accent" />
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="label" htmlFor="dob">Date of birth</label>
-            <input id="dob" type="date" className="input" value={dob} onChange={e => setDob(e.target.value)}
+        <div className="px-5">
+          <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Make every visit safer</h1>
+          <p className="mt-1.5 mb-5 text-ds-sm text-muted">
+            Providers read this before they arrive. You can change it at any time.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <Input id="dob" label="Date of birth" type="date" value={dob} onChange={e => setDob(e.target.value)}
               min="1900-01-01" max={today} />
-          </div>
-          <div>
-            <label className="label" htmlFor="blood">Blood group <span className="font-normal text-gray-400">(optional)</span></label>
-            <select id="blood" className="input" value={bloodGroup} onChange={e => setBloodGroup(e.target.value)}>
+
+            <div>
+              <span className={fieldLabelClass} aria-hidden>Gender</span>
+              <SegmentedControl
+                label="Gender"
+                value={gender}
+                onChange={setGender}
+                options={[{ value: "male", label: "Male" }, { value: "female", label: "Female" }, { value: "other", label: "Other" }]}
+              />
+            </div>
+
+            <TagInput label="Allergies" placeholder="Add another allergy"
+              values={allergies} onChange={setAllergies} pendingRef={pendingAllergies} presets={ALLERGY_CHIPS} />
+            <TagInput label="Long term conditions" placeholder="Add another condition"
+              values={conditions} onChange={setConditions} pendingRef={pendingConditions} presets={CONDITION_CHIPS} />
+            <TagInput label="Current medications" placeholder="e.g. Metformin 500mg"
+              values={medications} onChange={setMedications} pendingRef={pendingMedications} />
+
+            <SelectField id="blood" label={<>Blood group {optional}</>} value={bloodGroup} onChange={setBloodGroup}>
               <option value="">Don&apos;t know</option>
               {BLOOD_GROUPS.map(bg => <option key={bg} value={bg}>{bg}</option>)}
-            </select>
-          </div>
-        </div>
+            </SelectField>
 
-        <div>
-          <span className="label">Gender</span>
-          <div className="flex gap-3 mt-1">
-            {["male", "female", "other"].map(g => (
-              <label key={g} className={`flex-1 flex items-center justify-center gap-2 border rounded-lg py-2.5 cursor-pointer text-sm font-medium transition-colors ${
-                gender === g ? "border-blue-brand bg-blue-light text-blue-brand" : "border-gray-200 text-gray-600 hover:border-gray-300"
-              }`}>
-                <input type="radio" name="gender" value={g} checked={gender === g}
-                  onChange={() => setGender(g)} className="sr-only" />
-                {g.charAt(0).toUpperCase() + g.slice(1)}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <TagInput label="Known conditions" placeholder="e.g. Diabetes, Hypertension"
-          values={conditions} onChange={setConditions} pendingRef={pendingConditions} />
-        <TagInput label="Current medications" placeholder="e.g. Metformin 500mg"
-          values={medications} onChange={setMedications} pendingRef={pendingMedications} />
-        <TagInput label="Allergies" placeholder="e.g. Penicillin, Peanuts"
-          values={allergies} onChange={setAllergies} pendingRef={pendingAllergies} />
-
-        <div className="pt-4 border-t border-gray-100">
-          <p className="text-sm font-semibold text-gray-900">Emergency contact</p>
-          <p className="text-xs text-gray-500 mb-3">Someone we can reach if anything goes wrong during a visit.</p>
-          <div className="space-y-3">
-            <div>
-              <label className="label" htmlFor="ecName">Full name</label>
-              <input id="ecName" className="input" placeholder="Ngozi Obi" value={ecName} onChange={e => setEcName(e.target.value)} />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <fieldset className="space-y-3 border-t border-line pt-4">
+              <legend className="sr-only">Emergency contact</legend>
               <div>
-                <label className="label" htmlFor="ecPhone">Phone number</label>
-                <input id="ecPhone" type="tel" inputMode="tel" className="input" placeholder="08012345678" value={ecPhone} onChange={e => setEcPhone(e.target.value)} />
+                <p className="text-ds-sm font-semibold text-ink">Emergency contact</p>
+                <p className="text-ds-xs text-muted">Someone we can reach if anything goes wrong during a visit.</p>
               </div>
-              <div>
-                <label className="label" htmlFor="ecRel">Relationship</label>
-                <select id="ecRel" className="input" value={ecRelation} onChange={e => setEcRelation(e.target.value)}>
-                  <option value="">Select</option>
-                  {RELATIONSHIPS.map(r => <option key={r} value={r}>{r}</option>)}
-                  {ecRelation && !RELATIONSHIPS.includes(ecRelation) && <option value={ecRelation}>{ecRelation}</option>}
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
+              <Input id="ecName" label="Full name" placeholder="e.g. Ngozi Obi" value={ecName} onChange={e => setEcName(e.target.value)} />
+              <Input id="ecPhone" label="Phone number" type="tel" inputMode="tel" placeholder="+234 800 000 0000"
+                value={ecPhone} onChange={e => setEcPhone(e.target.value)} />
+              <SelectField id="ecRel" label="Relationship" value={ecRelation} onChange={setEcRelation}>
+                <option value="">Select</option>
+                {RELATIONSHIPS.map(r => <option key={r} value={r}>{r}</option>)}
+                {ecRelation && !RELATIONSHIPS.includes(ecRelation) && <option value={ecRelation}>{ecRelation}</option>}
+              </SelectField>
+            </fieldset>
 
-        {error && (
-          <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-            {error}
-          </div>
-        )}
+            {error && <Notice tone="danger">{error}</Notice>}
 
-        <div className="pt-1 space-y-3">
-          <button type="submit" disabled={saving} className="btn-primary w-full flex justify-center">
-            {saving ? "Saving…" : "Save & go to dashboard"}
-          </button>
-          <Link href="/dashboard" className="block text-center text-sm font-medium text-gray-500 hover:text-gray-700">
-            Skip for now
-          </Link>
+            <Button type="submit" block disabled={saving} className="mt-2 min-h-[52px]">
+              {saving ? "Saving…" : "Save and continue"}
+            </Button>
+          </form>
         </div>
-      </form>
-    </AuthShell>
+      </div>
+    </main>
   );
 }
