@@ -10,6 +10,12 @@ export const colors = {
   blue: "#1E6FD9",
   "blue-hover": "#1859B5",
   sky: "#EAF3FD",
+  // Brand moment colours (splash and onboarding art)
+  "blue-deep": "#1B55B0", // middle of the splash gradient
+  "blue-pale": "#9CC7FF", // "DocMD" in the wordmark on navy
+  "blue-mist": "#CFE0F7", // body text on navy
+  "sky-mid": "#DCEAFB",
+  "sky-deep": "#C9E0FA",
   teal: "#00B5A3",
   "teal-deep": "#007F73",
   "teal-hover": "#006A60",

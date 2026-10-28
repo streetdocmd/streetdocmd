@@ -15,9 +15,9 @@ const preset: Partial<Config> = {
   theme: {
     extend: {
       colors: {
-        brand: { DEFAULT: c.blue, hover: c["blue-hover"] },
+        brand: { DEFAULT: c.blue, hover: c["blue-hover"], deep: c["blue-deep"], pale: c["blue-pale"], mist: c["blue-mist"] },
         navy: { DEFAULT: c.navy },
-        sky: { DEFAULT: c.sky },
+        sky: { DEFAULT: c.sky, mid: c["sky-mid"], deep: c["sky-deep"] },
         teal: { DEFAULT: c.teal, deep: c["teal-deep"], hover: c["teal-hover"], soft: c["teal-soft"], tint: c["teal-tint"], bright: c["teal-bright"] },
         ink: c.ink,
         muted: c.muted,
@@ -52,6 +52,15 @@ const preset: Partial<Config> = {
         ]),
       ),
       fontFamily: { sans: fontStack },
+      // The one brand motion: the stethoscope cable on the splash screen
+      keyframes: {
+        swing: { "0%, 100%": { transform: "rotate(-7deg)" }, "50%": { transform: "rotate(7deg)" } },
+        load: { from: { transform: "translateX(-100%)" }, to: { transform: "translateX(260%)" } },
+      },
+      animation: {
+        swing: "swing 2.6s ease-in-out infinite",
+        load: "load 2.2s ease-in-out forwards",
+      },
     },
   },
 };
