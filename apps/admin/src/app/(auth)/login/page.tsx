@@ -73,7 +73,7 @@ export default function LoginPage() {
           <div className="absolute -bottom-16 -right-16 w-72 h-72 rounded-full border-2 border-white" />
         </div>
 
-        <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="h-8 w-auto relative" priority />
+        <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="relative h-10 w-auto self-start" priority />
 
         <div className="relative max-w-md">
           <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-3">Admin Console</p>

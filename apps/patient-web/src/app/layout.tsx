@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ThemeScript from "@/components/theme/ThemeScript";
 import { DialogProvider } from "@/components/ds";
+import WhatsAppConcierge from "@/components/WhatsAppConcierge";
 
 // Inter for the design system: --font-inter feeds the Tailwind font stack and tokens.css
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={inter.className}>
         <DialogProvider>{children}</DialogProvider>
+        <WhatsAppConcierge />
       </body>
     </html>
   );
