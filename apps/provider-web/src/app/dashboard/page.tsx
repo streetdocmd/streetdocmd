@@ -15,6 +15,7 @@ import AvailabilityToggle from "./AvailabilityToggle";
 import ReferralCodeCard from "./ReferralCodeCard";
 import RealtimeDispatch from "./RealtimeDispatch";
 import LocationBroadcaster from "@/components/LocationBroadcaster";
+import LiveRefresh from "@/components/LiveRefresh";
 
 export const revalidate = 0;
 
@@ -203,6 +204,7 @@ export default async function DashboardPage({
 
   return (
     <div className="mx-auto max-w-3xl">
+      <LiveRefresh sources={[{ table: "bookings" }, { table: "dispatch_queue" }]} />
       <div className="pb-4">
         <small className="text-[13px] font-semibold text-muted">Today{provider.specialty ? ` · ${provider.specialty}` : ""}</small>
         <h1 className="mt-0.5 text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{greeting()}, {firstName}</h1>

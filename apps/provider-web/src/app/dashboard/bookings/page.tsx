@@ -8,6 +8,7 @@ import { CalendarCheck, CalendarClock } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { SERVICE_LABELS, BOOKING_STATUS_LABELS, formatNaira } from "@streetdocmd/shared";
 import ProviderBookingCard from "./ProviderBookingCard";
+import LiveRefresh from "@/components/LiveRefresh";
 
 const ACTIVE = ["accepted", "en_route", "arrived", "in_progress"];
 const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
@@ -98,6 +99,7 @@ export default async function BookingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <LiveRefresh sources={[{ table: "bookings" }, { table: "dispatch_queue" }]} />
       <div className="pb-4">
         <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Requests</h1>
         <small className="text-[13px] font-semibold text-muted">Accept what fits your day</small>

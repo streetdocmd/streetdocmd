@@ -5,6 +5,7 @@ import { formatNaira } from "@/lib/shared";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import EmptyState from "@/components/ui/EmptyState";
+import LiveRefresh from "@/components/ui/LiveRefresh";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export default async function BookingsPage({
 
   return (
     <div>
+      <LiveRefresh sources={[{ table: "bookings" }]} />
       <PageHeader title="Bookings" description="The 50 most recent consultation requests. Open one to see everything about it." />
 
       <div className="card">

@@ -5,6 +5,7 @@ import { createAdminSupabase } from "@/lib/supabase-server";
 import { formatNaira, SERVICE_LABELS } from "@/lib/shared";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
+import LiveRefresh from "@/components/ui/LiveRefresh";
 
 export const dynamic = "force-dynamic";
 
@@ -108,6 +109,7 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
 
   return (
     <div className="max-w-5xl">
+      <LiveRefresh sources={[{ table: "bookings", filter: `id=eq.${b.id}` }, { table: "dispatch_queue", filter: `booking_id=eq.${b.id}` }]} intervalMs={20_000} />
       <PageHeader
         backHref="/dashboard/bookings"
         backLabel="Bookings"

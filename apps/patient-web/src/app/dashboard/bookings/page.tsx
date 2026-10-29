@@ -7,6 +7,7 @@ import { Avatar, Button, Card, Pill, cx, focusRing, type PillTone } from "@/comp
 import CancelButton from "./CancelButton";
 import ProviderDeclinedActions from "./ProviderDeclinedActions";
 import VisitsTabs from "./VisitsTabs";
+import LiveRefresh from "@/components/LiveRefresh";
 
 const ACTIVE = ["accepted", "en_route", "arrived", "in_progress"];
 const PAST = ["completed", "cancelled", "expired"];
@@ -140,6 +141,7 @@ export default async function BookingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <LiveRefresh sources={[{ table: "bookings" }]} />
       <div className="pb-4">
         <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Your visits</h1>
         <small className="text-[13px] font-semibold text-muted">Upcoming care and past records</small>

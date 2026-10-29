@@ -1,6 +1,7 @@
 import { createServerSupabase } from "@/lib/supabase-server";
 import HomeView from "./HomeView";
 import { refillItems, REFILL_SOON_DAYS } from "@/lib/refills";
+import LiveRefresh from "@/components/LiveRefresh";
 
 const ACTIVE_STATUSES = ["accepted", "en_route", "arrived", "in_progress"];
 
@@ -109,6 +110,8 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
   const refill = refillItems((prescriptions ?? []) as any[]).find(r => r.daysLeft <= REFILL_SOON_DAYS && r.daysLeft > -3) ?? null;
 
   return (
+    <>
+    <LiveRefresh sources={[{ table: "bookings" }]} />
     <HomeView
       firstName={firstName}
       justOnboarded={justOnboarded}
@@ -127,5 +130,6 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
       bookAgain={bookAgain}
       now={new Date()}
     />
+    </>
   );
 }

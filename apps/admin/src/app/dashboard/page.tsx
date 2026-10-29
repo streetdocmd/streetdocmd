@@ -9,6 +9,7 @@ import { formatNaira } from "@/lib/shared";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import EmptyState from "@/components/ui/EmptyState";
+import LiveRefresh from "@/components/ui/LiveRefresh";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
+      <LiveRefresh sources={[{ table: "bookings" }, { table: "providers" }]} />
       <PageHeader
         title="Operations overview"
         description={new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
