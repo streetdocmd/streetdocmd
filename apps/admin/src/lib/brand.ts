@@ -5,8 +5,8 @@
 export const SUPPORT_EMAIL = "contact@streetdocmd.com";
 
 // Customer care on WhatsApp (international format, digits only for wa.me links)
-export const SUPPORT_WHATSAPP = "+2348183000382";
-export const SUPPORT_WHATSAPP_URL = "https://wa.me/2348183000382";
+export const SUPPORT_WHATSAPP = "+2347063216791";
+export const SUPPORT_WHATSAPP_URL = "https://wa.me/2347063216791";
 
 export interface SocialLink {
   id: "instagram" | "tiktok" | "facebook" | "x";
