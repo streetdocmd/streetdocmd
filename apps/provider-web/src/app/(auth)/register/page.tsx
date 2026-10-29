@@ -5,15 +5,20 @@ import { cx, focusRing } from "@/components/ds";
 
 const FACILITY_REGISTRATION_URL = "https://admin.streetdocmd.com/register/facility";
 
-// The design's six provider types. Individuals register here; facilities on the
-// partner registration form (it opens on the chosen type).
-const ROLES: { label: string; desc: string; reg: string; icon: LucideIcon; href: string }[] = [
+type Role = { label: string; desc: string; reg: string; icon: LucideIcon; href: string };
+
+// The design's six provider types, in two groups. Individuals register here;
+// facilities on the partner registration form (it opens on the chosen type).
+const INDIVIDUALS: Role[] = [
   { label: "Doctor", desc: "Home consultations, prescriptions and referrals.", reg: "MDCN", icon: Stethoscope,
     href: `/register/individual?specialty=${encodeURIComponent("Medical Doctor (General)")}` },
   { label: "Nurse", desc: "Dressings, post surgical checks and care at home.", reg: "NMCN", icon: HeartPulse,
     href: `/register/individual?specialty=${encodeURIComponent("Registered Nurse")}` },
   { label: "Physiotherapist", desc: "Assessments, exercise plans and follow up sessions.", reg: "MRTB", icon: Activity,
     href: `/register/individual?specialty=${encodeURIComponent("Physiotherapist")}` },
+];
+
+const FACILITIES: Role[] = [
   { label: "Pharmacy", desc: "Stock, medicine orders and delivery.", reg: "PCN", icon: Pill,
     href: `${FACILITY_REGISTRATION_URL}?type=pharmacy` },
   { label: "Diagnostic lab", desc: "Sample collection, test processing and results.", reg: "MLSCN", icon: FlaskConical,
@@ -22,18 +27,16 @@ const ROLES: { label: string; desc: string; reg: string; icon: LucideIcon; href:
     href: `${FACILITY_REGISTRATION_URL}?type=hospital` },
 ];
 
-export default function RegisterFork() {
+function RoleGroup({ title, description, roles, className }: {
+  title: string; description: string; roles: Role[]; className?: string;
+}) {
+  const headingId = `group-${title.toLowerCase().replace(/\s+/g, "-")}`;
   return (
-    <div className="w-full max-w-2xl">
-      <AuthBrand subtitle="Join as a provider" />
-
-      <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Choose your provider type</h1>
-      <p className="mb-[18px] mt-1.5 text-ds-sm text-muted">
-        We tailor your dashboard and checks to your type, and ask for the right licence.
-      </p>
-
+    <section className={className} aria-labelledby={headingId}>
+      <h2 id={headingId} className="text-[17px] font-bold text-navy">{title}</h2>
+      <p className="mb-3 mt-0.5 text-ds-xs text-muted">{description}</p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {ROLES.map(({ label, desc, reg, icon: Icon, href }) => {
+        {roles.map(({ label, desc, reg, icon: Icon, href }) => {
           const className = cx(
             "grid min-w-0 content-start gap-3 rounded-ds-lg border-[1.5px] border-line bg-surface px-3.5 py-4 text-left transition-colors hover:border-teal-deep hover:bg-teal-soft",
             focusRing,
@@ -53,6 +56,31 @@ export default function RegisterFork() {
             : <Link key={label} href={href} className={className}>{body}</Link>;
         })}
       </div>
+    </section>
+  );
+}
+
+export default function RegisterFork() {
+  return (
+    <div className="w-full max-w-2xl">
+      <AuthBrand subtitle="Join as a provider" />
+
+      <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Choose your provider type</h1>
+      <p className="mb-6 mt-1.5 text-ds-sm text-muted">
+        We tailor your dashboard and checks to your type, and ask for the right licence.
+      </p>
+
+      <RoleGroup
+        title="Individual practitioners"
+        description="Licensed professionals who visit patients at home."
+        roles={INDIVIDUALS}
+      />
+      <RoleGroup
+        title="Facilities"
+        description="Pharmacies, labs and hospitals that partner with StreetdocMD."
+        roles={FACILITIES}
+        className="mt-7"
+      />
 
       <p className="mt-6 text-center text-ds-sm text-muted">
         Already registered?{" "}

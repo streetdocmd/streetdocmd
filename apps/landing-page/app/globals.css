@@ -1984,3 +1984,8 @@ a {
   .legal-table { min-width: 0; }
   .legal-callout { border: 1px solid #999; border-left-width: 4px; background: none; }
 }
+
+/* "Learn more" on the features hero lands below the fixed nav */
+#journey {
+  scroll-margin-top: 96px;
+}

@@ -25,7 +25,6 @@ export default function RegisterIndividualPage() {
     credentials: "",
     license_number: "",
     years_experience: "",
-    expected_rate: "",
     questions: "",
   });
   const [ndpr, setNdpr] = useState(false);
@@ -178,38 +177,20 @@ export default function RegisterIndividualPage() {
             </div>
           </fieldset>
 
-          <fieldset className="space-y-4">
-            <legend className="text-xs font-semibold text-muted uppercase tracking-wide mb-1">Help us get to know you</legend>
-            <p className="text-xs text-muted -mt-2">Optional — this doesn&apos;t affect your verification.</p>
-            <div>
-              <label className="label" htmlFor="expected_rate">What would you consider a reasonable amount per visit?</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted">₦</span>
-                <input
-                  id="expected_rate"
-                  type="number"
-                  inputMode="numeric"
-                  min="0"
-                  className="input pl-8"
-                  placeholder="e.g. 15000"
-                  value={form.expected_rate}
-                  onChange={e => set("expected_rate", e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="label" htmlFor="questions">Any questions or suggestions for us?</label>
-              <textarea
-                id="questions"
-                className="input resize-none"
-                rows={3}
-                maxLength={2000}
-                placeholder="Ask us anything, or share any suggestions you have"
-                value={form.questions}
-                onChange={e => set("questions", e.target.value)}
-              />
-            </div>
-          </fieldset>
+          <div>
+            <label className="label" htmlFor="questions">
+              Any questions or suggestions for us? <span className="font-normal text-muted">(optional)</span>
+            </label>
+            <textarea
+              id="questions"
+              className="input resize-none"
+              rows={3}
+              maxLength={2000}
+              placeholder="Ask us anything, or share any suggestions you have"
+              value={form.questions}
+              onChange={e => set("questions", e.target.value)}
+            />
+          </div>
 
           <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-page p-4">
             <input

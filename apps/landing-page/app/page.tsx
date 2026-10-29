@@ -55,9 +55,9 @@ export default function Home() {
             </p>
 
             <div className="btn-row">
-              <Button href={LINKS.bookApp}>Book via app</Button>
-              <Button href={LINKS.bookWeb} variant="outline">
-                Book via website
+              <Button href={LINKS.bookWeb}>Book via website</Button>
+              <Button href="/features" variant="outline">
+                Learn more
               </Button>
             </div>
 

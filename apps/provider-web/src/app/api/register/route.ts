@@ -142,6 +142,16 @@ export async function POST(req: NextRequest) {
 
     userId = signInData.user.id;
     alreadySignedIn = true;
+
+    // A patient can add a provider profile to their account; admin and
+    // partner staff accounts can't become providers.
+    const { data: existingRole } = await admin.from("users").select("role").eq("id", userId).maybeSingle();
+    if (existingRole && existingRole.role !== "patient" && existingRole.role !== "provider") {
+      await signInClient.auth.signOut();
+      return NextResponse.json({
+        error: "This email belongs to a StreetdocMD admin or partner account. Use a different email to register as a provider.",
+      }, { status: 409 });
+    }
   } else {
     userId = authData.user.id;
     createdAuthUser = true;

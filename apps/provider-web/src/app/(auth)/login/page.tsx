@@ -6,20 +6,39 @@ import { createClient } from "@/lib/supabase";
 import PasswordInput from "@/components/PasswordInput";
 import AuthBrand from "@/components/AuthBrand";
 
+const ADMIN_LOGIN_URL = "https://admin.streetdocmd.com/login";
+
+// Signed in, but there's no provider profile behind this account: say which
+// portal it belongs to instead of dropping the person on the registration form.
+function notAProviderMessage(role: string | null): { text: string; portal?: boolean } {
+  if (role === "admin") {
+    return { text: "This is a StreetdocMD admin account, not a provider account. Sign in to the admin console instead.", portal: true };
+  }
+  if (role === "pharmacy_staff" || role === "lab_staff" || role === "hospital_staff") {
+    return { text: "This is a pharmacy, lab or hospital account. Sign in to your partner portal instead.", portal: true };
+  }
+  if (role === "patient") {
+    return { text: "This email has a patient account, but it isn't registered as a provider. To offer care, apply to join below with the same email and password." };
+  }
+  return { text: "This email isn't registered as a provider yet. Apply to join below." };
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [portalLink, setPortalLink] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (loading) return;
     setError("");
+    setPortalLink(false);
     setLoading(true);
     const supabase = createClient();
-    const { error: err } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    const { data, error: err } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (err) {
       setError(
         err.message.toLowerCase().includes("invalid login credentials")
@@ -28,6 +47,18 @@ export default function LoginPage() {
             ? "Please confirm your email address first — check your inbox for the link."
             : err.message
       );
+      setLoading(false);
+      return;
+    }
+    const { data: provider } = await supabase
+      .from("providers").select("id").eq("user_id", data.user.id).maybeSingle();
+    if (!provider) {
+      const { data: profile } = await supabase
+        .from("users").select("role").eq("id", data.user.id).maybeSingle();
+      await supabase.auth.signOut();
+      const message = notAProviderMessage(profile?.role ?? null);
+      setError(message.text);
+      setPortalLink(!!message.portal);
       setLoading(false);
       return;
     }
@@ -55,7 +86,7 @@ export default function LoginPage() {
               className="input"
               placeholder="you@example.com"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={e => { setEmail(e.target.value); setError(""); }}
               required
             />
           </div>
@@ -79,6 +110,11 @@ export default function LoginPage() {
           {error && (
             <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
               {error}
+              {portalLink && (
+                <a href={ADMIN_LOGIN_URL} className="mt-1.5 block font-bold text-red-800 underline underline-offset-2">
+                  Go to admin.streetdocmd.com
+                </a>
+              )}
             </div>
           )}
 

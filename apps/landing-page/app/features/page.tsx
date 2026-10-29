@@ -126,9 +126,9 @@ export default function FeaturesPage() {
               hospital.
             </p>
             <div className="btn-row">
-              <Button href={LINKS.bookApp}>Book via app</Button>
-              <Button href={LINKS.bookWeb} variant="outline">
-                Book via website
+              <Button href={LINKS.bookWeb}>Book via website</Button>
+              <Button href="#journey" variant="outline">
+                Learn more
               </Button>
             </div>
           </div>
@@ -139,7 +139,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* ───────── ONE CONNECTED JOURNEY ───────── */}
-      <section className="f-journey">
+      <section className="f-journey" id="journey">
         <div className="container">
           <div className="f-split-head" data-reveal>
             <div className="f-split-title">
