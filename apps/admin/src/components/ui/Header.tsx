@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Menu, LogOut, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import ThemeButton from "@/components/theme/ThemeButton";
 import { useSidebar } from "@/components/ui/SidebarContext";
 
 // Section + page names for the breadcrumb. Longest matching prefix wins.
@@ -78,6 +79,7 @@ export default function Header({
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
+        <ThemeButton />
         {adminId && <NotificationBell userId={adminId} inboxHref="/dashboard/notifications" />}
         <div className="hidden md:flex flex-col items-end leading-tight">
           <span className="text-sm font-medium text-gray-900">{adminName ?? "Admin"}</span>

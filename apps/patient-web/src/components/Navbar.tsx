@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { CalendarDays, Heart, House, Search, User } from "lucide-react";
 import { BottomTabBar, cx, focusRing, type TabItem } from "@/components/ds";
 import NotificationBell from "./notifications/NotificationBell";
+import ThemeButton from "@/components/theme/ThemeButton";
 import ProfileMenu from "./ProfileMenu";
 
 // One list for the desktop header links and the mobile tab bar (the design's five tabs).
@@ -56,6 +57,7 @@ export default function Navbar({ userName, userId }: { userName: string; userId:
           </nav>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+            <ThemeButton />
             <NotificationBell userId={userId} inboxHref="/dashboard/notifications" />
             <ProfileMenu userName={userName} />
           </div>

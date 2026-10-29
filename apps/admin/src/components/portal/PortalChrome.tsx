@@ -10,6 +10,7 @@ import {
   FolderLock, Bell, Plug, Menu, Star, X, ChevronDown, LogOut, Mail, type LucideIcon,
 } from "lucide-react";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import ThemeButton from "@/components/theme/ThemeButton";
 import { BottomTabBar } from "@/components/ds";
 import { createClient } from "@/lib/supabase";
 import { PORTALS, SUPPORT_MAILTO, type PortalType } from "./config";
@@ -217,6 +218,7 @@ export default function PortalChrome({
             </div>
           </div>
           <div className="flex items-center gap-1.5">
+            <ThemeButton />
             {userId && <NotificationBell userId={userId} inboxHref={`${cfg.base}/notifications`} />}
             <UserMenu type={type} userName={userName} userEmail={userEmail} showAccount={showNav} />
           </div>

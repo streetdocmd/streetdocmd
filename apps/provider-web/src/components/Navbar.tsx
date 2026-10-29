@@ -8,6 +8,7 @@ import {
 import type { Profession } from "@streetdocmd/shared";
 import { BottomTabBar, cx, focusRing, type TabItem } from "@/components/ds";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import ThemeButton from "@/components/theme/ThemeButton";
 import ProfileMenu from "./ProfileMenu";
 
 interface NavItem extends TabItem { mobile: boolean }
@@ -84,6 +85,7 @@ export default function Navbar({
           </nav>
 
           <div className="flex shrink-0 items-center gap-2.5">
+            <ThemeButton />
             {userId && <NotificationBell userId={userId} inboxHref="/dashboard/notifications" />}
             <span className="hidden text-right leading-tight sm:block">
               <span className="block text-ds-sm font-bold text-ink">{providerName}</span>
