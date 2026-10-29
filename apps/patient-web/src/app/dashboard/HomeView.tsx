@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import HeroPortrait from "./HeroPortrait";
 import {
   Bandage, CalendarClock, ChevronRight, FileText, FlaskConical, HeartHandshake, House, KeyRound, PenLine, Pill,
   Search, ShieldCheck, Star, Stethoscope, Activity, Syringe, Truck, Video, type LucideIcon,
@@ -42,19 +42,21 @@ interface Tile {
   text: string;
   icon: LucideIcon;
   tint: string;
+  /** Icon chip in dark mode: a tinted fill and a light shade of the tile's colour */
+  tone: string;
 }
 
 // Same services and routes as before, in the design's order and words.
 // physiotherapy_session is never a front door option (only a follow up), so it isn't here.
 const TILES: Tile[] = [
-  { href: "/dashboard/book/general_consultation", title: "General consultation", text: "A doctor visits to assess and advise", icon: Stethoscope, tint: "bg-tint-blue" },
-  { href: "/dashboard/book/lab-investigations", title: "Wellness and labs", text: "Tests with sample collected at home", icon: FlaskConical, tint: "bg-tint-mint" },
-  { href: "/dashboard/book/wound_care", title: "Wound care", text: "Dressings and monitoring by a nurse", icon: Bandage, tint: "bg-tint-rose" },
-  { href: "/dashboard/book/elderly_review", title: "Elderly review", text: "Regular checks for ageing parents", icon: HeartHandshake, tint: "bg-tint-amber" },
-  { href: "/dashboard/book/physiotherapy_assessment", title: "Physiotherapy", text: "Assessment and follow up sessions", icon: Activity, tint: "bg-tint-green" },
-  { href: "/dashboard/book/medication", title: "Buy medication", text: "Delivered from a partner pharmacy", icon: Pill, tint: "bg-tint-yellow" },
-  { href: "/dashboard/book/nursing_care", title: "Nursing care", text: "Procedures and care by a nurse at home", icon: Syringe, tint: "bg-tint-violet" },
-  { href: "/dashboard/book/custom", title: "Something else", text: "Describe the care you need", icon: PenLine, tint: "bg-tint-sky" },
+  { href: "/dashboard/book/general_consultation", title: "General consultation", text: "A doctor visits to assess and advise", icon: Stethoscope, tint: "bg-tint-blue", tone: "dark:bg-blue-500/15 dark:text-blue-300" },
+  { href: "/dashboard/book/lab-investigations", title: "Wellness and labs", text: "Tests with sample collected at home", icon: FlaskConical, tint: "bg-tint-mint", tone: "dark:bg-teal-500/15 dark:text-teal-300" },
+  { href: "/dashboard/book/wound_care", title: "Wound care", text: "Dressings and monitoring by a nurse", icon: Bandage, tint: "bg-tint-rose", tone: "dark:bg-rose-500/15 dark:text-rose-300" },
+  { href: "/dashboard/book/elderly_review", title: "Elderly review", text: "Regular checks for ageing parents", icon: HeartHandshake, tint: "bg-tint-amber", tone: "dark:bg-amber-500/15 dark:text-amber-300" },
+  { href: "/dashboard/book/physiotherapy_assessment", title: "Physiotherapy", text: "Assessment and follow up sessions", icon: Activity, tint: "bg-tint-green", tone: "dark:bg-green-500/15 dark:text-green-300" },
+  { href: "/dashboard/book/medication", title: "Buy medication", text: "Delivered from a partner pharmacy", icon: Pill, tint: "bg-tint-yellow", tone: "dark:bg-yellow-500/15 dark:text-yellow-300" },
+  { href: "/dashboard/book/nursing_care", title: "Nursing care", text: "Procedures and care by a nurse at home", icon: Syringe, tint: "bg-tint-violet", tone: "dark:bg-violet-500/15 dark:text-violet-300" },
+  { href: "/dashboard/book/custom", title: "Something else", text: "Describe the care you need", icon: PenLine, tint: "bg-tint-sky", tone: "dark:bg-sky-500/15 dark:text-sky-300" },
 ];
 
 const SOON = [
@@ -174,24 +176,18 @@ export default function HomeView({
 
   return (
     <div className="mx-auto max-w-3xl">
-      {/* Hero: greeting on the left, the doctor (with the brand blob behind)
-          on the right, standing on the search bar. Both PNGs share one canvas,
-          so stacking them keeps the blob exactly behind the doctor. */}
-      <div className="relative -mx-5 -mt-5 bg-gradient-to-b from-sky/70 to-transparent px-5 pt-5 md:-mt-8 md:mx-0 md:rounded-t-ds-lg md:px-6">
-        <div className="relative flex min-h-[196px] items-center sm:min-h-[240px]">
-          <div className="relative z-10 w-[70%] pb-4 sm:w-[60%]">
+      {/* Hero: greeting on the left, the doctor on the right filling the
+          hero's height (see HeroPortrait), standing on the search bar */}
+      <div className="relative -mx-5 -mt-5 bg-gradient-to-b from-sky/70 to-transparent px-5 md:-mt-8 md:mx-0 md:rounded-t-ds-lg md:px-6">
+        <div className="relative flex min-h-[172px] items-center sm:min-h-[250px]">
+          <div className="relative z-10 w-[62%] pb-2 pt-4 sm:w-[58%]">
             <p className="text-ds-md font-medium text-muted">{greeting(now)}</p>
             <h1 className="mt-1 text-[24px] font-extrabold leading-[1.18] tracking-[-0.02em] text-navy sm:text-[32px]">
               {justOnboarded ? `Welcome to StreetdocMD, ${firstName}` : `${firstName}, how are you feeling?`}
             </h1>
           </div>
-          <div aria-hidden className="pointer-events-none absolute bottom-0 right-[-18px] w-[54%] max-w-[300px] select-none sm:right-0">
-            <Image src="/splash-transparent.png" alt="" width={535} height={466} priority
-              className="absolute inset-0 h-auto w-full dark:opacity-30" />
-            <Image src="/founder-doctor-portrait-transparent.png" alt="" width={535} height={466} priority
-              className="relative h-auto w-full" />
-          </div>
         </div>
+        <HeroPortrait />
       </div>
 
       <Link href="/dashboard/search"
@@ -245,7 +241,7 @@ export default function HomeView({
       <section className="mt-[26px]">
         <SectionHead title="What do you need?" />
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {TILES.map(({ href, title, text, icon: Icon, tint }) => (
+          {TILES.map(({ href, title, text, icon: Icon, tint, tone }) => (
             <Link
               key={href}
               href={href}
@@ -255,7 +251,7 @@ export default function HomeView({
                 focusRing,
               )}
             >
-              <span className="grid h-11 w-11 place-items-center rounded-[14px] bg-white/70 text-navy">
+              <span className={cx("grid h-11 w-11 place-items-center rounded-[14px] bg-white/70 text-navy", tone)}>
                 <Icon size={22} aria-hidden />
               </span>
               <span>
@@ -308,7 +304,7 @@ export default function HomeView({
       {refill && (
         <section className="mt-[26px]">
           <div className="flex items-center gap-3 rounded-[20px] border border-warn/20 bg-warn-bg p-3.5">
-            <span className="grid h-[42px] w-[42px] flex-none place-items-center rounded-[14px] bg-white/70 text-warn">
+            <span className="grid h-[42px] w-[42px] flex-none place-items-center rounded-[14px] bg-white/70 text-warn dark:bg-amber-500/15">
               <Pill size={20} aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
