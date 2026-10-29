@@ -1,6 +1,6 @@
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { requirePortalAccess } from "@/components/portal/access";
-import TestMenuClient, { type TestRow } from "./TestMenuClient";
+import TestMenuClient, { type PlatformTest, type TestRow } from "./TestMenuClient";
 
 export const dynamic = "force-dynamic";
 
@@ -20,5 +20,12 @@ export default async function LabTestMenuPage() {
     if (error) loadError = "We couldn't load your test menu. Refresh the page, or contact support if this keeps happening.";
   }
 
-  return <TestMenuClient tests={tests} canEdit={!!access.partnerId} loadError={loadError} />;
+  const { data: platformTests } = await createAdminSupabase()
+    .from("investigation_catalogue")
+    .select("id, test_name, test_code")
+    .eq("scope", "platform")
+    .eq("active", true)
+    .order("test_name");
+
+  return <TestMenuClient tests={tests} canEdit={!!access.partnerId} loadError={loadError} platformTests={(platformTests ?? []) as PlatformTest[]} />;
 }

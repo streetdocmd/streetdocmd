@@ -4,6 +4,16 @@ import { getPortalApiAccess } from "@/components/portal/access";
 
 export const dynamic = "force-dynamic";
 
+// A lab test can be linked to one active StreetdocMD (platform) test, which is
+// how orders are matched to labs (migration 067)
+async function validPlatformTest(admin: ReturnType<typeof createAdminSupabase>, id: unknown): Promise<string | null | false> {
+  if (id == null || id === "") return null;
+  if (typeof id !== "string") return false;
+  const { data } = await admin.from("investigation_catalogue").select("id").eq("id", id).eq("scope", "platform").maybeSingle();
+  return data ? data.id : false;
+}
+
+
 // A lab adds a test to its own menu (investigation_catalogue, scope lab_partner).
 // Lab staff have no direct write access to the catalogue under RLS, so this
 // runs on the service role and always writes the caller's own lab_partner_id.
@@ -24,9 +34,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Turnaround must be a whole number of hours." }, { status: 400 });
   }
 
-  const { data, error } = await createAdminSupabase()
+  const admin = createAdminSupabase();
+  const platformTestId = await validPlatformTest(admin, body.platform_test_id);
+  if (platformTestId === false) return NextResponse.json({ error: "Choose a StreetdocMD test from the list." }, { status: 400 });
+
+  const { data, error } = await admin
     .from("investigation_catalogue")
     .insert({
+      platform_test_id: platformTestId,
       lab_partner_id: partnerId,
       scope: "lab_partner",
       test_name: testName.slice(0, 200),

@@ -1,23 +1,15 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { formatNaira } from "@/lib/shared";
+import { INVESTIGATION_STATUS } from "@/lib/investigation-status";
 
-const STATUS_LABELS: Record<string, string> = {
-  ordered:                    "Ordered",
-  confirmed:                  "Confirmed",
-  sample_collector_dispatched:"Collector Out",
-  sample_collected:           "Collected",
-  processing:                 "Processing",
-  resulted:                   "Resulted",
+// Shared investigation statuses (migration 067)
+const STATUS_LABELS: Record<string, string> = Object.fromEntries(Object.entries(INVESTIGATION_STATUS).map(([k, v]) => [k, v.label]));
+const TONE_CLASS: Record<string, string> = {
+  ok: "bg-green-100 text-green-700", warn: "bg-yellow-100 text-yellow-700", bad: "bg-red-100 text-red-700",
+  info: "bg-blue-100 text-blue-700", idle: "bg-gray-100 text-gray-600", teal: "bg-teal-100 text-teal-700",
 };
-const STATUS_COLOR: Record<string, string> = {
-  ordered:                    "bg-yellow-100 text-yellow-700",
-  confirmed:                  "bg-blue-100 text-blue-700",
-  sample_collector_dispatched:"bg-indigo-100 text-indigo-700",
-  sample_collected:           "bg-purple-100 text-purple-700",
-  processing:                 "bg-orange-100 text-orange-700",
-  resulted:                   "bg-green-100 text-green-700",
-};
+const STATUS_COLOR: Record<string, string> = Object.fromEntries(Object.entries(INVESTIGATION_STATUS).map(([k, v]) => [k, TONE_CLASS[v.tone]]));
 
 type Tab = "orders" | "partners" | "staff" | "wellness" | "catalogue";
 
@@ -39,8 +31,8 @@ export default function LabsClient({ orders, partners, staff, wellnessPackages, 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard label="Total Orders" value={stats.totalOrders.toString()} />
-        <StatCard label="Resulted" value={stats.resulted.toString()} />
-        <StatCard label="Commission Earned (15%)" value={formatNaira(stats.commission)} highlight />
+        <StatCard label="With results" value={stats.resulted.toString()} />
+        <StatCard label="Service charge earned" value={formatNaira(stats.commission)} highlight />
       </div>
 
       {/* Tabs */}

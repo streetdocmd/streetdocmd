@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { statusOf } from "@/lib/investigation-status";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -55,7 +56,9 @@ export default function Step13Recommendations({
   // Investigation inline form
   const [showInvForm, setShowInvForm] = useState(false);
   const [catalogue, setCatalogue] = useState<any[]>([]);
-  const [labPartner, setLabPartner] = useState<any>(null);
+  const [sampleTaken, setSampleTaken] = useState(false);
+  const [sampleNotes, setSampleNotes] = useState("");
+  const [invError, setInvError] = useState("");
   const [invSearch, setInvSearch] = useState("");
   const [selectedTests, setSelectedTests] = useState<any[]>([]);
   const [invNotes, setInvNotes] = useState("");
@@ -101,38 +104,15 @@ export default function Step13Recommendations({
     setPrescriptions(d ?? []);
   };
 
+  // StreetdocMD's test list (migration 067). The patient approves and pays;
+  // the best lab for their address is chosen then, not here.
   const loadCatalogue = async () => {
     if (catalogue.length > 0) return;
     setLoadingCatalogue(true);
-
-    // Proximity dispatch: find nearest active lab with home collection
-    const [{ data: booking }, { data: labs }] = await Promise.all([
-      supabase.from("bookings").select("lat, lng").eq("id", bookingId).single(),
-      supabase.from("lab_partners").select("id, name, lat, lng").eq("active", true).eq("home_collection_available", true),
-    ]);
-
-    if (!labs?.length) { setLoadingCatalogue(false); return; }
-
-    let chosenLab = labs[0];
-    if (booking?.lat != null && booking?.lng != null) {
-      let bestDist = Infinity;
-      for (const l of labs) {
-        if (l.lat == null || l.lng == null) continue;
-        const dLat = (l.lat - booking.lat) * Math.PI / 180;
-        const dLng = (l.lng - booking.lng) * Math.PI / 180;
-        const a = Math.sin(dLat / 2) ** 2 +
-          Math.cos(booking.lat * Math.PI / 180) * Math.cos(l.lat * Math.PI / 180) *
-          Math.sin(dLng / 2) ** 2;
-        const d = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        if (d < bestDist) { bestDist = d; chosenLab = l; }
-      }
-    }
-
-    setLabPartner(chosenLab);
     const { data: tests } = await supabase
       .from("investigation_catalogue")
-      .select("id, test_name, test_code, price, sample_type, turnaround_hours")
-      .eq("lab_partner_id", chosenLab.id).eq("active", true).order("test_name");
+      .select("id, test_name, test_code, price, sample_type, turnaround_hours, preparation")
+      .eq("scope", "platform").eq("active", true).order("test_name");
     setCatalogue(tests ?? []);
     setLoadingCatalogue(false);
   };
@@ -141,27 +121,38 @@ export default function Step13Recommendations({
     setSelectedTests(prev => {
       const exists = prev.find(t => t.catalogue_id === item.id);
       if (exists) return prev.filter(t => t.catalogue_id !== item.id);
-      return [...prev, { catalogue_id: item.id, test_name: item.test_name, test_code: item.test_code, price: item.price }];
+      return [...prev, { catalogue_id: item.id, test_name: item.test_name, test_code: item.test_code }];
     });
   };
 
   const saveInvestigations = async () => {
-    if (!labPartner || !selectedTests.length) return;
+    if (!selectedTests.length) return;
+    if (!invNotes.trim()) { setInvError("Add the clinical indication for these tests."); return; }
     setSavingInv(true);
-    await supabase.from("investigation_orders").insert({
-      booking_id: bookingId,
-      patient_id: patientId,
-      provider_id: providerId,
-      lab_partner_id: labPartner.id,
-      tests: selectedTests,
-      clinical_notes: invNotes.trim() || null,
-      status: "ordered",
-    });
+    setInvError("");
+    const res = await fetch("/api/investigations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookingId,
+        testIds: selectedTests.map(t => t.catalogue_id),
+        notes: invNotes.trim(),
+        collection: sampleTaken ? "doctor" : "home",
+        sampleNotes: sampleTaken ? sampleNotes.trim() : undefined,
+      }),
+    }).catch(() => null);
     setSavingInv(false);
+    if (!res?.ok) {
+      setInvError((await res?.json().catch(() => ({})))?.error ?? "Couldn't save the order. Check your connection and try again.");
+      return;
+    }
     setShowInvForm(false);
     setInvSaved(true);
     setSelectedTests([]);
     setInvSearch("");
+    setInvNotes("");
+    setSampleTaken(false);
+    setSampleNotes("");
     const { data: d } = await supabase.from("investigation_orders").select("tests, status").eq("booking_id", bookingId);
     setInvestigations(d ?? []);
   };
@@ -297,9 +288,9 @@ export default function Step13Recommendations({
               <div key={i} className="text-sm text-muted">
                 {Array.isArray(inv.tests)
                   ? inv.tests.map((t: any) => (
-                    <div key={t.test_name} className="py-0.5">• {t.test_name} <span className="text-xs text-muted">({inv.status})</span></div>
+                    <div key={t.test_name} className="py-0.5">• {t.test_name} <span className="text-xs text-muted">({statusOf(inv.status).label})</span></div>
                   ))
-                  : <div>• Investigation <span className="text-xs text-muted">({inv.status})</span></div>}
+                  : <div>• Investigation <span className="text-xs text-muted">({statusOf(inv.status).label})</span></div>}
               </div>
             ))}
           </div>
@@ -308,7 +299,7 @@ export default function Step13Recommendations({
         )}
 
         {invSaved && !showInvForm && (
-          <p className="text-xs text-green-600 font-medium">✓ Investigation order saved</p>
+          <p className="text-xs text-green-600 font-medium">✓ Sent to the patient to approve and pay. You&apos;ll be notified when results are ready to review.</p>
         )}
 
         {!showInvForm ? (
@@ -327,7 +318,7 @@ export default function Step13Recommendations({
                 {filteredCatalogue.length === 0 && invSearch ? (
                   <p className="text-xs text-muted text-center py-3">No tests found</p>
                 ) : filteredCatalogue.length === 0 ? (
-                  <p className="text-xs text-muted text-center py-3">No lab partner configured yet</p>
+                  <p className="text-xs text-muted text-center py-3">No tests are available yet</p>
                 ) : filteredCatalogue.map(item => {
                   const selected = !!selectedTests.find(t => t.catalogue_id === item.id);
                   return (
@@ -337,9 +328,8 @@ export default function Step13Recommendations({
                       }`}>
                       <div>
                         <p className={`text-sm font-medium ${selected ? "text-teal-700" : "text-ink"}`}>{item.test_name}</p>
-                        <p className="text-xs text-muted">{item.sample_type} · {item.turnaround_hours}h TAT</p>
+                        <p className="text-xs text-muted">{[item.sample_type, item.turnaround_hours ? `${item.turnaround_hours}h` : null].filter(Boolean).join(" · ")}</p>
                       </div>
-                      <span className="text-xs font-semibold text-muted ml-2 shrink-0">₦{item.price?.toLocaleString()}</span>
                     </button>
                   );
                 })}
@@ -357,10 +347,21 @@ export default function Step13Recommendations({
                 className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none" />
             </div>
 
+            <label className="flex items-start gap-2 text-sm text-ink">
+              <input type="checkbox" className="mt-1" checked={sampleTaken} onChange={e => setSampleTaken(e.target.checked)} />
+              <span>I took the sample during this visit<small className="block text-xs text-muted">The lab collects it from you; the patient isn&apos;t charged a collection fee.</small></span>
+            </label>
+            {sampleTaken && (
+              <input className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                placeholder="Sample details, e.g. 2 EDTA tubes, labelled" value={sampleNotes} onChange={e => setSampleNotes(e.target.value)} />
+            )}
+            <p className="text-xs text-muted">The patient sees the price from the best lab near them, then approves and pays. Explain why you&apos;re requesting the tests before you leave.</p>
+            {invError && <p role="alert" className="text-xs font-semibold text-danger">{invError}</p>}
+
             <div className="flex gap-2">
               <button onClick={saveInvestigations} disabled={savingInv || !selectedTests.length}
                 className="flex-1 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 disabled:opacity-40 transition-colors">
-                {savingInv ? "Saving…" : "Save Order"}
+                {savingInv ? "Saving…" : "Send to patient"}
               </button>
               <button onClick={() => { setShowInvForm(false); setSelectedTests([]); setInvSearch(""); }}
                 className="flex-1 py-2.5 border border-line text-muted rounded-xl text-sm font-medium hover:bg-page">

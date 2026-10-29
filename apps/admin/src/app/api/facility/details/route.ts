@@ -30,6 +30,18 @@ export async function PATCH(req: NextRequest) {
     patch.delivery_eta_minutes = eta;
   }
 
+  if (type === "lab") {
+    // Matching (migration 067): labs outside their radius, or not collecting at
+    // home, aren't offered home collection orders. The fee is shown to patients.
+    const fee = Number(body.home_collection_fee ?? 0);
+    const radius = Number(body.service_radius_km ?? 25);
+    if (!Number.isFinite(fee) || fee < 0 || fee > 100000) return NextResponse.json({ error: "Enter a valid collection fee." }, { status: 400 });
+    if (!Number.isFinite(radius) || radius < 1 || radius > 200) return NextResponse.json({ error: "Service area must be between 1 and 200 km." }, { status: 400 });
+    patch.home_collection_available = body.home_collection_available !== false;
+    patch.home_collection_fee = Math.round(fee);
+    patch.service_radius_km = Math.round(radius);
+  }
+
   if (type === "hospital") {
     const list: unknown[] = Array.isArray(body.services) ? body.services : [];
     patch.services = Array.from(new Set(

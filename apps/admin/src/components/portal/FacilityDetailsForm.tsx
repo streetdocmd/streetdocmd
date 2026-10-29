@@ -9,13 +9,19 @@ import type { PortalType } from "./config";
 // The patient-facing details a facility keeps current itself
 export default function FacilityDetailsForm({ type, initial }: {
   type: PortalType;
-  initial: { opening_hours: string | null; delivery_eta_minutes: number | null; services: string[] };
+  initial: {
+    opening_hours: string | null; delivery_eta_minutes: number | null; services: string[];
+    home_collection_available?: boolean; home_collection_fee?: number | null; service_radius_km?: number | null;
+  };
 }) {
   const router = useRouter();
   const [hours, setHours] = useState(initial.opening_hours ?? "");
   const [eta, setEta] = useState(initial.delivery_eta_minutes ? String(initial.delivery_eta_minutes) : "");
   const [services, setServices] = useState<string[]>(initial.services);
   const [draft, setDraft] = useState("");
+  const [homeCollection, setHomeCollection] = useState(initial.home_collection_available !== false);
+  const [fee, setFee] = useState(String(initial.home_collection_fee ?? 0));
+  const [radius, setRadius] = useState(String(initial.service_radius_km ?? 25));
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -32,7 +38,10 @@ export default function FacilityDetailsForm({ type, initial }: {
     const res = await fetch("/api/facility/details", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type, opening_hours: hours, delivery_eta_minutes: eta, services }),
+      body: JSON.stringify({
+        type, opening_hours: hours, delivery_eta_minutes: eta, services,
+        home_collection_available: homeCollection, home_collection_fee: fee, service_radius_km: radius,
+      }),
     });
     setSaving(false);
     if (!res.ok) {
@@ -60,6 +69,30 @@ export default function FacilityDetailsForm({ type, initial }: {
           </div>
         )}
       </div>
+
+      {type === "lab" && (
+        <div className="space-y-4 rounded-ds border border-line p-4">
+          <label className="flex items-center justify-between gap-4">
+            <span>
+              <b className="block text-ds-sm text-ink">Home sample collection</b>
+              <small className="text-ds-xs text-muted">Your collectors visit patients at home</small>
+            </span>
+            <input type="checkbox" className={ui.checkbox} checked={homeCollection} onChange={e => setHomeCollection(e.target.checked)} />
+          </label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="fd-fee" className={ui.label}>Home collection fee (₦)</label>
+              <input id="fd-fee" className={ui.input} inputMode="numeric" value={fee} onChange={e => setFee(e.target.value.replace(/\D/g, ""))} />
+              <p className={ui.hint}>Added to each home collection order. Not charged when a StreetdocMD doctor took the sample.</p>
+            </div>
+            <div>
+              <label htmlFor="fd-radius" className={ui.label}>Service area (km from your lab)</label>
+              <input id="fd-radius" className={ui.input} inputMode="numeric" value={radius} onChange={e => setRadius(e.target.value.replace(/\D/g, ""))} />
+              <p className={ui.hint}>You&apos;re only sent orders within this distance.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {type === "hospital" && (
         <div>

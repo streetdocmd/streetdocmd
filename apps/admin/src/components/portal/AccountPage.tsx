@@ -104,6 +104,9 @@ export default async function AccountPage({ type }: { type: PortalType }) {
                 opening_hours: p.opening_hours ?? null,
                 delivery_eta_minutes: p.delivery_eta_minutes ?? null,
                 services: Array.isArray(p.services) ? p.services : [],
+                home_collection_available: p.home_collection_available ?? true,
+                home_collection_fee: p.home_collection_fee ?? 0,
+                service_radius_km: p.service_radius_km ?? 25,
               }}
             />
           </div>

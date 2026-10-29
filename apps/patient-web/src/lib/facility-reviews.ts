@@ -7,21 +7,22 @@ export const RATEABLE: Record<FacilityType, {
   table: string;
   facilityKey: string;
   partner: string;
-  doneStatus: string;
+  /** Statuses in which the order can be rated */
+  doneStatus: string[];
   noun: string;
   question: string;
 }> = {
   pharmacy: {
     table: "prescription_orders", facilityKey: "pharmacy_partner_id", partner: "pharmacy_partners",
-    doneStatus: "delivered", noun: "pharmacy", question: "How was your medicine order from",
+    doneStatus: ["delivered"], noun: "pharmacy", question: "How was your medicine order from",
   },
   lab: {
     table: "investigation_orders", facilityKey: "lab_partner_id", partner: "lab_partners",
-    doneStatus: "resulted", noun: "lab", question: "How were your tests with",
+    doneStatus: ["results_uploaded", "doctor_review_pending", "reviewed", "follow_up_required", "completed"], noun: "lab", question: "How were your tests with",
   },
   hospital: {
     table: "hospital_referrals", facilityKey: "hospital_partner_id", partner: "hospital_partners",
-    doneStatus: "completed", noun: "hospital", question: "How was your care at",
+    doneStatus: ["completed"], noun: "hospital", question: "How was your care at",
   },
 };
 
@@ -51,6 +52,6 @@ export async function loadRateableOrder(admin: SupabaseClient, type: FacilityTyp
   return {
     facilityId: row[cfg.facilityKey] as string,
     facilityName: (row[cfg.partner]?.name as string | undefined) ?? `the ${cfg.noun}`,
-    done: row.status === cfg.doneStatus,
+    done: cfg.doneStatus.includes(row.status),
   };
 }

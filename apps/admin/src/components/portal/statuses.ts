@@ -1,15 +1,25 @@
 import type { BadgeTone } from "./ui";
+import { INVESTIGATION_STATUS, type StatusTone } from "@/lib/investigation-status";
 
-export const LAB_STATUS: Record<string, { label: string; tone: BadgeTone }> = {
-  ordered:                     { label: "New order",            tone: "amber" },
-  confirmed:                   { label: "Confirmed",            tone: "blue" },
-  sample_collector_dispatched: { label: "Collector dispatched", tone: "indigo" },
-  sample_collected:            { label: "Sample collected",     tone: "purple" },
-  processing:                  { label: "Processing",           tone: "navy" },
-  resulted:                    { label: "Resulted",             tone: "green" },
+// Lab orders use the shared investigation statuses (migration 067)
+const TONE: Record<StatusTone, BadgeTone> = { ok: "green", warn: "amber", bad: "red", info: "blue", idle: "gray", teal: "navy" };
+export const LAB_STATUS: Record<string, { label: string; tone: BadgeTone }> = Object.fromEntries(
+  Object.entries(INVESTIGATION_STATUS).map(([k, v]) => [k, { label: v.label, tone: TONE[v.tone] }]),
+);
+// Labs read these from their own point of view
+LAB_STATUS.lab_requested = { label: "New request", tone: "amber" };
+LAB_STATUS.lab_accepted = { label: "Accepted", tone: "blue" };
+LAB_STATUS.results_uploaded = { label: "Results sent", tone: "green" };
+LAB_STATUS.doctor_review_pending = { label: "Results sent", tone: "green" };
+
+/** The lab's next step from each status, and the status it leads to */
+export const LAB_NEXT: Record<string, { to: string; action: string; needs?: "schedule" | "collection" }> = {
+  lab_accepted: { to: "collection_scheduled", action: "Book the collection", needs: "schedule" },
+  collection_scheduled: { to: "sample_collected", action: "Record the collection", needs: "collection" },
+  sample_collected: { to: "received_at_lab", action: "Mark received at the lab" },
+  in_transit: { to: "received_at_lab", action: "Mark received at the lab" },
+  received_at_lab: { to: "analysis_in_progress", action: "Start analysis" },
 };
-
-export const LAB_FLOW = ["ordered", "confirmed", "sample_collector_dispatched", "sample_collected", "processing", "resulted"];
 
 export const PHARMACY_STATUS: Record<string, { label: string; tone: BadgeTone }> = {
   sent:            { label: "New order",        tone: "amber" },

@@ -4,6 +4,16 @@ import { getPortalApiAccess } from "@/components/portal/access";
 
 export const dynamic = "force-dynamic";
 
+// A lab test can be linked to one active StreetdocMD (platform) test, which is
+// how orders are matched to labs (migration 067)
+async function validPlatformTest(admin: ReturnType<typeof createAdminSupabase>, id: unknown): Promise<string | null | false> {
+  if (id == null || id === "") return null;
+  if (typeof id !== "string") return false;
+  const { data } = await admin.from("investigation_catalogue").select("id").eq("id", id).eq("scope", "platform").maybeSingle();
+  return data ? data.id : false;
+}
+
+
 // Update a test on the caller's own menu. A price change is dated (price_updated_at).
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await getPortalApiAccess("lab");
@@ -27,6 +37,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
   if ("sample_type" in body) patch.sample_type = String(body.sample_type ?? "").trim() || null;
   if ("test_code" in body) patch.test_code = String(body.test_code ?? "").trim() || null;
+  if ("platform_test_id" in body) {
+    const platformTestId = await validPlatformTest(createAdminSupabase(), body.platform_test_id);
+    if (platformTestId === false) return NextResponse.json({ error: "Choose a StreetdocMD test from the list." }, { status: 400 });
+    patch.platform_test_id = platformTestId;
+  }
   if ("preparation" in body) patch.preparation = String(body.preparation ?? "").trim().slice(0, 500) || null;
   if ("turnaround_hours" in body) {
     const t = body.turnaround_hours === "" || body.turnaround_hours == null ? null : Number(body.turnaround_hours);

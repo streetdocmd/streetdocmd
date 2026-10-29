@@ -3,17 +3,7 @@ import { createServerSupabase } from "@/lib/supabase-server";
 import { formatNaira } from "@/lib/shared";
 import { Clock, FlaskConical, HeartPulse, Lock } from "lucide-react";
 import { Card, Pill, TopBar, cx, focusRing } from "@/components/ds";
-
-const STATUS_LABELS: Record<string, string> = {
-  ordered: "Order Placed",
-  confirmed: "Confirmed by Lab",
-  sample_collector_dispatched: "Sample Collector En Route",
-  sample_collected: "Sample Collected",
-  processing: "Processing",
-  resulted: "Results Ready",
-};
-
-const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+import { statusOf } from "@/lib/investigation-status";
 
 export default async function LabInvestigationsPage() {
   const supabase = await createServerSupabase();
@@ -24,7 +14,6 @@ export default async function LabInvestigationsPage() {
     .from("investigation_orders")
     .select("id, status, ordered_at, tests, lab_partners(name)")
     .eq("patient_id", user.id)
-    .eq("requested_by", "patient")
     .order("ordered_at", { ascending: false })
     .limit(10);
 
@@ -78,17 +67,17 @@ export default async function LabInvestigationsPage() {
             {pastOrders.map((o: any) => (
               <Link
                 key={o.id}
-                href={`/dashboard/book/lab-investigations/tracking/${o.id}`}
+                href={`/dashboard/investigations/${o.id}`}
                 className={cx("flex items-center gap-3 border-b border-line py-3.5 last:border-b-0", focusRing)}
               >
                 <span className="min-w-0 flex-1">
                   <b className="block truncate text-ds-sm text-ink">{(o.tests as any[])?.map(t => t.test_name).join(", ")}</b>
                   <small className="block text-ds-xs text-muted">
-                    {o.lab_partners?.name} · {new Date(o.ordered_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                    {o.lab_partners?.name ? `${o.lab_partners.name} · ` : ""}{new Date(o.ordered_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
                   </small>
                 </span>
-                <Pill tone={o.status === "resulted" ? "ok" : "info"} icon={o.status === "resulted" ? undefined : Clock}>
-                  {sentence(STATUS_LABELS[o.status] ?? o.status)}
+                <Pill tone={statusOf(o.status).tone} icon={statusOf(o.status).tone === "info" ? Clock : undefined}>
+                  {statusOf(o.status).label}
                 </Pill>
               </Link>
             ))}

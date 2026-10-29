@@ -41,6 +41,8 @@ export async function POST(req: NextRequest) {
 
     if (metadata?.type === "prescription_order" && metadata.order_id) {
       await confirmPrescriptionOrder(admin, String(metadata.order_id), paidNaira);
+    } else if (metadata?.type === "investigation_order" && metadata.order_id) {
+      await confirmInvestigationOrder(admin, String(metadata.order_id), paidNaira, String((event.data as any).reference ?? ""));
     } else if (metadata?.booking_id) {
       await confirmBooking(admin, String(metadata.booking_id), paidNaira);
     } else {
@@ -120,5 +122,19 @@ async function confirmPrescriptionOrder(admin: ReturnType<typeof createAdminSupa
 
   if (updateError) {
     console.error(`[payments/webhook] failed to confirm prescription order ${orderId}`, updateError);
+  }
+}
+
+// Lab tests (migration 067). investigation_confirm_payment() is idempotent:
+// a repeated webhook for a paid order does nothing, and only an amount equal
+// to the order total confirms it. It then asks the lab chosen at checkout.
+async function confirmInvestigationOrder(admin: ReturnType<typeof createAdminSupabase>, orderId: string, paidNaira: number, reference: string) {
+  const { data, error } = await admin.rpc("investigation_confirm_payment", {
+    p_order: orderId, p_amount: paidNaira, p_reference: reference,
+  });
+  if (error) {
+    console.error(`[payments/webhook] failed to confirm investigation order ${orderId}`, error);
+  } else if (data !== "ok" && data !== "already_paid") {
+    console.warn(`[payments/webhook] investigation order ${orderId} not confirmed: ${data}`);
   }
 }

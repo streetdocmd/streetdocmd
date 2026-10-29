@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { statusOf } from "@/lib/investigation-status";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import {
@@ -246,7 +247,9 @@ function FollowUpContextSection({ followUp, lastEncounter, diagnoses, labs }: an
             <ul className="text-sm text-ink space-y-0.5">
               {labs.map((l: any) => (
                 <li key={l.id}>
-                  {(l.tests as any[])?.map((t: any) => t.test_name).join(", ") || "Investigation"} — {l.status}
+                  <a href={`/dashboard/investigations/${l.id}`} className="font-medium text-accent hover:underline">
+                    {(l.tests as any[])?.map((t: any) => t.test_name).join(", ") || "Investigation"}
+                  </a> · {statusOf(l.status).label}
                   {l.resulted_at && ` (resulted ${new Date(l.resulted_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" })})`}
                 </li>
               ))}

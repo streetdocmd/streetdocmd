@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { redirect } from "next/navigation";
+import { RESULT_STATUSES, statusOf } from "@/lib/investigation-status";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS } from "@/lib/shared";
 import CareJourneyClient, { type JourneyStep } from "./CareJourneyClient";
@@ -20,15 +21,6 @@ function addDays(iso: string, days: number): string {
   d.setDate(d.getDate() + days);
   return d.toISOString();
 }
-
-const INV_STATUS_LABELS: Record<string, string> = {
-  ordered:                    "Order received",
-  confirmed:                  "Confirmed by lab",
-  sample_collector_dispatched:"Sample collector on the way",
-  sample_collected:           "Sample collected",
-  processing:                 "Processing in lab",
-  resulted:                   "Results ready",
-};
 
 const FLAG_LABELS: Record<string, string> = {
   normal:   "Normal",
@@ -116,8 +108,8 @@ function buildSteps(booking: any, prescriptionOrder: any, referrals: any[]): Jou
   // 5-7 ─ Investigation steps (only if an order exists)
   if (invOrder) {
     const invStatus = invOrder.status as string;
-    const afterSample = ["sample_collected","processing","resulted"].includes(invStatus);
-    const isResulted  = invStatus === "resulted" || !!invOrder.resulted_at;
+    const afterSample = ["sample_collected","in_transit","received_at_lab","analysis_in_progress",...RESULT_STATUSES].includes(invStatus);
+    const isResulted  = (RESULT_STATUSES as string[]).includes(invStatus) || !!invOrder.resulted_at;
 
     // 5 ─ Investigations Ordered
     const tests = (invOrder.tests as any[]) ?? [];
@@ -129,7 +121,7 @@ function buildSteps(booking: any, prescriptionOrder: any, referrals: any[]): Jou
       status: "complete",
       details: [
         { label: "Tests",  value: tests.map((t: any) => t.test_name).join(" · ") || "—" },
-        { label: "Status", value: INV_STATUS_LABELS[invStatus] ?? invStatus },
+        { label: "Status", value: statusOf(invStatus).label },
         invOrder.clinical_notes ? { label: "Clinical Indication", value: invOrder.clinical_notes } : null,
       ].filter(Boolean) as JourneyStep["details"],
     });

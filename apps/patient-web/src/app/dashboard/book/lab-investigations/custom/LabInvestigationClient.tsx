@@ -72,12 +72,14 @@ export default function LabInvestigationClient({
     setError("");
 
     try {
-      const res = await fetch("/api/lab-investigations/order", {
+      // Starts the order; its page takes the address and time, prices it
+      // with the best lab and takes payment (migration 067)
+      const res = await fetch("/api/investigations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          catalogueIds: selected.map(t => t.catalogue_id),
-          clinicalNotes: notes.trim() || null,
+          testIds: selected.map(t => t.catalogue_id),
+          notes: notes.trim() || null,
         }),
       });
       const json = await res.json();
@@ -86,7 +88,7 @@ export default function LabInvestigationClient({
         setSubmitting(false);
         return;
       }
-      router.push(`/dashboard/book/lab-investigations/tracking/${json.order_id}`);
+      router.push(`/dashboard/investigations/${json.order_id}`);
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
       setSubmitting(false);

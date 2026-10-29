@@ -2,6 +2,8 @@ export const dynamic = "force-dynamic";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { withStaffEmails } from "@/lib/auth-emails";
 import LabsClient from "./LabsClient";
+import ExceptionsQueue from "./ExceptionsQueue";
+import { RESULT_STATUSES } from "@/lib/investigation-status";
 
 export default async function LabsPage() {
   const admin = createAdminSupabase();
@@ -10,7 +12,7 @@ export default async function LabsPage() {
     admin
       .from("investigation_orders")
       .select(`
-        id, status, ordered_at, resulted_at, tests,
+        id, status, ordered_at, resulted_at, tests, payment_status, amount_paid, lab_price_total, collection_fee,
         users!patient_id(name),
         providers(name),
         lab_partners(name)
@@ -36,17 +38,24 @@ export default async function LabsPage() {
       .order("test_name"),
   ]);
 
-  // Revenue report: 15% commission on all resulted orders
-  const resultedOrders = (orders ?? []).filter(o => o.status === "resulted");
-  const totalRevenue = resultedOrders.reduce((sum, o) => {
-    const testTotal = (o.tests as any[])?.reduce((s: number, t: any) => s + (t.price ?? 0), 0) ?? 0;
-    return sum + testTotal;
-  }, 0);
-  const commission = totalRevenue * 0.15;
+  // Revenue: StreetdocMD's service charge on paid orders, plus what's kept
+  // when a fallback lab fulfils for less than the patient paid (migration 067)
+  const resultedOrders = (orders ?? []).filter(o => (RESULT_STATUSES as string[]).includes(o.status));
+  const commission = (orders ?? []).filter((o: any) => o.payment_status === "paid").reduce((sum, o: any) =>
+    sum + Number(o.amount_paid ?? 0) - Number(o.lab_price_total ?? 0) - Number(o.collection_fee ?? 0), 0);
+
+  // Operations queue: orders no lab could take
+  const { data: exceptions } = await admin
+    .from("investigation_orders")
+    .select("id, exception_reason, updated_at, amount_paid, lab_attempts, collection_address, tests, users!patient_id(name, phone)")
+    .eq("status", "exception")
+    .order("updated_at", { ascending: true });
 
   const staffWithEmails = await withStaffEmails(admin, (staffRows ?? []) as { user_id: string; users: unknown }[]);
 
   return (
+    <div className="space-y-8">
+    <ExceptionsQueue orders={(exceptions ?? []) as any} />
     <LabsClient
       orders={(orders ?? []) as any}
       partners={(partners ?? []) as any}
@@ -55,5 +64,6 @@ export default async function LabsPage() {
       catalogue={(catalogue ?? []) as any}
       stats={{ totalOrders: (orders ?? []).length, resulted: resultedOrders.length, commission }}
     />
+    </div>
   );
 }

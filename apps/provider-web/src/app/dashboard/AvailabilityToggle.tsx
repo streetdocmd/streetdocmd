@@ -78,6 +78,8 @@ export default function AvailabilityToggle({
 
     setAvailable(next);
     setLoading(false);
+    // The request feed's Live label follows this at once (RealtimeDispatch)
+    window.dispatchEvent(new CustomEvent("sdmd-availability", { detail: next }));
     router.refresh();
   }
 

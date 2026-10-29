@@ -7,6 +7,7 @@ import { CARE_EPISODE_STATUS_LABELS, PROFESSION_LABELS, CARE_TASK_TYPE_LABELS, F
 import type { Profession, ServiceType } from "@/lib/shared";
 import ContinueCareButton from "./ContinueCareButton";
 import { refillItems, REFILL_SOON_DAYS } from "@/lib/refills";
+import { RESULT_STATUSES, statusOf } from "@/lib/investigation-status";
 
 // A follow-up books via the same profession-based service types every
 // other visit does — see the matching map in api/bookings/route.ts.
@@ -23,15 +24,6 @@ const STEP_LABELS: Record<string, string> = {
   monitoring: "Monitoring",
   follow_up_due: "Follow up",
   resolved: "Recovery",
-};
-
-const RESULT_LABELS: Record<string, [string, PillTone]> = {
-  ordered: ["Ordered", "idle"],
-  confirmed: ["Confirmed", "idle"],
-  sample_collector_dispatched: ["Collector on the way", "info"],
-  sample_collected: ["Sample collected", "info"],
-  processing: ["Processing", "idle"],
-  resulted: ["Ready", "ok"],
 };
 
 const ORDER_LABELS: Record<string, [string, PillTone]> = {
@@ -121,7 +113,7 @@ export default async function MyCarePage() {
   const toRate = [
     ...((medOrders ?? []) as any[]).filter(o => o.status === "delivered")
       .map(o => ({ type: "pharmacy", id: o.id, title: o.pharmacy_partners?.name ?? "Pharmacy", sub: `Medicine order · ${day(o.created_at)}` })),
-    ...((labOrders ?? []) as any[]).filter(o => o.status === "resulted")
+    ...((labOrders ?? []) as any[]).filter(o => (RESULT_STATUSES as string[]).includes(o.status))
       .map(o => ({ type: "lab", id: o.id, title: o.lab_partners?.name ?? "Lab", sub: `Lab tests · ${day(o.ordered_at)}` })),
     ...((doneReferrals ?? []) as any[])
       .map(r => ({ type: "hospital", id: r.id, title: r.hospital_partners?.name ?? "Hospital", sub: `Referral · ${day(r.referred_at)}` })),
@@ -328,9 +320,9 @@ export default async function MyCarePage() {
         {(labOrders ?? []).length > 0 ? (
           <Card padded={false} className="px-4 py-1">
             {(labOrders as any[]).map(o => {
-              const [label, tone] = RESULT_LABELS[o.status] ?? [o.status, "idle" as PillTone];
+              const { label, tone } = statusOf(o.status);
               return (
-                <Row key={o.id} href={`/dashboard/book/lab-investigations/tracking/${o.id}`}
+                <Row key={o.id} href={`/dashboard/investigations/${o.id}`}
                   title={(o.tests as any[])?.map(t => t.test_name).join(", ") || "Lab tests"}
                   sub={[o.lab_partners?.name, day(o.ordered_at)].filter(Boolean).join(" · ")}
                   pill={<Pill tone={tone}>{label}</Pill>} />

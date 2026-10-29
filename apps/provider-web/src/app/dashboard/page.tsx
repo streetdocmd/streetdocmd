@@ -103,6 +103,17 @@ export default async function DashboardPage({
     loadOpenOffers(admin, provider),
   ]);
 
+  // Lab results waiting for this doctor's review (migration 067)
+  const { data: reviewRows } = await admin
+    .from("investigation_orders")
+    .select("id, tests, has_critical, users!patient_id(name)")
+    .eq("provider_id", provider.id)
+    .eq("status", "doctor_review_pending")
+    .order("has_critical", { ascending: false })
+    .order("resulted_at", { ascending: true })
+    .limit(10);
+  const toReview = reviewRows ?? [];
+
   // KPIs
   const completed = (recentCompleted ?? []) as { net_payout: number; completed_at: string }[];
   const weekStart = (() => { const d = new Date(now); const dow = (d.getDay() + 6) % 7; d.setHours(0, 0, 0, 0); return new Date(d.getTime() - dow * DAY_MS); })();
@@ -230,7 +241,7 @@ export default async function DashboardPage({
       {provider.available && <LocationBroadcaster providerId={provider.id} />}
 
       <div className="mt-3.5">
-        <div className="mb-2 flex items-center justify-end"><RealtimeDispatch providerId={provider.id} /></div>
+        <div className="mb-2 flex items-center justify-end"><RealtimeDispatch providerId={provider.id} available={!!provider.available} /></div>
         {requests.length > 0 ? (
           <div className="space-y-3">{requests.map((r: any) => <DispatchCard key={r.id} request={r} />)}</div>
         ) : (
@@ -337,6 +348,24 @@ export default async function DashboardPage({
             ))}
           </ul>
         </Card>
+      )}
+
+      {toReview.length > 0 && (
+        <section className="mt-[26px]">
+          <h2 className="mb-3 text-[17px] font-bold text-navy">Results to review</h2>
+          <Card padded={false} className="px-4 py-1">
+            {toReview.map((o: any) => (
+              <Link key={o.id} href={`/dashboard/investigations/${o.id}`}
+                className={cx("flex items-center gap-3 border-b border-line py-3.5 last:border-b-0", focusRing)}>
+                <span className="min-w-0 flex-1">
+                  <b className="block truncate text-ds-sm text-ink">{(o.tests as any[])?.map((t: any) => t.test_name).join(", ")}</b>
+                  <small className="text-ds-xs text-muted">{(o.users?.name ?? "Patient").split(" ")[0]}</small>
+                </span>
+                {o.has_critical ? <Pill tone="bad">Critical</Pill> : <Pill tone="warn" icon={null}>Review</Pill>}
+              </Link>
+            ))}
+          </Card>
+        </section>
       )}
 
       {provider.referral_code && <div className="mt-[26px]"><ReferralCodeCard code={provider.referral_code} /></div>}
