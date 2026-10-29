@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ArrowRight, CalendarDays, CheckCircle2, Circle, Clock, Check, Inbox, MessageSquareHeart, Stethoscope, UserPlus, Users, Wallet,
+  ArrowRight, CalendarDays, CheckCircle2, Circle, Clock, Check, Inbox, Stethoscope, UserPlus, Users, Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
@@ -92,7 +92,7 @@ export default async function DashboardPage({
       .gte("updated_at", new Date(now.getTime() - 2 * DAY_MS).toISOString())
       .order("scheduled_at", { ascending: true, nullsFirst: true })
       .limit(20),
-    supabase.from("reviews").select("id", { count: "exact", head: true }).eq("provider_id", provider.id),
+    supabase.from("reviews").select("id", { count: "exact", head: true }).eq("provider_id", provider.id).eq("hidden", false),
     // Acceptance rate over the last 30 days of offers
     admin
       .from("dispatch_queue")
@@ -343,7 +343,6 @@ export default async function DashboardPage({
 
       <section className="mt-[26px] space-y-3">
         <h2 className="text-[17px] font-bold text-navy">Coming soon</h2>
-        <ComingSoonItem icon={MessageSquareHeart} title="Reply to reviews" description="Read what patients say after each visit and reply to feedback." />
         <ComingSoonItem icon={UserPlus} title="Refer a colleague" description="Invite licensed colleagues to join the StreetdocMD provider network." />
       </section>
     </div>

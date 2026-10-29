@@ -7,10 +7,14 @@ import { Button, Card, Notice, cx, fieldLabelClass, focusRing, inputClass } from
 
 const LABELS = ["", "Poor", "Fair", "Good", "Very good", "Excellent"];
 
-export default function RateForm({ bookingId, providerId, patientId, inline = false }: {
-  bookingId: string;
-  providerId: string;
-  patientId: string;
+export default function RateForm({ bookingId = "", providerId = "", patientId = "", facility, doneHref = "/dashboard/bookings", inline = false }: {
+  bookingId?: string;
+  providerId?: string;
+  patientId?: string;
+  /** Rate a pharmacy order, lab order or hospital referral instead of a visit */
+  facility?: { type: "pharmacy" | "lab" | "hospital"; orderId: string };
+  /** Where "Skip" and a saved rating go */
+  doneHref?: string;
   /** Inside the visit record: stay on the page and refresh it after saving */
   inline?: boolean;
 }) {
@@ -25,17 +29,27 @@ export default function RateForm({ bookingId, providerId, patientId, inline = fa
     e.preventDefault();
     if (rating === 0) { setError("Please select a star rating."); return; }
     setSubmitting(true);
-    const supabase = createClient();
-    const { error: err } = await supabase.from("reviews").insert({
-      booking_id: bookingId,
-      provider_id: providerId,
-      patient_id: patientId,
-      rating,
-      comment: comment.trim() || null,
-    });
+    let failed: string | null = null;
+    if (facility) {
+      const res = await fetch("/api/reviews/facility", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: facility.type, order_id: facility.orderId, rating, comment }),
+      });
+      if (!res.ok) failed = (await res.json().catch(() => ({}))).error ?? "Could not submit rating. Please try again.";
+    } else {
+      const { error: err } = await createClient().from("reviews").insert({
+        booking_id: bookingId,
+        provider_id: providerId,
+        patient_id: patientId,
+        rating,
+        comment: comment.trim() || null,
+      });
+      if (err) failed = "Could not submit rating. Please try again.";
+    }
     setSubmitting(false);
-    if (err) { setError("Could not submit rating. Please try again."); return; }
-    if (!inline) router.push("/dashboard/bookings");
+    if (failed) { setError(failed); return; }
+    if (!inline) router.push(doneHref);
     router.refresh();
   }
 
@@ -63,7 +77,7 @@ export default function RateForm({ bookingId, providerId, patientId, inline = fa
             ))}
           </div>
           <p className="mt-2 text-ds-sm text-muted">
-            {display > 0 ? LABELS[display] : "Tap a star to rate your visit."}
+            {display > 0 ? LABELS[display] : `Tap a star to rate ${facility ? "it" : "your visit"}.`}
           </p>
         </div>
 
@@ -90,7 +104,7 @@ export default function RateForm({ bookingId, providerId, patientId, inline = fa
               {submitting ? "Submitting…" : "Submit rating"}
             </Button>
             {!inline && (
-              <Button variant="secondary" onClick={() => router.push("/dashboard/bookings")}>Skip for now</Button>
+              <Button variant="secondary" onClick={() => router.push(doneHref)}>Skip for now</Button>
             )}
           </div>
         )}

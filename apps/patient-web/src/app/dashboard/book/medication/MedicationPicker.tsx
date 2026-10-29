@@ -5,6 +5,7 @@ import { Search, ShoppingCart } from "lucide-react";
 import { Avatar, Button, Card, Notice, Pill, Stepper, VerifiedBadge, cx, focusRing } from "@/components/ds";
 import { formatNaira } from "@/lib/shared";
 import LocationPicker from "@/components/LocationPicker";
+import { ratingSummary } from "@/lib/facility-reviews";
 
 interface CatalogueItem {
   id: string;
@@ -21,6 +22,8 @@ interface PharmacyInfo {
   name: string;
   opening_hours: string | null;
   delivery_eta_minutes: number | null;
+  rating?: number | null;
+  review_count?: number;
 }
 
 // preselect: medicine names from a visit record ("Send to a pharmacy"); matching
@@ -137,6 +140,7 @@ export default function MedicationPicker({ preselect = [] }: { preselect?: strin
           <Card padded={false} className="px-5 py-1">
             <dl>
               {[
+                ["Rating", ratingSummary(pharmacy)],
                 ["Hours", pharmacy?.opening_hours],
                 ["Delivery", pharmacy?.delivery_eta_minutes ? `Delivery in about ${pharmacy.delivery_eta_minutes} min` : null],
                 ["Regulator", "PCN"],

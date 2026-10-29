@@ -8,7 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard, ClipboardList, CalendarDays, Stethoscope, Building, Users,
   Wallet, ShieldAlert, FileText, FilePenLine, ListTree, FlaskConical, Pill,
-  Hospital, Settings, ExternalLink, X, UserCog, ScrollText, ChartColumn,
+  Hospital, Settings, ExternalLink, X, UserCog, ScrollText, ChartColumn, Star,
 } from "lucide-react";
 import { useSidebar } from "@/components/ui/SidebarContext";
 import ComingSoonBadge from "@/components/ComingSoonBadge";
@@ -66,6 +66,7 @@ const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/dashboard/finance",      label: "Finance",      icon: Wallet },
       { href: "/dashboard/safeguarding", label: "Safeguarding", icon: ShieldAlert },
+      { href: "/dashboard/reviews",      label: "Reviews",      icon: Star },
     ],
   },
   {

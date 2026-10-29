@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Check, Lock, TriangleAlert, X } from "lucide-react";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { Avatar, Card, EmergencyNotice, Pill, TopBar, VerifiedBadge } from "@/components/ds";
+import { ratingSummary } from "@/lib/facility-reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ export default async function HospitalProfilePage({ params }: { params: { id: st
 
       <Card padded={false} className="mt-[18px] px-5 py-1">
         <dl>
-          {[["Hours", (h as any).opening_hours], ["Phone", h.phone], ["Emergency", h.emergency_available ? "Emergency care available" : null]]
+          {[["Rating", ratingSummary(h as any)], ["Hours", (h as any).opening_hours], ["Phone", h.phone], ["Emergency", h.emergency_available ? "Emergency care available" : null]]
             .filter(([, v]) => v)
             .map(([k, v]) => (
               <div key={k} className="flex items-center justify-between gap-4 border-b border-line py-2.5 text-ds-sm last:border-b-0">

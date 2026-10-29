@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Check, ChevronRight, CreditCard, FileText, HeartHandshake, Pill as PillIcon, Star, Video } from "lucide-react";
 import { Avatar, Button, Card, Pill, cx, focusRing, type PillTone } from "@/components/ds";
-import { createServerSupabase } from "@/lib/supabase-server";
+import { createAdminSupabase, createServerSupabase } from "@/lib/supabase-server";
 import { CARE_EPISODE_STATUS_LABELS, PROFESSION_LABELS, CARE_TASK_TYPE_LABELS, FOLLOW_UP_TYPE_LABELS } from "@/lib/shared";
 import type { Profession, ServiceType } from "@/lib/shared";
 import ContinueCareButton from "./ContinueCareButton";
@@ -108,6 +108,24 @@ export default async function MyCarePage() {
       .limit(20),
   ]);
   const refills = refillItems((prescriptions ?? []) as any[]);
+
+  // Finished orders and referrals the patient hasn't rated yet (migration 064).
+  // Referrals are read with the service role, scoped to this patient.
+  const admin = createAdminSupabase();
+  const [{ data: rated }, { data: doneReferrals }] = await Promise.all([
+    admin.from("facility_reviews").select("facility_type, order_id").eq("patient_id", user.id),
+    admin.from("hospital_referrals").select("id, referred_at, hospital_partners(name)")
+      .eq("patient_id", user.id).eq("status", "completed").order("referred_at", { ascending: false }).limit(5),
+  ]);
+  const ratedKeys = new Set(((rated ?? []) as any[]).map(r => `${r.facility_type}:${r.order_id}`));
+  const toRate = [
+    ...((medOrders ?? []) as any[]).filter(o => o.status === "delivered")
+      .map(o => ({ type: "pharmacy", id: o.id, title: o.pharmacy_partners?.name ?? "Pharmacy", sub: `Medicine order · ${day(o.created_at)}` })),
+    ...((labOrders ?? []) as any[]).filter(o => o.status === "resulted")
+      .map(o => ({ type: "lab", id: o.id, title: o.lab_partners?.name ?? "Lab", sub: `Lab tests · ${day(o.ordered_at)}` })),
+    ...((doneReferrals ?? []) as any[])
+      .map(r => ({ type: "hospital", id: r.id, title: r.hospital_partners?.name ?? "Hospital", sub: `Referral · ${day(r.referred_at)}` })),
+  ].filter(x => !ratedKeys.has(`${x.type}:${x.id}`)).slice(0, 4);
 
   const activeEpisode = (episodes ?? []).find(e => !["closed", "resolved"].includes(e.status)) ?? null;
 
@@ -293,6 +311,17 @@ export default async function MyCarePage() {
             Your visits so far have each stood on their own. If a provider starts a care plan with you, it shows up here.
           </p>
         </Card>
+      )}
+
+      {toRate.length > 0 && (
+        <Section title="Rate your care">
+          <Card padded={false} className="px-4 py-1">
+            {toRate.map(x => (
+              <Row key={`${x.type}-${x.id}`} href={`/dashboard/rate/${x.type}/${x.id}`} title={x.title} sub={x.sub}
+                pill={<Pill tone="warn" icon={Star}>Rate</Pill>} />
+            ))}
+          </Card>
+        </Section>
       )}
 
       <Section title="Results" action={<Link href="/dashboard/book/lab-investigations" className="text-[13px] font-bold text-accent">All</Link>}>

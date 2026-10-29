@@ -55,6 +55,8 @@ export async function GET(req: NextRequest) {
       address: pharmacy.address ?? null,
       opening_hours: pharmacy.opening_hours ?? null,
       delivery_eta_minutes: pharmacy.delivery_eta_minutes ?? null,
+      rating: pharmacy.rating ?? null,
+      review_count: pharmacy.review_count ?? 0,
     },
     items,
   });

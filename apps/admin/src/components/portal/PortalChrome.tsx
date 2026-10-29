@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Building2, ClipboardList, Package, Microscope, Settings, Wallet, BarChart3, Users, FileText,
-  FolderLock, Bell, Plug, Menu, X, ChevronDown, LogOut, Mail, type LucideIcon,
+  FolderLock, Bell, Plug, Menu, Star, X, ChevronDown, LogOut, Mail, type LucideIcon,
 } from "lucide-react";
 import { BottomTabBar } from "@/components/ds";
 import { createClient } from "@/lib/supabase";
@@ -14,24 +14,27 @@ import { PORTALS, SUPPORT_MAILTO, type PortalType } from "./config";
 
 interface NavItem { href: string; label: string; icon: LucideIcon }
 
-// The design's facility tabs: the work queue, orders or referrals, wallet and profile
+// The design's facility tabs: the work queue, orders or referrals, wallet, reviews and profile
 function navFor(type: PortalType): NavItem[] {
   const base = PORTALS[type].base;
   if (type === "lab") return [
     { href: `${base}/dashboard`, label: "Orders", icon: ClipboardList },
     { href: `${base}/tests`, label: "Tests", icon: Microscope },
     { href: `${base}/wallet`, label: "Wallet", icon: Wallet },
+    { href: `${base}/reviews`, label: "Reviews", icon: Star },
     { href: `${base}/account`, label: "Profile", icon: Settings },
   ];
   if (type === "pharmacy") return [
     { href: `${base}/dashboard`, label: "Orders", icon: ClipboardList },
     { href: `${base}/inventory`, label: "Stock", icon: Package },
     { href: `${base}/wallet`, label: "Wallet", icon: Wallet },
+    { href: `${base}/reviews`, label: "Reviews", icon: Star },
     { href: `${base}/account`, label: "Profile", icon: Settings },
   ];
   return [
     { href: `${base}/dashboard`, label: "Referrals", icon: FileText },
     { href: `${base}/capacity`, label: "Capacity", icon: Building2 },
+    { href: `${base}/reviews`, label: "Reviews", icon: Star },
     { href: `${base}/account`, label: "Profile", icon: Settings },
   ];
 }

@@ -324,17 +324,18 @@ export default function BookProviderClient({
   );
 }
 
-// Latest written reviews for a provider (reviews are publicly readable)
+// Latest written reviews for a provider (hidden reviews are left out)
 function ProviderReviews({ providerId }: { providerId: string }) {
-  const [reviews, setReviews] = useState<{ rating: number; comment: string | null; created_at: string }[] | null>(null);
+  const [reviews, setReviews] = useState<{ rating: number; comment: string | null; reply: string | null; created_at: string }[] | null>(null);
   const [count, setCount] = useState(0);
   useEffect(() => {
     let cancelled = false;
     createClient()
       .from("reviews")
-      .select("rating, comment, created_at", { count: "exact" })
+      .select("*", { count: "exact" })
       .eq("provider_id", providerId)
       .not("comment", "is", null)
+      .eq("hidden", false)
       .order("created_at", { ascending: false })
       .limit(3)
       .then(({ data, count: c }) => { if (!cancelled) { setReviews(data ?? []); setCount(c ?? 0); } });
@@ -360,6 +361,9 @@ function ProviderReviews({ providerId }: { providerId: string }) {
               <span className="text-ds-xs text-muted">{timeAgo(r.created_at)}</span>
             </div>
             <p className="mt-2 text-ds-sm text-ink/85">{r.comment}</p>
+            {r.reply && (
+              <p className="mt-2.5 rounded-ds-sm bg-page px-3 py-2 text-ds-xs text-ink/85"><b className="text-navy">Reply from the provider:</b> {r.reply}</p>
+            )}
           </Card>
         ))}
       </div>

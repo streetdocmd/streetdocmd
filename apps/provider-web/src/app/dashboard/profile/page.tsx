@@ -44,7 +44,7 @@ export default async function ProfilePage() {
     mainService
       ? supabase.from("provider_services").select("price").eq("provider_id", provider.id).eq("service_type", mainService).eq("active", true).maybeSingle()
       : Promise.resolve({ data: null }),
-    supabase.from("reviews").select("id", { count: "exact", head: true }).eq("provider_id", provider.id),
+    supabase.from("reviews").select("id", { count: "exact", head: true }).eq("provider_id", provider.id).eq("hidden", false),
   ]);
 
   const verified = provider.verification_status === "verified";
@@ -94,10 +94,13 @@ export default async function ProfilePage() {
           ))}
           <div className="flex items-center justify-between gap-4 py-2.5 text-ds-sm">
             <dt className="text-muted">Rating</dt>
-            <dd className="inline-flex items-center gap-1.5 font-bold text-ink">
-              <Star size={14} className="fill-amber-500 text-amber-500" aria-hidden />
-              {provider.rating > 0 ? Number(provider.rating).toFixed(1) : "New"}
-              <span className="text-ds-sm font-normal text-muted">{reviewCount ?? 0}</span>
+            <dd>
+              <Link href="/dashboard/reviews" className={cx("inline-flex items-center gap-1.5 rounded font-bold text-ink hover:text-accent", focusRing)}>
+                <Star size={14} className="fill-amber-500 text-amber-500" aria-hidden />
+                {provider.rating > 0 ? Number(provider.rating).toFixed(1) : "New"}
+                <span className="text-ds-sm font-normal text-muted">{reviewCount ?? 0}</span>
+                <ChevronRight size={16} className="text-muted" aria-hidden />
+              </Link>
             </dd>
           </div>
         </dl>
@@ -108,6 +111,7 @@ export default async function ProfilePage() {
         <Card padded={false} className="px-4 py-1">
           <Row href="#credentials" icon={<ShieldCheck size={18} aria-hidden />} title="Verification" text="Licence and documents" />
           <Row href="/dashboard/services" icon={<Settings size={18} aria-hidden />} title="Services and fee" text="What patients see" />
+          <Row href="/dashboard/reviews" icon={<Star size={18} aria-hidden />} title="Reviews" text="Read and reply to patient feedback" />
           <AgreementLink />
           <div aria-disabled="true" className="flex items-center gap-3 border-b border-line py-3.5 opacity-70 last:border-b-0">
             <span className="grid h-10 w-10 flex-none place-items-center rounded-[13px] bg-pending-bg text-pending"><Bell size={18} aria-hidden /></span>
