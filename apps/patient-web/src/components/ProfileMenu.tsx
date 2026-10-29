@@ -31,6 +31,7 @@ export default function ProfileMenu({ userName, photoUrl = null }: { userName: s
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
         aria-label="Account menu"
         className="flex items-center gap-1 rounded-full hover:bg-page transition-colors p-1 pr-1.5 sm:pr-2"
       >
