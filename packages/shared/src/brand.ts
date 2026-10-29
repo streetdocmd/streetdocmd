@@ -12,7 +12,7 @@ export interface SocialLink {
 
 // Add X (Twitter) here once the account exists; every app lists whatever is in this array.
 export const SOCIAL_LINKS: SocialLink[] = [
-  { id: "instagram", label: "Instagram", handle: "@streetdocmd", url: "https://www.instagram.com/streetdocmd" },
-  { id: "tiktok", label: "TikTok", handle: "@streetdocmd_", url: "https://www.tiktok.com/@streetdocmd_" },
+  { id: "instagram", label: "Instagram", handle: "@streetdoc_md", url: "https://www.instagram.com/streetdoc_md" },
+  { id: "tiktok", label: "TikTok", handle: "@streetdoc_md", url: "https://www.tiktok.com/@streetdoc_md" },
   { id: "facebook", label: "Facebook", handle: "StreetdocMD", url: "https://www.facebook.com/share/19djFicSXZ/" },
 ];

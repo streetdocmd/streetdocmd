@@ -19,7 +19,7 @@ export default async function HospitalPortalDashboard() {
 
   let q = admin
     .from("hospital_referrals")
-    .select("id, status, urgency, reason, clinical_summary, referred_at, pdf_url, patient_id, providers(name)")
+    .select("*, providers(name)")
     .order("referred_at", { ascending: false })
     .limit(300);
   if (access.partnerId) q = q.eq("hospital_partner_id", access.partnerId);
@@ -42,6 +42,7 @@ export default async function HospitalPortalDashboard() {
     const name = revealed ? (p?.name ?? "Patient") : ((p?.name ?? "").split(" ")[0] || "Patient");
     return {
       id: r.id,
+      care_episode_id: r.care_episode_id ?? null,
       status: r.status,
       urgency: r.urgency,
       reason: r.reason ?? null,

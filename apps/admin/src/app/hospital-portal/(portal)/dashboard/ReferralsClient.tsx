@@ -1,13 +1,15 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Inbox, Activity, CheckCircle2, FileText, Phone, Stethoscope, AlertTriangle, AlertCircle, Lock } from "lucide-react";
+import { Inbox, Activity, CheckCircle2, FileText, Phone, Stethoscope, AlertTriangle, AlertCircle, Lock, MessagesSquare } from "lucide-react";
 import { useLiveRefresh } from "@/components/portal/useLiveRefresh";
 import { REFERRAL_STATUS, URGENCY } from "@/components/portal/statuses";
 import { Card, EmptyState, Notice, PageHeader, Spinner, StatCard, StatusBadge, formatDateTime, ui } from "@/components/portal/ui";
 
 export interface ReferralRow {
   id: string;
+  /** The patient's care journey; its care team chat (migration 068) */
+  care_episode_id: string | null;
   status: string;
   urgency: string;
   reason: string | null;
@@ -120,6 +122,11 @@ export default function ReferralsClient({ referrals, partnerId, facilityName, lo
                         {formatDateTime(r.referred_at)}
                       </p>
                     </div>
+                    {r.care_episode_id && (
+                      <a href={`/hospital-portal/journeys/${r.care_episode_id}`} className={`${ui.btnLink} inline-flex items-center gap-1`}>
+                        <MessagesSquare size={14} aria-hidden /> Care team chat
+                      </a>
+                    )}
                     {r.pdf_url && (
                       <a href={r.pdf_url} target="_blank" rel="noreferrer" className={`${ui.btnLink} inline-flex items-center gap-1`}>
                         <FileText size={14} aria-hidden /> Referral letter

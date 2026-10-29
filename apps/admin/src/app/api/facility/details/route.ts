@@ -30,6 +30,18 @@ export async function PATCH(req: NextRequest) {
     patch.delivery_eta_minutes = eta;
   }
 
+  // Location: patients are matched to facilities by distance
+  if (body.lat !== undefined || body.lng !== undefined) {
+    const lat = body.lat === "" || body.lat == null ? null : Number(body.lat);
+    const lng = body.lng === "" || body.lng == null ? null : Number(body.lng);
+    if ((lat == null) !== (lng == null)) return NextResponse.json({ error: "Enter both latitude and longitude." }, { status: 400 });
+    if (lat != null && (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lng!) || lng! < -180 || lng! > 180)) {
+      return NextResponse.json({ error: "Enter a valid location." }, { status: 400 });
+    }
+    patch.lat = lat;
+    patch.lng = lng;
+  }
+
   if (type === "lab") {
     // Matching (migration 067): labs outside their radius, or not collecting at
     // home, aren't offered home collection orders. The fee is shown to patients.

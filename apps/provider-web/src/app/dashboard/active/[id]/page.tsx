@@ -25,7 +25,7 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
   const admin = createAdminSupabase();
   const { data: booking } = await admin
     .from("bookings")
-    .select("id, service_type, status, patient_address, patient_lat, patient_lng, fee, net_payout, notes, patient_id, patient:users!patient_id(phone, name, dob, allergies)")
+    .select("id, service_type, status, patient_address, patient_lat, patient_lng, fee, net_payout, notes, patient_id, care_episode_id, patient:users!patient_id(phone, name, dob, allergies)")
     .eq("id", params.id)
     .eq("provider_id", provider.id)
     .single();
@@ -97,6 +97,16 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
         <span>View care context before you start</span>
         <ChevronRight size={18} aria-hidden />
       </Link>
+
+      {(booking as any).care_episode_id && (
+        <Link
+          href={`/dashboard/journeys/${(booking as any).care_episode_id}`}
+          className={cx("flex items-center justify-between rounded-ds-lg border border-line bg-surface px-4 py-3 text-ds-sm font-semibold text-teal-deep", focusRing)}
+        >
+          <span>Care team chat for this patient</span>
+          <ChevronRight size={18} aria-hidden />
+        </Link>
+      )}
 
       {booking.patient_lat && booking.patient_lng && (
         <div className="overflow-hidden rounded-ds-lg border border-line">

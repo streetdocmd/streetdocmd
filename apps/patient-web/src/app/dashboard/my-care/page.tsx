@@ -6,6 +6,7 @@ import { createAdminSupabase, createServerSupabase } from "@/lib/supabase-server
 import { CARE_EPISODE_STATUS_LABELS, PROFESSION_LABELS, CARE_TASK_TYPE_LABELS, FOLLOW_UP_TYPE_LABELS } from "@/lib/shared";
 import type { Profession, ServiceType } from "@/lib/shared";
 import ContinueCareButton from "./ContinueCareButton";
+import JourneyActions from "./JourneyActions";
 import { refillItems, REFILL_SOON_DAYS } from "@/lib/refills";
 import { RESULT_STATUSES, statusOf } from "@/lib/investigation-status";
 
@@ -150,6 +151,15 @@ export default async function MyCarePage() {
   const openTasks = ((tasks ?? []) as any[]).filter(t => t.status !== "completed" && t.status !== "cancelled");
   const nextTask = openTasks[0] ?? null;
   const progressIndex = activeEpisode ? PROGRESS_STEPS.indexOf(activeEpisode.status) : -1;
+
+  // Medical report requests (migration 068), and recent finished journeys
+  const pastEpisodes = (episodes ?? []).filter(e => ["closed", "resolved"].includes(e.status)).slice(0, 3);
+  const { data: reportRequests } = await supabase
+    .from("care_report_requests")
+    .select("id, care_episode_id, status, review_note, created_at")
+    .eq("requested_by", user.id)
+    .order("created_at", { ascending: false });
+  const requestsFor = (episodeId: string) => ((reportRequests ?? []) as any[]).filter(r => r.care_episode_id === episodeId);
   const followUp = pendingFollowUp as any;
   const followUpProvider = followUp?.continuing_provider;
   const followUpBookHref = followUp && followUpProvider
@@ -248,6 +258,7 @@ export default async function MyCarePage() {
                   careEpisodeId={activeEpisode.id}
                 />
               )}
+              <JourneyActions episodeId={activeEpisode.id} recoveredAt={activeEpisode.recovered_at ?? null} closed={false} requests={requestsFor(activeEpisode.id)} />
             </Card>
           </Section>
 
@@ -303,6 +314,20 @@ export default async function MyCarePage() {
             Your visits so far have each stood on their own. If a provider starts a care plan with you, it shows up here.
           </p>
         </Card>
+      )}
+
+      {pastEpisodes.length > 0 && (
+        <Section title="Past care journeys">
+          <div className="space-y-2.5">
+            {pastEpisodes.map((e: any) => (
+              <Card key={e.id}>
+                <b className="block text-ds-sm text-ink">{e.title}</b>
+                <small className="text-ds-xs text-muted">Closed{e.closed_at ? ` ${day(e.closed_at)}` : ""}</small>
+                <JourneyActions episodeId={e.id} recoveredAt={e.recovered_at ?? null} closed requests={requestsFor(e.id)} />
+              </Card>
+            ))}
+          </div>
+        </Section>
       )}
 
       {toRate.length > 0 && (

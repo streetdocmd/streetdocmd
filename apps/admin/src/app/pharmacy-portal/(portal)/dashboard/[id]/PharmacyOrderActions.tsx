@@ -104,6 +104,9 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
         actions={<>
           <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
           {order.requires_review && <StatusBadge tone="amber" icon={ShieldAlert}>Controlled drug — review</StatusBadge>}
+          {order.care_episode_id && (
+            <a href={`/pharmacy-portal/journeys/${order.care_episode_id}`} className={`${ui.btnSecondary} min-h-9`}>Care team chat</a>
+          )}
         </>}
       />
 

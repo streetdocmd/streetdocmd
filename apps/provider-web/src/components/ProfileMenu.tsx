@@ -4,7 +4,7 @@ import SocialLinks from "@/components/SocialLinks";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, LogOut, ChevronDown, Stethoscope, Users } from "lucide-react";
+import { User, LogOut, ChevronDown, Stethoscope, Users, MessagesSquare } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
 // Same account dropdown as patient-web, plus the provider's secondary links.
@@ -78,6 +78,13 @@ export default function ProfileMenu({
             className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-ink hover:bg-page transition-colors md:hidden"
           >
             <Users size={15} className="text-muted" /> My patients
+          </Link>
+          <Link
+            href="/dashboard/journeys"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-ink hover:bg-page transition-colors"
+          >
+            <MessagesSquare size={15} className="text-muted" /> Care journeys and chat
           </Link>
           {showServices && (
             <Link

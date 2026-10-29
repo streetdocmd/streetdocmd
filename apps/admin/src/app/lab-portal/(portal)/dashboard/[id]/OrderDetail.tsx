@@ -97,7 +97,12 @@ export default function OrderDetail({ order, events, canAct }: { order: any; eve
         back={{ href: "/lab-portal/dashboard", label: "All orders" }}
         title={order.users?.name ?? "Patient"}
         description={`Ordered ${formatDateTime(order.ordered_at)}`}
-        actions={<StatusBadge tone={status.tone}>{status.label}</StatusBadge>}
+        actions={<>
+          <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+          {order.care_episode_id && order.status !== "lab_requested" && (
+            <a href={`/lab-portal/journeys/${order.care_episode_id}`} className={`${ui.btnSecondary} min-h-9`}>Care team chat</a>
+          )}
+        </>}
       />
 
       {error && (
