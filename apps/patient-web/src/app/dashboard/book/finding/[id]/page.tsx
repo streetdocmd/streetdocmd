@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Check, SearchX } from "lucide-react";
-import { Button, Card, TopBar } from "@/components/ds";
+import { Button, Card, TopBar, useDialog } from "@/components/ds";
 
 export default function FindingProviderPage({ params }: { params: { id: string } }) {
+  const dialog = useDialog();
   const router = useRouter();
   const [status, setStatus] = useState("pending");
   // The offer currently waiting on a provider (each provider has a 2 minute window)
@@ -33,7 +34,7 @@ export default function FindingProviderPage({ params }: { params: { id: string }
   }, [params.id]);
 
   async function cancelRequest() {
-    if (!confirm("Cancel this request? If you've paid, we'll refund you.")) return;
+    if (!(await dialog.confirm({ title: "Cancel this request?", message: "If you've paid, we'll refund you.", confirmLabel: "Cancel request", cancelLabel: "Keep it", tone: "danger" }))) return;
     setCancelling(true);
     setCancelError("");
     const res = await fetch(`/api/bookings/${params.id}/cancel`, { method: "POST" }).catch(() => null);

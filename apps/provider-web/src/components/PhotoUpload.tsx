@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, ImagePlus } from "lucide-react";
-import { Avatar, cx, focusRing, type AvatarSize } from "@/components/ds";
+import { Avatar, cx, focusRing, type AvatarSize, useDialog } from "@/components/ds";
 
 // Shrinks the picture in the browser before upload, so it's quick on mobile
 // data: avatars are cropped square to 512px, product pictures fit in 900px.
@@ -45,6 +45,7 @@ export default function PhotoUpload({
   /** Called with the new URL (or null) after a change is saved */
   onChange?: (url: string | null) => void;
 }) {
+  const dialog = useDialog();
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -74,7 +75,7 @@ export default function PhotoUpload({
   }
 
   async function remove() {
-    if (!confirm(`Remove this ${label}?`)) return;
+    if (!(await dialog.confirm({ title: `Remove this ${label}?`, confirmLabel: "Remove", tone: "danger" }))) return;
     setBusy(true);
     setError("");
     const res = await fetch(endpoint, { method: "DELETE" });

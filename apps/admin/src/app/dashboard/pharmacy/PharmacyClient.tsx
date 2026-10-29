@@ -2,6 +2,7 @@
 import { Pill } from "lucide-react";
 import { useState } from "react";
 
+import { useDialog } from "@/components/ds";
 const STATUS_LABELS: Record<string, string> = {
   pending_payment: "Awaiting Payment",
   sent:            "New",
@@ -36,6 +37,7 @@ export default function PharmacyClient({
   medicationLibrary: any[];
   stats: { totalCommission: number; totalRevenue: number; deliveredCount: number; flaggedCount: number };
 }) {
+  const dialog = useDialog();
   const [tab, setTab]             = useState<"orders" | "partners" | "staff" | "inventory">("orders");
   const [filter, setFilter]       = useState("all");
   const [showForm, setShowForm]   = useState(false);
@@ -74,7 +76,7 @@ export default function PharmacyClient({
   }
 
   async function deletePartner(id: string) {
-    if (!confirm("Delete this pharmacy partner?")) return;
+    if (!(await dialog.confirm({ title: "Delete this pharmacy partner?", confirmLabel: "Delete", tone: "danger" }))) return;
     const res = await fetch(`/api/pharmacy/partners/${id}`, { method: "DELETE" });
     if (res.ok) setPartners(prev => prev.filter(p => p.id !== id));
   }

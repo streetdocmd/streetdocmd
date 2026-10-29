@@ -6,7 +6,7 @@ import { AlertTriangle, ChevronRight, ClipboardList, Clock, Microscope } from "l
 import { useLiveRefresh } from "@/components/portal/useLiveRefresh";
 import { LAB_STATUS } from "@/components/portal/statuses";
 import { Card, EmptyState, Notice, PageHeader, StatusBadge, formatDateTime, ui } from "@/components/portal/ui";
-import { Button, SegmentedControl } from "@/components/ds";
+import { Button, SegmentedControl, useDialog } from "@/components/ds";
 import { WINDOW_LABEL } from "@/lib/investigation-status";
 
 export interface LabOrderRow {
@@ -53,6 +53,7 @@ export default function LabOrdersClient({ orders, loadError, partnerId, activeTe
   activeTestCount: number | null;
   facilityName: string | null;
 }) {
+  const dialog = useDialog();
   const router = useRouter();
   const count = (q: Queue) => orders.filter(o => QUEUE_OF[o.status] === q).length;
   const [queue, setQueue] = useState<Queue>(count("new") > 0 ? "new" : "collect");
@@ -71,7 +72,7 @@ export default function LabOrdersClient({ orders, loadError, partnerId, activeTe
   async function respond(o: LabOrderRow, accept: boolean) {
     let reason = "";
     if (!accept) {
-      reason = prompt("Why can't you take this order? (for example: a test is unavailable today)")?.trim() ?? "";
+      reason = (await dialog.prompt({ title: "Decline this order?", message: "It moves to the next lab straight away.", label: "Why can't you take it?", placeholder: "For example: a test is unavailable today", required: true, confirmLabel: "Decline", tone: "danger" })) ?? "";
       if (!reason) return;
     }
     setBusy(o.id);

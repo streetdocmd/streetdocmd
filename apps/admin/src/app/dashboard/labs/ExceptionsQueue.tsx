@@ -2,20 +2,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ds";
+import { Button, useDialog } from "@/components/ds";
 import { formatNaira } from "@/lib/shared";
 
 // Paid investigation orders no lab could take (status "exception", migration
 // 067). Operations can try the matching again, or cancel the order and mark
 // the payment as due for a refund in Finance.
 export default function ExceptionsQueue({ orders }: { orders: any[] }) {
+  const dialog = useDialog();
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   async function act(id: string, action: "reassign" | "cancel") {
     const note = action === "cancel"
-      ? prompt("Why is this order being cancelled? The patient's payment will be marked for refund.")?.trim()
+      ? await dialog.prompt({ title: "Cancel and refund?", message: "The patient's payment will be marked as due for a refund in Finance.", label: "Reason", required: true, confirmLabel: "Cancel order", tone: "danger" })
       : "";
     if (action === "cancel" && !note) return;
     setBusy(id);

@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
-import { Button, Pill, SegmentedControl } from "@/components/ds";
+import { Button, Pill, SegmentedControl, useDialog } from "@/components/ds";
 
 export interface ReportRequest {
   id: string;
@@ -21,6 +21,7 @@ type Filter = "pending" | "decided";
 const when = (iso: string) => new Date(iso).toLocaleString("en-NG", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 
 export default function ReportsClient({ requests }: { requests: ReportRequest[] }) {
+  const dialog = useDialog();
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("pending");
   const [busy, setBusy] = useState<string | null>(null);
@@ -30,9 +31,9 @@ export default function ReportsClient({ requests }: { requests: ReportRequest[] 
   async function decide(r: ReportRequest, decision: "approve" | "reject") {
     let note = "";
     if (decision === "reject") {
-      note = prompt("Why is this request being refused? The requester will see this.")?.trim() ?? "";
+      note = (await dialog.prompt({ title: "Refuse this request?", message: "The requester will see your reason.", label: "Reason", required: true, multiline: true, confirmLabel: "Refuse", tone: "danger" })) ?? "";
       if (!note) return;
-    } else if (!confirm(`Release the ${r.role === "patient" ? "medical report (without the care team chat)" : "full report"} to ${r.requester}?`)) {
+    } else if (!(await dialog.confirm({ title: `Release the report to ${r.requester}?`, message: r.role === "patient" ? "They get the medical report, without the care team chat." : "They get the full report, including the care team chat.", confirmLabel: "Release" }))) {
       return;
     }
     setBusy(r.id);

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase";
-import { Avatar, Button, Card, Input, cx, focusRing } from "@/components/ds";
+import { Avatar, Button, Card, Input, cx, focusRing, useDialog } from "@/components/ds";
 
 interface FamilyMember { id: string; name: string; relationship: string; dob?: string | null }
 
@@ -16,6 +16,7 @@ function age(dob?: string | null) {
 }
 
 export default function FamilyMembersSection({ initialMembers }: { initialMembers: FamilyMember[] }) {
+  const dialog = useDialog();
   const router = useRouter();
   const [members, setMembers] = useState(initialMembers);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -27,12 +28,12 @@ export default function FamilyMembersSection({ initialMembers }: { initialMember
   const [error, setError] = useState("");
 
   async function removeMember(id: string, memberName: string) {
-    if (!confirm(`Remove ${memberName} from your family members? Past bookings made for them will be kept, just no longer linked to them.`)) return;
+    if (!(await dialog.confirm({ title: `Remove ${memberName}?`, message: "Past bookings made for them are kept, just no longer linked to them.", confirmLabel: "Remove", tone: "danger" }))) return;
     setRemovingId(id);
     const supabase = createClient();
     const { error } = await supabase.from("family_members").delete().eq("id", id);
     setRemovingId(null);
-    if (error) { alert("Could not remove. Please try again."); return; }
+    if (error) { await dialog.alert({ title: "Couldn't remove", message: "Please try again." }); return; }
     setMembers(prev => prev.filter(m => m.id !== id));
     router.refresh();
   }

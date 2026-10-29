@@ -13,3 +13,4 @@ export { Avatar, initials, type AvatarSize } from "./Avatar";
 export { BottomTabBar, type TabItem } from "./BottomTabBar";
 export { TopBar, iconButtonClass } from "./TopBar";
 export { Notice, EmergencyNotice, type NoticeTone } from "./Notice";
+export { DialogProvider, useDialog, type ConfirmOptions, type PromptOptions } from "./Dialog";

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { MessageSquareHeart, Search } from "lucide-react";
-import { Button, Pill, SegmentedControl } from "@/components/ds";
+import { Button, Pill, SegmentedControl, useDialog } from "@/components/ds";
 import Stars from "@/components/Stars";
 
 export interface AdminReview {
@@ -23,6 +23,7 @@ type Filter = "all" | "low" | "hidden";
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" });
 
 export default function ReviewsClient({ reviews: initial }: { reviews: AdminReview[] }) {
+  const dialog = useDialog();
   const [reviews, setReviews] = useState(initial);
   const [filter, setFilter] = useState<Filter>("all");
   const [type, setType] = useState<string>("All");
@@ -41,7 +42,7 @@ export default function ReviewsClient({ reviews: initial }: { reviews: AdminRevi
   const avg = shown.length ? shown.reduce((a, r) => a + r.rating, 0) / shown.length : 0;
 
   async function removeReply(r: AdminReview) {
-    if (!confirm(`Remove the reply to this review of ${r.subject}? This can't be undone.`)) return;
+    if (!(await dialog.confirm({ title: "Remove this reply?", message: `The reply to this review of ${r.subject} will be removed. This can't be undone.`, confirmLabel: "Remove reply", tone: "danger" }))) return;
     setBusy(r.id);
     setError("");
     const res = await fetch(`/api/reviews/${r.id}`, {

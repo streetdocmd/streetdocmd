@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle, CalendarClock, FileText, MapPin, Phone, Stethoscope, Upload, User } from "lucide-react";
 import { LAB_NEXT, LAB_STATUS } from "@/components/portal/statuses";
 import { Card, CardHeader, PageHeader, Spinner, StatusBadge, formatDateTime, formatNaira, ui } from "@/components/portal/ui";
-import { Button } from "@/components/ds";
+import { Button, useDialog } from "@/components/ds";
 import { RESULT_STATUSES, WINDOW_LABEL, statusOf } from "@/lib/investigation-status";
 
 interface ResultRow {
@@ -22,6 +22,7 @@ const FLAG_STYLE: Record<string, string> = {
 const ROLE: Record<string, string> = { patient: "Patient", doctor: "Doctor", lab: "Lab", admin: "StreetdocMD", system: "StreetdocMD" };
 
 export default function OrderDetail({ order, events, canAct }: { order: any; events: any[]; canAct: boolean }) {
+  const dialog = useDialog();
   const router = useRouter();
   const next = LAB_NEXT[order.status];
   const doctorCollected = order.collection_method === "doctor";
@@ -59,10 +60,10 @@ export default function OrderDetail({ order, events, canAct }: { order: any; eve
     return false;
   }
 
-  function respond(accept: boolean) {
+  async function respond(accept: boolean) {
     let reason = "";
     if (!accept) {
-      reason = prompt("Why can't you take this order? (for example: a test is unavailable today)")?.trim() ?? "";
+      reason = (await dialog.prompt({ title: "Decline this order?", message: "It moves to the next lab straight away.", label: "Why can't you take it?", placeholder: "For example: a test is unavailable today", required: true, confirmLabel: "Decline", tone: "danger" })) ?? "";
       if (!reason) return;
     }
     send(`/api/lab-portal/orders/${order.id}/respond`, {
@@ -177,9 +178,9 @@ export default function OrderDetail({ order, events, canAct }: { order: any; eve
                   onClick={() => advance("sample_collected", { identity_checked: collection.identity, collected_by: collection.by, sample_notes: collection.notes })}>
                   Sample collected
                 </Button>
-                <Button variant="ghost" disabled={busy} onClick={() => {
-                  const when = prompt("New collection time (YYYY-MM-DD HH:MM)", scheduleAt.replace("T", " "));
-                  if (when) advance("collection_scheduled", { scheduled_at: new Date(when.replace(" ", "T")).toISOString() });
+                <Button variant="ghost" disabled={busy} onClick={async () => {
+                  const when = await dialog.prompt({ title: "Rebook the collection", label: "New collection time", inputType: "datetime-local", defaultValue: scheduleAt, required: true, confirmLabel: "Rebook" });
+                  if (when) advance("collection_scheduled", { scheduled_at: new Date(when).toISOString() });
                 }}>Rebook</Button>
               </div>
             </Card>

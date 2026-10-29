@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, FileUp, Star } from "lucide-react";
 import LocationPicker from "@/components/LocationPicker";
-import { Button, Card, Notice, SegmentedControl, cx, fieldLabelClass, inputClass } from "@/components/ds";
+import { Button, Card, Notice, SegmentedControl, cx, fieldLabelClass, inputClass, useDialog } from "@/components/ds";
 import { formatNaira } from "@/lib/shared";
 import type { Quote } from "@/lib/investigations";
 
@@ -23,6 +23,7 @@ export default function CheckoutPanel({
   defaultPhone: string | null;
   initial: { address: string | null; lat: number | null; lng: number | null };
 }) {
+  const dialog = useDialog();
   const router = useRouter();
   const [loc, setLoc] = useState<{ lat: number; lng: number; address: string } | null>(
     initial.lat != null && initial.lng != null && initial.address ? { lat: initial.lat, lng: initial.lng, address: initial.address } : null,
@@ -88,7 +89,9 @@ export default function CheckoutPanel({
   }
 
   async function decline() {
-    if (!confirm(fromDoctor ? "Decline the tests your doctor requested? You can talk to your doctor about other options." : "Cancel this order?")) return;
+    if (!(await dialog.confirm(fromDoctor
+      ? { title: "Decline these tests?", message: "You can talk to your doctor about other options.", confirmLabel: "Decline tests", cancelLabel: "Go back", tone: "danger" }
+      : { title: "Cancel this order?", confirmLabel: "Cancel order", cancelLabel: "Keep it", tone: "danger" }))) return;
     setDeclining(true);
     const res = await fetch(`/api/investigations/${orderId}/decline`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
     setDeclining(false);

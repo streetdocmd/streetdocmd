@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Bell, Clock, TriangleAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { SERVICE_LABELS, formatNaira } from "@streetdocmd/shared";
-import { Avatar, Button, Pill } from "@/components/ds";
+import { Avatar, Button, Pill, useDialog } from "@/components/ds";
 
 interface DispatchRequest {
   id: string;
@@ -43,6 +43,7 @@ function area(address: string) {
 }
 
 export default function DispatchCard({ request }: { request: DispatchRequest }) {
+  const dialog = useDialog();
   const router = useRouter();
   const [loading, setLoading] = useState<"accept" | "decline" | null>(null);
   const secs = useSecondsLeft(request.expires_at);
@@ -54,7 +55,7 @@ export default function DispatchCard({ request }: { request: DispatchRequest }) 
     if (response === "accepted") {
       // Atomic RPC: sets dispatch.response, booking.status, booking.provider_id in one call
       const { error } = await supabase.rpc("accept_dispatch", { p_dispatch_id: request.id });
-      if (error) { alert("Could not accept — the offer may have already been taken."); setLoading(null); return; }
+      if (error) { setLoading(null); await dialog.alert({ title: "Couldn't accept this visit", message: "Another provider may have taken it already." }); return; }
       router.push(`/dashboard/active/${request.booking_id}`);
     } else {
       await supabase

@@ -3,12 +3,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
+import { useDialog } from "@/components/ds";
 export default function ConfirmDeliveryButton({ orderId }: { orderId: string }) {
+  const dialog = useDialog();
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
 
   async function confirmDelivery() {
-    if (!confirm("Confirm that you've received your medication?")) return;
+    if (!(await dialog.confirm({ title: "Received your medication?", message: "Confirm only once the order is in your hands.", confirmLabel: "Yes, received" }))) return;
     setConfirming(true);
     const supabase = createClient();
     await supabase.from("prescription_orders").update({ status: "delivered" }).eq("id", orderId);

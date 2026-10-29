@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { Button, Stepper, cx } from "@/components/ds";
+import { Button, Stepper, cx, useDialog } from "@/components/ds";
 import { Card, ui } from "@/components/portal/ui";
 
 export interface Ward {
@@ -25,6 +25,7 @@ async function send(method: string, body?: object, query = "") {
 }
 
 export default function CapacityClient({ initial }: { initial: Ward[] }) {
+  const dialog = useDialog();
   const [wards, setWards] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -67,7 +68,7 @@ export default function CapacityClient({ initial }: { initial: Ward[] }) {
   }
 
   async function removeWard(w: Ward) {
-    if (!confirm(`Remove ${w.ward_name}? Patients will no longer see its beds.`)) return;
+    if (!(await dialog.confirm({ title: `Remove ${w.ward_name}?`, message: "Patients will no longer see its beds.", confirmLabel: "Remove ward", tone: "danger" }))) return;
     setError(null);
     try {
       await send("DELETE", undefined, `?id=${encodeURIComponent(w.id)}`);

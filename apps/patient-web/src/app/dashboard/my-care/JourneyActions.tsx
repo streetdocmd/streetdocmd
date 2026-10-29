@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, FileText, HeartPulse } from "lucide-react";
-import { Button, Pill } from "@/components/ds";
+import { Button, Pill, useDialog } from "@/components/ds";
 
 interface Request { id: string; status: "pending" | "approved" | "rejected"; review_note: string | null; created_at: string }
 
@@ -11,6 +11,7 @@ interface Request { id: string; status: "pending" | "approved" | "rejected"; rev
 export default function JourneyActions({ episodeId, recoveredAt, closed, requests }: {
   episodeId: string; recoveredAt: string | null; closed: boolean; requests: Request[];
 }) {
+  const dialog = useDialog();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -24,14 +25,14 @@ export default function JourneyActions({ episodeId, recoveredAt, closed, request
     router.refresh();
   }
 
-  function recovered() {
-    const note = prompt("Glad you're feeling better. Anything you'd like your care team to know? (optional)");
+  async function recovered() {
+    const note = await dialog.prompt({ title: "Glad you're feeling better", message: "We'll let your care team know. They'll close this care journey when everything is done.", label: "Anything you'd like them to know?", multiline: true, confirmLabel: "Confirm recovery" });
     if (note === null) return;
     post({ action: "recovered", note });
   }
 
-  function requestReport() {
-    const reason = prompt("What do you need the report for? (optional; StreetdocMD reviews each request before releasing it)");
+  async function requestReport() {
+    const reason = await dialog.prompt({ title: "Request your medical report", message: "StreetdocMD reviews each request before releasing the report. We'll let you know when it's ready.", label: "What do you need it for?", multiline: true, confirmLabel: "Send request" });
     if (reason === null) return;
     post({ action: "request_report", reason });
   }

@@ -1,18 +1,19 @@
 "use client";
 import { useState } from "react";
 import { Check, Copy, Share2 } from "lucide-react";
-import { Button } from "@/components/ds";
+import { Button, useDialog } from "@/components/ds";
 
 // Creates a 7 day link to send results to a doctor of the patient's choice,
 // and lets them withdraw it.
 export default function ShareResults({ orderId }: { orderId: string }) {
+  const dialog = useDialog();
   const [link, setLink] = useState<{ url: string; token: string; expires: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
 
   async function create() {
-    if (!confirm("Create a link to your results? Anyone you send it to can see them for 7 days, until you withdraw it.")) return;
+    if (!(await dialog.confirm({ title: "Share your results?", message: "Anyone you send the link to can see your results for 7 days, until you withdraw it.", confirmLabel: "Create link" }))) return;
     setBusy(true);
     setError("");
     const res = await fetch(`/api/investigations/${orderId}/share`, { method: "POST" });

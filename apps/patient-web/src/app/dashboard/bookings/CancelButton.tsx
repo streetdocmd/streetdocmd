@@ -1,22 +1,23 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ds";
+import { Button, useDialog } from "@/components/ds";
 
 // Cancels through the API, which also closes open dispatch offers and marks
 // paid requests for a refund (migration 059)
 export default function CancelButton({ bookingId }: { bookingId: string }) {
+  const dialog = useDialog();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   async function cancel() {
-    if (!confirm("Cancel this request? If you've paid, we'll refund you.")) return;
+    if (!(await dialog.confirm({ title: "Cancel this request?", message: "If you've paid, we'll refund you.", confirmLabel: "Cancel request", cancelLabel: "Keep it", tone: "danger" }))) return;
     setLoading(true);
     const res = await fetch(`/api/bookings/${bookingId}/cancel`, { method: "POST" }).catch(() => null);
     setLoading(false);
     if (!res?.ok) {
       const json = await res?.json().catch(() => null);
-      alert(json?.error ?? "Could not cancel. Check your connection and try again.");
+      await dialog.alert({ title: "Couldn't cancel", message: json?.error ?? "Check your connection and try again." });
     }
     router.refresh();
   }
