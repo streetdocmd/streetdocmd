@@ -92,7 +92,7 @@ export default function ProfileMenu({
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-ink hover:bg-page transition-colors md:hidden"
             >
-              <Stethoscope size={15} className="text-muted" /> My services
+              <Stethoscope size={15} className="text-muted" /> My rates
             </Link>
           )}
           <div className="border-t border-line px-3.5 py-2.5">

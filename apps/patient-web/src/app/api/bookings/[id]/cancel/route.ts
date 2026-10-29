@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase, getRequestSupabase } from "@/lib/supabase-server";
 
-// Statuses a patient can still cancel: before a provider has accepted
-const CANCELLABLE = ["pending_payment", "pending", "paid"];
+// Statuses a patient can still cancel: no provider has accepted. That covers
+// a visit still searching, one whose chosen provider declined
+// (provider_declined) and one nobody took in time (expired).
+const CANCELLABLE = ["pending_payment", "pending", "paid", "provider_declined", "expired"];
 
 // POST /api/bookings/:id/cancel: the patient cancels their request.
 // Open dispatch offers are closed; a booking that was already paid is

@@ -56,7 +56,7 @@ export default function WithdrawForm({
         <p className="mb-3 text-ds-sm text-ink">
           Add your bank account in your profile before requesting a withdrawal.
         </p>
-        <Link href="/dashboard/profile#payouts" className="btn-teal text-sm inline-block">
+        <Link href="/dashboard/profile#payouts" className="btn-teal">
           Add bank details
         </Link>
       </div>

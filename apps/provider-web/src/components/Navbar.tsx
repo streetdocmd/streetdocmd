@@ -14,12 +14,12 @@ import ProfileMenu from "./ProfileMenu";
 interface NavItem extends TabItem { mobile: boolean }
 
 // The design's five tabs (Today, Requests, Calendar, Wallet, Profile) on phones;
-// desktop also links Patients and Services.
+// desktop also links Patients and Rates.
 const TODAY: NavItem = { href: "/dashboard", label: "Today", icon: House, exact: true, mobile: true };
 const REQUESTS: NavItem = { href: "/dashboard/bookings", label: "Requests", icon: Bell, mobile: true };
 const CALENDAR: NavItem = { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays, mobile: true };
 const PATIENTS: NavItem = { href: "/dashboard/patients", label: "Patients", icon: Users, mobile: false };
-const SERVICES: NavItem = { href: "/dashboard/services", label: "Services", icon: Stethoscope, mobile: false };
+const SERVICES: NavItem = { href: "/dashboard/services", label: "Rates", icon: Stethoscope, mobile: false };
 const WALLET: NavItem = { href: "/dashboard/earnings", label: "Wallet", icon: Wallet, mobile: true };
 const PROFILE: NavItem = { href: "/dashboard/profile", label: "Profile", icon: User, mobile: true };
 

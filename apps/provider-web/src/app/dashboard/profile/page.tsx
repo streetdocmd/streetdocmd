@@ -112,7 +112,7 @@ export default async function ProfilePage() {
         <h2 className="mb-3 text-[17px] font-bold text-navy">Account</h2>
         <Card padded={false} className="px-4 py-1">
           <Row href="#credentials" icon={<ShieldCheck size={18} aria-hidden />} title="Verification" text="Licence and documents" />
-          <Row href="/dashboard/services" icon={<Settings size={18} aria-hidden />} title="Services and fee" text="What patients see" />
+          <Row href="/dashboard/services" icon={<Settings size={18} aria-hidden />} title="Rates and services" text="Set what you charge per visit" />
           <Row href="/dashboard/reviews" icon={<Star size={18} aria-hidden />} title="Reviews" text="Read and reply to patient feedback" />
           <AgreementLink />
           <div aria-disabled="true" className="flex items-center gap-3 border-b border-line py-3.5 opacity-70 last:border-b-0">

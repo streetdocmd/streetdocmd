@@ -103,7 +103,7 @@ function VisitCard({ b }: { b: any }) {
           {b.status === "completed" && (
             <Button href={bookAgain} variant="secondary" size="sm">Book again</Button>
           )}
-          {["pending", "paid"].includes(b.status) && <CancelButton bookingId={b.id} />}
+          {["pending", "paid", "provider_declined", "expired"].includes(b.status) && <CancelButton bookingId={b.id} />}
         </div>
       </div>
       {b.status === "provider_declined" && <ProviderDeclinedActions bookingId={b.id} />}

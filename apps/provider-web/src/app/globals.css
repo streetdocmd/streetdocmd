@@ -5,6 +5,10 @@
 
 @layer base {
   * { box-sizing: border-box; }
+  /* No page may scroll sideways: on phones that zooms the layout out and
+     knocks the fixed tab bar off the bottom of the screen. clip (not
+     hidden) keeps position: sticky working. */
+  html, body { overflow-x: clip; }
   body {
     @apply bg-page text-ink antialiased;
     font-family: var(--font);

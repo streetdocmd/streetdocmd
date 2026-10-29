@@ -2,8 +2,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { Check, SearchX } from "lucide-react";
+import { Check, SearchX, UserX } from "lucide-react";
 import { Button, Card, TopBar, useDialog } from "@/components/ds";
+import ProviderDeclinedActions from "@/app/dashboard/bookings/ProviderDeclinedActions";
+
+// Nobody is going to accept: the screen stops searching and offers next steps
+const STOPPED = ["cancelled", "provider_declined", "expired"];
 
 export default function FindingProviderPage({ params }: { params: { id: string } }) {
   const dialog = useDialog();
@@ -63,8 +67,9 @@ export default function FindingProviderPage({ params }: { params: { id: string }
       if (!data) return;
       if (ACTIVE.includes(data.status)) {
         router.replace(`/dashboard/book/tracking/${params.id}`);
-      } else if (data.status === "cancelled") {
-        setStatus("cancelled");
+      } else {
+        // Back to "pending" once a new search starts (e.g. after "Search nearest available")
+        setStatus(STOPPED.includes(data.status) ? data.status : "pending");
       }
     }
 
@@ -81,8 +86,8 @@ export default function FindingProviderPage({ params }: { params: { id: string }
         ({ new: row }) => {
           if (row.status && ACTIVE.includes(row.status)) {
             router.replace(`/dashboard/book/tracking/${params.id}`);
-          } else if (row.status === "cancelled") {
-            setStatus("cancelled");
+          } else if (row.status) {
+            setStatus(STOPPED.includes(row.status) ? row.status : "pending");
           }
         }
       )
@@ -94,6 +99,56 @@ export default function FindingProviderPage({ params }: { params: { id: string }
       supabase.removeChannel(channel);
     };
   }, [params.id, router]);
+
+  const cancelBlock = (
+    <>
+      {cancelError && <p className="mt-4 text-center text-ds-sm font-semibold text-danger">{cancelError}</p>}
+      <Button variant="secondary" block className="mt-3" onClick={cancelRequest} disabled={cancelling}>
+        {cancelling ? "Cancelling…" : "Cancel and get a refund"}
+      </Button>
+    </>
+  );
+
+  if (status === "provider_declined") {
+    return (
+      <div className="mx-auto max-w-md">
+        <TopBar title="Request sent" hideBack className="-mx-5 -mt-2 md:mx-0" />
+        <div className="px-5 py-8 text-center">
+          <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-ds bg-pending-bg text-pending">
+            <UserX size={28} aria-hidden />
+          </span>
+          <h1 className="text-ds-xl font-bold text-navy">Your provider isn&apos;t available</h1>
+          <p className="mt-2.5 text-ds-sm text-muted">
+            The provider you chose wasn&apos;t able to accept this visit. Choose someone else, let us find the nearest
+            available provider, or cancel for a full refund.
+          </p>
+          <div className="mt-5 flex justify-center">
+            <ProviderDeclinedActions bookingId={params.id} />
+          </div>
+          {cancelBlock}
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "expired") {
+    return (
+      <div className="mx-auto max-w-md">
+        <TopBar title="Request sent" hideBack className="-mx-5 -mt-2 md:mx-0" />
+        <div className="px-5 py-8 text-center">
+          <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-ds bg-pending-bg text-pending">
+            <SearchX size={28} aria-hidden />
+          </span>
+          <h1 className="text-ds-xl font-bold text-navy">No providers available</h1>
+          <p className="mt-2.5 text-ds-sm text-muted">
+            No provider near you could take this visit in time. Cancel for a full refund and try again in a little while.
+          </p>
+          {cancelBlock}
+          <Button variant="ghost" block className="mt-2" onClick={() => router.push("/dashboard")}>Back to home</Button>
+        </div>
+      </div>
+    );
+  }
 
   if (status === "cancelled") {
     return (
