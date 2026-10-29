@@ -28,7 +28,7 @@ export default function Navbar({ userName, userId, photoUrl = null }: { userName
   return (
     <>
       {/* While a menu is open the header (and so its menus) rises above
-          everything, including the home hero's portrait (z-40) */}
+          the page content */}
       <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur has-[[aria-expanded=true]]:z-50">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5">
           <Link href="/dashboard" className={cx("flex shrink-0 items-center rounded-ds-sm", focusRing)}>
