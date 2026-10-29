@@ -1,6 +1,8 @@
 import { Mail } from "lucide-react";
 import ChangePasswordForm from "./ChangePasswordForm";
 import FacilityDetailsForm from "./FacilityDetailsForm";
+import PhotoUpload from "@/components/PhotoUpload";
+import { createAdminSupabase } from "@/lib/supabase-server";
 import FacilityAgreementRecord from "@/components/legal/FacilityAgreementRecord";
 import { getFacilityAgreementRecord } from "@/lib/facility-agreement-server";
 import { requirePortalAccess } from "./access";
@@ -37,6 +39,7 @@ export default async function AccountPage({ type }: { type: PortalType }) {
   const p = access.partner;
   const specialties: string[] = Array.isArray(p?.specialties) ? p!.specialties : [];
   const agreement = access.isAdmin ? null : await getFacilityAgreementRecord(access.user.id);
+  const { data: me } = await createAdminSupabase().from("users").select("photo_url").eq("id", access.user.id).maybeSingle();
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -49,6 +52,16 @@ export default async function AccountPage({ type }: { type: PortalType }) {
           actions={p ? <StatusBadge tone={p.active === false ? "amber" : "green"}>{p.active === false ? "Paused" : "Active"}</StatusBadge> : undefined}
         />
         <div className="p-5">
+          {p && !access.isAdmin && (
+            <PhotoUpload
+              name={p.name ?? cfg.facilityNoun}
+              src={p.logo_url ?? null}
+              endpoint={`/api/facility/logo?type=${type}`}
+              size="md"
+              label="logo"
+              className="mb-5 border-b border-line pb-5"
+            />
+          )}
           {p ? (
             <>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
@@ -115,7 +128,8 @@ export default async function AccountPage({ type }: { type: PortalType }) {
 
       <Card>
         <CardHeader title="Sign-in details" />
-        <div className="p-5">
+        <div className="space-y-5 p-5">
+          <PhotoUpload name={access.user.name ?? access.user.email ?? "You"} src={me?.photo_url ?? null} endpoint="/api/account/photo" size="md" />
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <DetailRow label="Name" value={access.user.name} />
             <DetailRow label="Email" value={access.user.email} />

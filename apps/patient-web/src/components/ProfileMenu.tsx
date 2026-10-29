@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { User, LogOut, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
-export default function ProfileMenu({ userName }: { userName: string }) {
+export default function ProfileMenu({ userName, photoUrl = null }: { userName: string; photoUrl?: string | null }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -34,9 +34,14 @@ export default function ProfileMenu({ userName }: { userName: string }) {
         aria-label="Account menu"
         className="flex items-center gap-1 rounded-full hover:bg-page transition-colors p-1 pr-1.5 sm:pr-2"
       >
-        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-white shrink-0">
-          {userName.charAt(0).toUpperCase()}
-        </div>
+        {photoUrl
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img src={photoUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+          : (
+            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-white shrink-0">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+          )}
         <ChevronDown size={14} className={`hidden sm:block text-muted transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 

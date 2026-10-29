@@ -11,7 +11,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile, error: profileErr } = await supabase
     .from("users")
-    .select("name")
+    .select("name, photo_url")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -39,7 +39,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen flex flex-col bg-page">
-      <Navbar userName={firstName} userId={user.id} />
+      <Navbar userName={firstName} userId={user.id} photoUrl={profile?.photo_url ?? null} />
       <main className="flex-1 max-w-6xl mx-auto w-full px-5 pt-5 pb-28 md:pt-8 md:pb-10">
         {needsPolicyReview && <PolicyUpdateBanner firstTime={neverAccepted} />}
         {children}

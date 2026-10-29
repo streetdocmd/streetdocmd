@@ -60,17 +60,17 @@ export default async function SearchPage({ searchParams }: { searchParams: { seg
     ...((pharmaciesRes.data ?? []) as any[]).map(f => ({
       id: f.id, type: "pharmacy" as const, name: f.name, area: f.address ?? null,
       note: f.delivery_eta_minutes ? `Delivery in about ${f.delivery_eta_minutes} min` : "Home delivery",
-      href: "/dashboard/book/medication", rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0,
+      href: "/dashboard/book/medication", rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0, logo_url: f.logo_url ?? null,
     })),
     ...((labsRes.data ?? []) as any[]).map(f => ({
       id: f.id, type: "lab" as const, name: f.name, area: f.address ?? null,
       note: "Home sample collection", href: "/dashboard/book/lab-investigations",
-      rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0,
+      rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0, logo_url: f.logo_url ?? null,
     })),
     ...((hospitalsRes.data ?? []) as any[]).map(f => ({
       id: f.id, type: "hospital" as const, name: f.name, area: f.address ?? null,
       note: f.emergency_available ? "Emergency care" : "Referrals", href: `/dashboard/hospitals/${f.id}`,
-      rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0,
+      rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0, logo_url: f.logo_url ?? null,
     })),
   ].sort((a, b) => b.rating - a.rating || b.reviews - a.reviews);
 

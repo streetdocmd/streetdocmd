@@ -28,6 +28,7 @@ export interface FacilityResult {
   href: string;
   rating: number;
   reviews: number;
+  logo_url: string | null;
 }
 
 // Star average with the number of reviews behind it, so a 5.0 from one
@@ -135,7 +136,7 @@ export default function SearchClient({ providers, facilities, initialSeg, initia
           ))
         : shownFacilities.map(f => (
             <Link key={`${f.type}-${f.id}`} href={f.href} className={cardClass}>
-              <Avatar name={f.name} tint={TINT[f.type]} />
+              <Avatar name={f.name} src={f.logo_url} tint={TINT[f.type]} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-ds-control font-extrabold text-navy">{f.name}</span>
                 <span className="mt-0.5 block truncate text-[13px] text-muted">{[TYPE_LABEL[f.type], f.area].filter(Boolean).join(" · ")}</span>

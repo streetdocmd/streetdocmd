@@ -16,11 +16,13 @@ interface CatalogueItem {
   price: number;
   stock: "in" | "low" | "out";
   stock_left: number | null;
+  image_url?: string | null;
 }
 
 interface PharmacyInfo {
   name: string;
   opening_hours: string | null;
+  logo_url?: string | null;
   delivery_eta_minutes: number | null;
   rating?: number | null;
   review_count?: number;
@@ -131,7 +133,7 @@ export default function MedicationPicker({ preselect = [] }: { preselect?: strin
         <>
           {/* Pharmacy header */}
           <div>
-            <Avatar name={pharmacyName} size="lg" tint="var(--tint-yellow)" />
+            <Avatar name={pharmacyName} src={pharmacy?.logo_url} size="lg" tint="var(--tint-yellow)" />
             <h2 className="mt-3 text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{pharmacyName}</h2>
             <p className="mt-1 text-ds-sm text-muted">Pharmacy · Nearest to you</p>
             <VerifiedBadge className="mt-2.5">Verified partner pharmacy</VerifiedBadge>
@@ -174,6 +176,10 @@ export default function MedicationPicker({ preselect = [] }: { preselect?: strin
                 const qty = quantities[item.id] ?? 0;
                 return (
                   <div key={item.id} className="flex items-center gap-3 border-b border-line py-3.5 last:border-b-0">
+                    {item.image_url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.image_url} alt="" className="h-12 w-12 flex-none rounded-ds-sm border border-line object-cover" />
+                    )}
                     <div className="min-w-0 flex-1">
                       <b className="block truncate text-ds-sm text-ink">{item.drug_name}</b>
                       <small className="block truncate text-ds-xs text-muted">

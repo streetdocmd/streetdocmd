@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
     return {
       id: r.id, drug_name: r.drug_name, generic_name: r.generic_name, formulation: r.formulation,
       strength: r.strength, price: r.price, stock, stock_left: stock === "low" ? qty : null,
+      image_url: r.image_url ?? null,
     };
   });
 
@@ -54,6 +55,7 @@ export async function GET(req: NextRequest) {
       name: pharmacy.name,
       address: pharmacy.address ?? null,
       opening_hours: pharmacy.opening_hours ?? null,
+      logo_url: pharmacy.logo_url ?? null,
       delivery_eta_minutes: pharmacy.delivery_eta_minutes ?? null,
       rating: pharmacy.rating ?? null,
       review_count: pharmacy.review_count ?? 0,

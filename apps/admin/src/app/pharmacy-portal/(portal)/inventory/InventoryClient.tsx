@@ -1,10 +1,11 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Package, Plus, X, Upload, Search, AlertCircle, AlertTriangle } from "lucide-react";
+import { ImageIcon, Package, Plus, X, Upload, Search, AlertCircle, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { Card, EmptyState, Notice, PageHeader, Spinner, formatNaira, ui } from "@/components/portal/ui";
 import { Pill, SegmentedControl, Stepper } from "@/components/ds";
 import InventoryImport from "./InventoryImport";
+import PhotoUpload from "@/components/PhotoUpload";
 
 type StockFilter = "all" | "low" | "out";
 
@@ -309,6 +310,12 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
               return (
                 <li key={d.id} className="border-b border-line py-3.5 last:border-0">
                   <div className="flex flex-wrap items-center gap-3">
+                    <span className="grid h-12 w-12 flex-none place-items-center overflow-hidden rounded-ds-sm border border-line bg-page">
+                      {d.image_url
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={d.image_url} alt="" className="h-full w-full object-cover" />
+                        : <ImageIcon size={18} className="text-muted" aria-hidden />}
+                    </span>
                     <div className="min-w-0 flex-1">
                       <b className="block text-ds-control text-ink">{d.drug_name}{d.strength ? ` ${d.strength}` : ""}</b>
                       <small className="text-ds-xs text-muted">
@@ -336,6 +343,17 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
                     )}
                   </div>
 
+                  {editing && partnerId && (
+                    <PhotoUpload
+                      name={d.drug_name}
+                      src={d.image_url ?? null}
+                      endpoint={`/api/pharmacy-portal/products/${d.id}/image`}
+                      variant="product"
+                      label="picture"
+                      className="mt-3"
+                      onChange={url => setDrugs(prev => prev.map(x => x.id === d.id ? { ...x, image_url: url } : x))}
+                    />
+                  )}
                   {editing && (
                     <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(3,minmax(0,140px))_auto] sm:items-end">
                       <div>

@@ -32,12 +32,14 @@ export default function Navbar({
   specialty,
   profession,
   userId,
+  photoUrl = null,
 }: {
   providerName: string;
   specialty?: string;
   profession?: Profession;
   /** Shows the notification bell */
   userId?: string;
+  photoUrl?: string | null;
 }) {
   const pathname = usePathname() ?? "";
 
@@ -91,7 +93,7 @@ export default function Navbar({
               <span className="block text-ds-sm font-bold text-ink">{providerName}</span>
               {specialty && <span className="block text-ds-2xs text-muted">{specialty}</span>}
             </span>
-            <ProfileMenu userName={providerName} subtitle={specialty} showServices={hasServices} />
+            <ProfileMenu userName={providerName} subtitle={specialty} showServices={hasServices} photoUrl={photoUrl} />
           </div>
         </div>
 

@@ -12,10 +12,12 @@ export default function ProfileMenu({
   userName,
   subtitle,
   showServices = false,
+  photoUrl = null,
 }: {
   userName: string;
   subtitle?: string;
   showServices?: boolean;
+  photoUrl?: string | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -46,9 +48,14 @@ export default function ProfileMenu({
         aria-expanded={open}
         className="flex items-center gap-1 rounded-full hover:bg-page transition-colors p-1 pr-1.5 sm:pr-2"
       >
-        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-semibold text-white shrink-0">
-          {userName.charAt(0).toUpperCase() || "P"}
-        </div>
+        {photoUrl
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img src={photoUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+          : (
+            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-semibold text-white shrink-0">
+              {userName.charAt(0).toUpperCase() || "P"}
+            </div>
+          )}
         <ChevronDown size={14} className={`hidden sm:block text-muted transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 

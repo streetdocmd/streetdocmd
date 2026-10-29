@@ -22,7 +22,7 @@ function isActive(pathname: string, { href, exact }: TabItem) {
   return exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function Navbar({ userName, userId }: { userName: string; userId: string }) {
+export default function Navbar({ userName, userId, photoUrl = null }: { userName: string; userId: string; photoUrl?: string | null }) {
   const pathname = usePathname() ?? "";
 
   return (
@@ -59,7 +59,7 @@ export default function Navbar({ userName, userId }: { userName: string; userId:
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
             <ThemeButton />
             <NotificationBell userId={userId} inboxHref="/dashboard/notifications" />
-            <ProfileMenu userName={userName} />
+            <ProfileMenu userName={userName} photoUrl={photoUrl} />
           </div>
         </div>
       </header>

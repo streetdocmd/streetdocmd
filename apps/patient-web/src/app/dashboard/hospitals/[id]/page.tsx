@@ -33,7 +33,7 @@ export default async function HospitalProfilePage({ params }: { params: { id: st
     <div className="mx-auto max-w-2xl">
       <TopBar title="" backHref="/dashboard/search?seg=facilities&filter=hospital" className="-mx-5 -mt-2 md:mx-0" />
 
-      <Avatar name={h.name} size="lg" tint="var(--tint-rose)" />
+      <Avatar name={h.name} src={(h as any).logo_url} size="lg" tint="var(--tint-rose)" />
       <h1 className="mt-3 text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{h.name}</h1>
       <p className="mt-1 text-ds-sm text-muted">{["Hospital", h.address].filter(Boolean).join(" · ")}</p>
       <VerifiedBadge className="mt-2.5">Verified partner hospital</VerifiedBadge>

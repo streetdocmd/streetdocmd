@@ -9,7 +9,8 @@ import { ComingSoonItem } from "@/components/ComingSoonBadge";
 import AgreementAcceptCard from "@/components/AgreementAcceptCard";
 import SignOutButton from "@/components/SignOutButton";
 import SocialLinks from "@/components/SocialLinks";
-import { Avatar, Card, Pill, VerifiedBadge, cx, focusRing, iconButtonClass } from "@/components/ds";
+import { Card, Pill, VerifiedBadge, cx, focusRing, iconButtonClass } from "@/components/ds";
+import PhotoUpload from "@/components/PhotoUpload";
 import EditProfileForm from "./EditProfileForm";
 import AgreementLink from "./AgreementLink";
 
@@ -61,7 +62,8 @@ export default async function ProfilePage() {
       </div>
 
       <div className="pt-[18px]">
-        <Avatar name={provider.name} src={provider.photo_url} size="lg" tint="var(--teal-soft)" />
+        <PhotoUpload name={provider.name} src={provider.photo_url} endpoint="/api/profile/photo" tint="var(--teal-soft)" />
+        <p className="mt-1.5 text-ds-xs text-muted">Patients see this photo when choosing a provider. Use a clear, recent photo of your face.</p>
         <h1 className="mt-3 text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{provider.name}</h1>
         <p className="mt-1 text-ds-sm text-muted">
           {[provider.specialty, provider.specialist_field].filter(Boolean).join(" · ")}

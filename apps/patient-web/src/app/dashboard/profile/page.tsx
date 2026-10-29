@@ -5,7 +5,8 @@ import { createServerSupabase } from "@/lib/supabase-server";
 import { SUPPORT_EMAIL } from "@/lib/brand";
 import LegalDocumentLink from "@/components/LegalDocumentLink";
 import SocialLinks from "@/components/SocialLinks";
-import { Avatar, Card, cx, focusRing, iconButtonClass } from "@/components/ds";
+import { Card, cx, focusRing, iconButtonClass } from "@/components/ds";
+import PhotoUpload from "@/components/PhotoUpload";
 import { formatLegalDate, TERMS_VERSION, PRIVACY_VERSION } from "@/lib/legal-acceptance";
 import SignOutButton from "./SignOutButton";
 
@@ -37,7 +38,7 @@ export default async function ProfilePage() {
       </div>
 
       <div className="pt-[18px]">
-        <Avatar name={p.name ?? "Patient"} src={p.photo_url} size="lg" />
+        <PhotoUpload name={p.name ?? "Patient"} src={p.photo_url} endpoint="/api/profile/photo" />
         <h1 className="mt-3 text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">{p.name}</h1>
         <p className="mt-1 text-ds-sm text-muted">{[p.address, p.phone].filter(Boolean).join(" · ")}</p>
         <p className="text-ds-sm text-muted">{p.email ?? user!.email}</p>
