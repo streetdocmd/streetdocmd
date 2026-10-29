@@ -1432,6 +1432,8 @@
    Faint white overlays (bg-white/10 on a navy panel) stay white. */
 .dark .bg-white,
 .dark .hover\:bg-white:hover { background-color: rgb(var(--c-surface)); }
+.dark .bg-white\/60 { background-color: rgb(var(--c-surface) / 0.6); }
+.dark .bg-white\/70 { background-color: rgb(var(--c-surface) / 0.7); }
 .dark .bg-white\/80 { background-color: rgb(var(--c-surface) / 0.8); }
 .dark .bg-white\/90 { background-color: rgb(var(--c-surface) / 0.9); }
 .dark .bg-white\/95 { background-color: rgb(var(--c-surface) / 0.95); }

@@ -104,7 +104,7 @@ ${accentDark(darkAccent.provider)}
    Faint white overlays (bg-white/10 on a navy panel) stay white. */
 .dark .bg-white,
 .dark .hover\\:bg-white:hover { background-color: rgb(var(--c-surface)); }
-${[80, 90, 95].map((a) => `.dark .bg-white\\/${a} { background-color: rgb(var(--c-surface) / ${a / 100}); }`).join("\n")}
+${[60, 70, 80, 90, 95].map((a) => `.dark .bg-white\\/${a} { background-color: rgb(var(--c-surface) / ${a / 100}); }`).join("\n")}
 `;
 
 const componentDir = join(src, "components");

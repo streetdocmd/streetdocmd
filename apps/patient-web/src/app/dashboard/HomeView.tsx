@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   Bandage, CalendarClock, ChevronRight, FileText, FlaskConical, HeartHandshake, House, KeyRound, PenLine, Pill,
@@ -173,15 +174,28 @@ export default function HomeView({
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="pb-4">
-        <small className="text-[13px] font-semibold text-muted">{greeting(now)}</small>
-        <h1 className="mt-0.5 text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-navy">
-          {justOnboarded ? `Welcome to StreetdocMD, ${firstName}` : `${firstName}, how are you feeling?`}
-        </h1>
+      {/* Hero: greeting on the left, the doctor (with the brand blob behind)
+          on the right, standing on the search bar. Both PNGs share one canvas,
+          so stacking them keeps the blob exactly behind the doctor. */}
+      <div className="relative -mx-5 -mt-5 bg-gradient-to-b from-sky/70 to-transparent px-5 pt-5 md:-mt-8 md:mx-0 md:rounded-t-ds-lg md:px-6">
+        <div className="relative flex min-h-[196px] items-center sm:min-h-[240px]">
+          <div className="relative z-10 w-[70%] pb-4 sm:w-[60%]">
+            <p className="text-ds-md font-medium text-muted">{greeting(now)}</p>
+            <h1 className="mt-1 text-[24px] font-extrabold leading-[1.18] tracking-[-0.02em] text-navy sm:text-[32px]">
+              {justOnboarded ? `Welcome to StreetdocMD, ${firstName}` : `${firstName}, how are you feeling?`}
+            </h1>
+          </div>
+          <div aria-hidden className="pointer-events-none absolute bottom-0 right-[-18px] w-[54%] max-w-[300px] select-none sm:right-0">
+            <Image src="/splash-transparent.png" alt="" width={535} height={466} priority
+              className="absolute inset-0 h-auto w-full dark:opacity-30" />
+            <Image src="/founder-doctor-portrait-transparent.png" alt="" width={535} height={466} priority
+              className="relative h-auto w-full" />
+          </div>
+        </div>
       </div>
 
       <Link href="/dashboard/search"
-        className={cx("mb-4 flex h-[54px] items-center gap-2.5 rounded-[18px] border-[1.5px] border-line bg-surface px-4 text-muted", focusRing)}>
+        className={cx("relative z-10 mb-4 flex h-[56px] items-center gap-2.5 rounded-pill border border-line bg-surface px-5 text-muted shadow-ds", focusRing)}>
         <Search size={20} className="flex-none text-navy" aria-hidden />
         <span className="text-ds-control">Search doctors, medicines, tests</span>
       </Link>
