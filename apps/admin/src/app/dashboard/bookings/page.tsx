@@ -32,7 +32,7 @@ export default async function BookingsPage({
 
   return (
     <div>
-      <PageHeader title="Bookings" description="The 50 most recent consultation requests." />
+      <PageHeader title="Bookings" description="The 50 most recent consultation requests. Open one to see everything about it." />
 
       <div className="card">
         <nav className="flex gap-1 overflow-x-auto px-4 pt-3 border-b border-gray-100" aria-label="Booking status">
@@ -59,18 +59,19 @@ export default async function BookingsPage({
           <div className="overflow-x-auto">
             <table className="table-base">
               <thead>
-                <tr><th>ID</th><th>Service</th><th>Address</th><th>Fee</th><th>Status</th><th>Payment</th><th>Date</th></tr>
+                <tr><th>ID</th><th>Service</th><th>Address</th><th>Fee</th><th>Status</th><th>Payment</th><th>Date</th><th><span className="sr-only">Details</span></th></tr>
               </thead>
               <tbody>
                 {rows.map((b) => (
                   <tr key={b.id}>
-                    <td className="font-mono text-xs text-gray-500">{b.id.slice(0, 8)}…</td>
-                    <td className="capitalize text-gray-900 whitespace-nowrap">{String(b.service_type ?? "").replace(/_/g, " ")}</td>
+                    <td className="font-mono text-xs"><Link href={`/dashboard/bookings/${b.id}`} className="text-gray-500 hover:text-blue-brand hover:underline">{b.id.slice(0, 8)}…</Link></td>
+                    <td className="capitalize whitespace-nowrap"><Link href={`/dashboard/bookings/${b.id}`} className="text-gray-900 hover:text-blue-brand hover:underline">{String(b.service_type ?? "").replace(/_/g, " ")}</Link></td>
                     <td className="text-gray-600 max-w-xs truncate">{b.patient_address}</td>
                     <td className="text-gray-900 font-medium whitespace-nowrap">{formatNaira(Number(b.fee ?? 0))}</td>
                     <td><StatusBadge status={b.status} /></td>
                     <td>{b.payment_status ? <StatusBadge status={b.payment_status} tone={b.payment_status === "paid" || b.payment_status === "successful" ? "success" : undefined} /> : <span className="text-gray-400">—</span>}</td>
                     <td className="text-gray-500 whitespace-nowrap">{new Date(b.created_at).toLocaleDateString("en-NG")}</td>
+                    <td className="whitespace-nowrap text-right"><Link href={`/dashboard/bookings/${b.id}`} className="text-sm font-semibold text-blue-brand hover:underline">View</Link></td>
                   </tr>
                 ))}
               </tbody>
