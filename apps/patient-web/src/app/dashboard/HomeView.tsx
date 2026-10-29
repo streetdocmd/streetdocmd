@@ -178,7 +178,7 @@ export default function HomeView({
     <div className="mx-auto max-w-3xl">
       {/* Hero: greeting on the left, the doctor on the right filling the
           hero's height (see HeroPortrait), standing on the search bar */}
-      <div className="relative -mx-5 -mt-5 bg-gradient-to-b from-sky/70 to-transparent px-5 md:-mt-8 md:mx-0 md:rounded-t-ds-lg md:px-6">
+      <div className="relative -mx-5 -mt-5 overflow-hidden bg-gradient-to-b from-sky/70 to-transparent px-5 md:-mt-8 md:mx-0 md:rounded-t-ds-lg md:px-6">
         <div className="relative flex min-h-[172px] items-center sm:min-h-[250px]">
           <div className="relative z-10 w-[62%] pb-2 pt-4 sm:w-[58%]">
             <p className="text-ds-md font-medium text-muted">{greeting(now)}</p>
