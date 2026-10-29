@@ -32,6 +32,13 @@ export async function POST(req: NextRequest) {
   });
   if (error) {
     console.error("[legal/accept] record_patient_legal_acceptance failed:", error);
+    // Say why when it isn't a passing fault, so retrying isn't the only advice
+    if (error.message.includes("Patient profile not found")) {
+      return NextResponse.json({ error: "This isn't a patient account, so the patient Terms don't apply to it. Sign in with a patient account to book care." }, { status: 403 });
+    }
+    if (error.message.includes("Not signed in")) {
+      return NextResponse.json({ error: "Your session has expired. Please sign in again." }, { status: 401 });
+    }
     return NextResponse.json({ error: "We couldn't save your acceptance. Please try again." }, { status: 500 });
   }
 

@@ -9,10 +9,10 @@ const LABEL: Record<Theme, string> = { system: "System theme", light: "Light the
 
 // Header button: each tap moves System → Light → Dark (see ThemeScript)
 export default function ThemeButton({ className }: { className?: string }) {
-  const [theme, setTheme] = useState<Theme>("system");
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    const read = () => { try { setTheme((localStorage.getItem("sdmd-theme") as Theme) || "system"); } catch {} };
+    const read = () => { try { setTheme((localStorage.getItem("sdmd-theme") as Theme) || "light"); } catch {} };
     read();
     window.addEventListener("sdmd-theme", read);
     return () => window.removeEventListener("sdmd-theme", read);

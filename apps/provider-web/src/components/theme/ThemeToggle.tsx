@@ -12,10 +12,10 @@ const OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
 
 // System, light or dark, saved on this device (see ThemeScript)
 export default function ThemeToggle({ className }: { className?: string }) {
-  const [theme, setTheme] = useState<Theme>("system");
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    try { setTheme((localStorage.getItem("sdmd-theme") as Theme) || "system"); } catch {}
+    try { setTheme((localStorage.getItem("sdmd-theme") as Theme) || "light"); } catch {}
   }, []);
 
   function choose(t: Theme) {

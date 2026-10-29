@@ -11,12 +11,9 @@ export const metadata: Metadata = {
   description: "StreetdocMD Operations Dashboard",
 };
 
-// Browser bar colour for each theme
+// Browser bar colour: the app opens in light mode unless the user picks otherwise
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
-    { media: "(prefers-color-scheme: dark)", color: "#121B2B" },
-  ],
+  themeColor: "#FFFFFF",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

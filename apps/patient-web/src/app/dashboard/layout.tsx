@@ -11,7 +11,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile, error: profileErr } = await supabase
     .from("users")
-    .select("name, photo_url")
+    .select("name, photo_url, role")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -34,7 +34,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         .maybeSingle()
     : { data: null, error: null };
   if (legalErr) console.error("[dashboard] legal acceptance lookup failed:", legalErr);
-  const needsPolicyReview = !legalErr && needsLegalAcceptance(legal);
+  // The patient Terms only apply to patient accounts; staff and provider
+  // accounts opening the patient app can't (and needn't) accept them
+  const needsPolicyReview = !legalErr && profile?.role === "patient" && needsLegalAcceptance(legal);
   const neverAccepted = !legal?.terms_accepted_at && !legal?.privacy_acknowledged_at;
 
   return (
