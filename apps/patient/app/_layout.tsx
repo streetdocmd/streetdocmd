@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { ensurePatientProfile, onProfileChanged } from "../lib/profile";
+import { registerForPush } from "../lib/push";
 
 type ProfileState = "unknown" | "present" | "missing";
 
@@ -30,6 +31,9 @@ export default function RootLayout() {
   }, []);
 
   const userId = session?.user.id;
+
+  // Register this device for push once signed in
+  useEffect(() => { if (userId) registerForPush(userId); }, [userId]);
 
   // Make sure a signed-in user has their patient profile row before they
   // reach any screen that depends on it.

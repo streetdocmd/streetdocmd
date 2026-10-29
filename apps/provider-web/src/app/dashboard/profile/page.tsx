@@ -53,7 +53,7 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="-mx-5 -mt-5 rounded-b-[32px] px-5 pb-[18px] pt-3.5 md:mx-0 md:mt-0 md:rounded-[32px]"
-        style={{ background: "linear-gradient(170deg, var(--teal-soft) 0%, #F5FBFA 100%)" }}>
+        style={{ background: "linear-gradient(170deg, var(--teal-soft) 0%, var(--bg) 100%)" }}>
         <div className="flex items-center justify-between">
           <span className="text-ds-xs font-bold text-navy">My profile</span>
           <Link href="#about" aria-label="Edit profile" className={iconButtonClass}><Settings size={18} aria-hidden /></Link>

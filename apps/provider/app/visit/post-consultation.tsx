@@ -145,23 +145,10 @@ export default function PostConsultationScreen() {
       }).eq("id", provider.id);
     }
 
-    // Notify patient
+    // The patient is notified by the bookings trigger when the visit
+    // completes (migration 065); the name is for the reminder below
     const { data: patient } = await supabase.from("users")
-      .select("push_token, name").eq("id", patientId).single();
-
-    if (patient?.push_token?.startsWith("ExponentPushToken")) {
-      fetch("https://exp.host/--/api/v2/push/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          to: patient.push_token,
-          title: "Visit Complete",
-          body: `Your home visit with Dr ${provider?.name ?? "your doctor"} is complete. View your records.`,
-          sound: "default",
-          data: { screen: "records" },
-        }),
-      }).catch(() => {});
-    }
+      .select("name").eq("id", patientId).single();
 
     // Schedule 24h follow-up reminder for provider
     try {

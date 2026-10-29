@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, LogOut, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { useSidebar } from "@/components/ui/SidebarContext";
 
 // Section + page names for the breadcrumb. Longest matching prefix wins.
@@ -39,9 +40,11 @@ function initials(name: string | null, email: string | null) {
 export default function Header({
   adminName = null,
   adminEmail = null,
+  adminId = null,
 }: {
   adminName?: string | null;
   adminEmail?: string | null;
+  adminId?: string | null;
 }) {
   const path = usePathname();
   const router = useRouter();
@@ -75,6 +78,7 @@ export default function Header({
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
+        {adminId && <NotificationBell userId={adminId} inboxHref="/dashboard/notifications" />}
         <div className="hidden md:flex flex-col items-end leading-tight">
           <span className="text-sm font-medium text-gray-900">{adminName ?? "Admin"}</span>
           {adminEmail && <span className="text-xs text-gray-400">{adminEmail}</span>}

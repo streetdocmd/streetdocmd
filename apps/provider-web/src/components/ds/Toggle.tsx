@@ -37,7 +37,7 @@ export function Toggle({ checked, onChange, label, disabled, surface = "light", 
       <span
         aria-hidden
         className={cx(
-          "absolute top-1 left-1 w-[26px] h-[26px] rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.2)] transition-transform duration-200",
+          "absolute top-1 left-1 w-[26px] h-[26px] rounded-full bg-[#fff] shadow-[0_2px_6px_rgba(0,0,0,0.2)] transition-transform duration-200",
           checked && "translate-x-6",
         )}
       />

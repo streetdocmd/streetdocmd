@@ -18,7 +18,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { seg
   const [providersRes, pharmaciesRes, labsRes, hospitalsRes] = await Promise.all([
     admin
       .from("providers")
-      .select("id, name, photo_url, specialty, specialist_field, profession, rating, total_visits, available")
+      .select("id, name, photo_url, specialty, specialist_field, profession, rating, review_count, total_visits, available")
       .eq("verification_status", "verified")
       .in("profession", Object.keys(SERVICE_BY_PROFESSION))
       .limit(200),
@@ -47,6 +47,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { seg
         role: [p.specialty, p.specialist_field].filter(Boolean).join(" · "),
         profession: p.profession,
         rating: Number(p.rating) || 0,
+        reviews: Number(p.review_count) || 0,
         visits: Number(p.total_visits) || 0,
         available: !!p.available,
         price: priceOf.get(`${p.id}:${service}`) ?? SERVICE_PRICES[service],
@@ -59,17 +60,19 @@ export default async function SearchPage({ searchParams }: { searchParams: { seg
     ...((pharmaciesRes.data ?? []) as any[]).map(f => ({
       id: f.id, type: "pharmacy" as const, name: f.name, area: f.address ?? null,
       note: f.delivery_eta_minutes ? `Delivery in about ${f.delivery_eta_minutes} min` : "Home delivery",
-      href: "/dashboard/book/medication",
+      href: "/dashboard/book/medication", rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0,
     })),
     ...((labsRes.data ?? []) as any[]).map(f => ({
       id: f.id, type: "lab" as const, name: f.name, area: f.address ?? null,
       note: "Home sample collection", href: "/dashboard/book/lab-investigations",
+      rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0,
     })),
     ...((hospitalsRes.data ?? []) as any[]).map(f => ({
       id: f.id, type: "hospital" as const, name: f.name, area: f.address ?? null,
       note: f.emergency_available ? "Emergency care" : "Referrals", href: `/dashboard/hospitals/${f.id}`,
+      rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0,
     })),
-  ];
+  ].sort((a, b) => b.rating - a.rating || b.reviews - a.reviews);
 
   return (
     <SearchClient

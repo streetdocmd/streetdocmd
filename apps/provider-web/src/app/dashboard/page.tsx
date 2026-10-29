@@ -265,7 +265,7 @@ export default async function DashboardPage({
           aria-label={`Earnings for the last 7 days: ${chart.map(c => formatNaira(c.value)).join(", ")}`}>
           {chart.map((c, i) => (
             <div key={i} className="relative flex-1 rounded-[8px_8px_4px_4px]"
-              style={{ height: `${Math.max(6, Math.round((c.value / chartMax) * 100))}%`, background: c.today ? "linear-gradient(180deg, var(--teal), var(--teal-deep))" : "#D9EEEB" }}>
+              style={{ height: `${Math.max(6, Math.round((c.value / chartMax) * 100))}%`, background: c.today ? "linear-gradient(180deg, var(--teal), var(--teal-deep))" : "var(--teal-tint)" }}>
               <small className="absolute -bottom-5 left-0 right-0 text-center text-ds-2xs font-bold text-muted">{c.label}</small>
             </div>
           ))}

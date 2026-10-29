@@ -82,7 +82,7 @@ export default function DispatchCard({ request }: { request: DispatchRequest }) 
     <div className="rounded-ds-lg border-2 border-teal-deep bg-surface p-4 shadow-[0_12px_26px_rgba(0,127,115,0.16)]">
       <div className="flex items-center justify-between">
         <Pill tone="info" icon={Bell}>New request</Pill>
-        <span className={`inline-flex items-center gap-1.5 text-ds-sm font-extrabold tabular-nums ${secs <= 30 ? "text-danger" : "text-[#C2410C]"}`}>
+        <span className={`inline-flex items-center gap-1.5 text-ds-sm font-extrabold tabular-nums ${secs <= 30 ? "text-danger" : "text-orange-700"}`}>
           <Clock size={16} aria-hidden /> {Math.floor(secs / 60)}:{String(secs % 60).padStart(2, "0")} left
         </span>
       </div>

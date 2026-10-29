@@ -8,15 +8,6 @@ const FLAGS = ["normal", "high", "low", "critical"];
 const FILE_TYPES: Record<string, string> = { "application/pdf": "pdf", "image/jpeg": "jpg", "image/png": "png" };
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // matches the lab-results bucket limit
 
-async function sendExpoPush(token: string, title: string, body: string) {
-  if (!token?.startsWith("ExponentPushToken")) return;
-  await fetch("https://exp.host/--/api/v2/push/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ to: token, title, body, sound: "default" }),
-  }).catch(() => {});
-}
-
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await getPortalApiAccess("lab");
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
@@ -98,38 +89,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .eq("id", params.id);
   if (statusErr) return NextResponse.json({ error: `Results saved, but the order status didn't update: ${statusErr.message}` }, { status: 500 });
 
-  // Push notification to patient
-  const { data: patientUser } = await admin
-    .from("users")
-    .select("push_token, name")
-    .eq("id", order.patient_id)
-    .maybeSingle();
-
-  if (patientUser?.push_token) {
-    await sendExpoPush(
-      patientUser.push_token,
-      "Your lab results are ready",
-      "Your investigation results are now available. Open the Lab Tests tab to view them."
-    );
-  }
-
-  // Push notification to provider
-  const providerUserId = (order.providers as any)?.user_id;
-  if (providerUserId) {
-    const { data: providerUser } = await admin
-      .from("users")
-      .select("push_token")
-      .eq("id", providerUserId)
-      .maybeSingle();
-
-    if (providerUser?.push_token) {
-      await sendExpoPush(
-        providerUser.push_token,
-        "Investigation results ready",
-        `Results for your patient ${patientUser?.name ?? ""} are now available.`
-      );
-    }
-  }
-
+  // The patient and the ordering provider are notified by the
+  // investigation_orders trigger (migration 065)
   return NextResponse.json({ ok: true, pdfUrl });
 }

@@ -37,6 +37,7 @@ async function loadProviders(service: ServiceType): Promise<BookableProvider[]> 
       specialty: [p.specialty, p.specialist_field].filter(Boolean).join(" · "),
       bio: (p.bio as string | null) ?? null,
       rating: Number(p.rating) || 0,
+      reviews: Number(p.review_count) || 0,
       total_visits: Number(p.total_visits) || 0,
       years_experience: Number(p.years_experience) || 0,
       available: !!p.available,

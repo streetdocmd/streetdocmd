@@ -17,7 +17,8 @@ export default function AuthShell({
       <div className={`mx-auto w-full ${maxWidth} px-5 pb-10 pt-10`}>
         <div className="mb-8 text-center">
           <Link href="/" className="inline-block">
-            <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="mx-auto h-12 w-auto" priority />
+            <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="mx-auto h-12 w-auto dark:hidden" priority />
+            <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="hidden mx-auto h-12 w-auto dark:block" priority />
           </Link>
           {subtitle && <p className="mt-2 text-ds-sm text-muted">{subtitle}</p>}
         </div>

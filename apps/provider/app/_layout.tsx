@@ -2,6 +2,7 @@ import { Slot, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { registerForPush } from "../lib/push";
 
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);
@@ -23,6 +24,10 @@ export default function RootLayout() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Register this device for push once signed in
+  const userId = session?.user.id;
+  useEffect(() => { if (userId) registerForPush(userId); }, [userId]);
 
   async function checkVerification(userId: string) {
     const { data } = await supabase

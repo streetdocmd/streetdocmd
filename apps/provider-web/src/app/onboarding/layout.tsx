@@ -9,7 +9,8 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between gap-3 px-5">
           <div className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="h-9 w-auto" priority />
+            <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="h-9 w-auto dark:hidden" priority />
+            <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="hidden h-9 w-auto dark:block" priority />
             <span className="rounded-md bg-teal-tint px-2 py-0.5 text-ds-2xs font-bold uppercase tracking-[0.04em] text-teal-deep">
               Provider
             </span>

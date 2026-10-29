@@ -142,21 +142,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         ...trackingPayload,
       });
     }
-
-    // Notify patient
-    await notifyUser(admin, order.patient_id, "Your medication is on the way! 🛵", `Rider: ${riderName} (${riderPhone})`);
   }
 
   return NextResponse.json({ ok: true });
-}
-
-async function notifyUser(admin: any, userId: string, title: string, body: string) {
-  const { data: u } = await admin.from("users").select("push_token").eq("id", userId).single();
-  const token = u?.push_token;
-  if (!token?.startsWith("ExponentPushToken")) return;
-  await fetch("https://exp.host/--/api/v2/push/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ to: token, title, body, sound: "default" }),
-  }).catch(() => {});
 }

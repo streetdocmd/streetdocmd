@@ -1,4 +1,4 @@
-// StreetdocMD design tokens, light theme only.
+// StreetdocMD design tokens, light and dark themes.
 // Source: streetdocmd-design/streetdocmd.css (plus the app-level values in
 // _source/patient/patient.css and _source/provider/provider.css).
 // This file is the single source: scripts/sync-design.mjs generates tokens.css
@@ -54,6 +54,70 @@ export const colors = {
   "pending-bg": "#E9EEF6",
 } as const;
 
+// Extra palettes the apps used before the design system (navy scale, blue
+// and teal brand shades). They follow the theme like everything else.
+export const legacy = {
+  "navy-50": "#EEF2FF", "navy-100": "#E0E7FF", "navy-600": "#1E3A8A", "navy-700": "#0D2B5E",
+  "navy-800": "#091F45", "navy-900": "#050F22",
+  "blue-brand": "#1E6FD9", "blue-light": "#EFF6FF", "blue-mid": "#BFDBFE",
+  "teal-brand": "#00B5A3", "teal-light": "#E6FAF8",
+  "green-online": "#16A34A",
+} as const;
+
+// Dark theme. Each colour has up to three roles, because the same name is
+// used as a fill and as text: `bg-navy` stays a dark navy fill while
+// `text-navy` (headings) turns light. c = backgrounds, gradients and icon
+// fills; t = text; b = borders, dividers and rings. A missing role keeps the
+// light value.
+export type DarkRoles = { c?: string; t?: string; b?: string };
+export const dark: Record<string, DarkRoles> = {
+  navy: { c: "#12305F", t: "#DCE8FA", b: "#3B5A8C" },
+  blue: { c: "#2F7DE6", t: "#7DB3FF", b: "#3F7FD8" },
+  "blue-hover": { c: "#4C8FEA", t: "#9CC5FF" },
+  sky: { c: "#132A4A", b: "#24406A" },
+  "sky-mid": { c: "#163257", b: "#24406A" },
+  "sky-deep": { c: "#1B3A63", b: "#2B4C7C" },
+  "teal-deep": { c: "#0F9A8B", t: "#4FD1C2", b: "#1F8F82" },
+  "teal-hover": { c: "#14AE9D", t: "#6FE0D3" },
+  "teal-soft": { c: "#0F2F2C", b: "#1D4A45" },
+  "teal-tint": { c: "#103531", b: "#1D4A45" },
+  ink: { c: "#070B13", t: "#E6ECF5", b: "#3A4A63" },
+  "tint-blue": { c: "#16233A" }, "tint-mint": { c: "#12302A" }, "tint-rose": { c: "#36181F" },
+  "tint-amber": { c: "#36280F" }, "tint-green": { c: "#142E1C" }, "tint-yellow": { c: "#332D10" },
+  "tint-violet": { c: "#241D3D" }, "tint-sky": { c: "#102A3A" },
+  muted: { c: "#3A4A63", t: "#9AA8BA", b: "#33435A" },
+  line: { c: "#26364D", t: "#5B6B82", b: "#26364D" },
+  bg: { c: "#0B1220", b: "#0B1220" },
+  // text-surface sits on coloured fills, so it stays white
+  surface: { c: "#121B2B", b: "#121B2B" },
+  track: { c: "#1A2537" },
+  disabled: { c: "#1E293B", b: "#1E293B" },
+  "disabled-fg": { t: "#6E7D92" },
+  success: { c: "#1D9E68", t: "#5DD39E", b: "#1F6B4B" },
+  "success-bg": { c: "#0F2A20" },
+  warn: { c: "#B87A16", t: "#F2B65A", b: "#6B4A12" },
+  "warn-bg": { c: "#33260F" },
+  danger: { c: "#D6453A", t: "#F4877C", b: "#7A2A24" },
+  "danger-bg": { c: "#3A1815" },
+  pending: { c: "#4A5A75", t: "#B6C2D4", b: "#4A5A75" },
+  "pending-bg": { c: "#1C2638" },
+  "navy-50": { c: "#14213A" }, "navy-100": { c: "#18284A" },
+  "navy-600": { t: "#9DB6E8" }, "navy-700": { t: "#C3D4F2" }, "navy-800": { t: "#DCE6F7" }, "navy-900": { t: "#EEF3FB" },
+  "blue-brand": { c: "#2F7DE6", t: "#7DB3FF" }, "blue-light": { c: "#132A4A" }, "blue-mid": { c: "#1F3E6B", b: "#2B4C7C" },
+  "teal-brand": { t: "#4FD1C2" }, "teal-light": { c: "#0F2F2C" },
+};
+
+// Tailwind palettes the apps use, each with these shades. They follow the
+// theme too (dark values are worked out in scripts/sync-design.mjs).
+export const PALETTES = [
+  "slate", "gray", "zinc", "neutral", "stone", "red", "orange", "amber", "yellow", "lime", "green",
+  "emerald", "teal", "cyan", "sky", "blue", "indigo", "violet", "purple", "fuchsia", "pink", "rose",
+] as const;
+export const SHADES = ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"] as const;
+
+// Surface the dark palettes are mixed toward
+export const darkBase = "#121B2B";
+
 export const radius = {
   sm: "10px",
   md: "16px",
@@ -91,6 +155,18 @@ export const fontSize = {
 export const accent = {
   default: { accent: colors.blue, "accent-hover": colors["blue-hover"], "accent-soft": colors.sky },
   provider: { accent: colors["teal-deep"], "accent-hover": colors["teal-hover"], "accent-soft": colors["teal-soft"] },
+} as const;
+
+// Accent in the dark theme, by role (see `dark`)
+export const darkAccent = {
+  default: { accent: { c: "#3B82F0", t: "#7DB3FF", b: "#3B82F0" }, "accent-hover": { c: "#5A97F3", t: "#9CC5FF", b: "#5A97F3" }, "accent-soft": { c: "#152A4D", t: "#7DB3FF", b: "#2A4A7C" } },
+  provider: { accent: { c: "#0F9A8B", t: "#4FD1C2", b: "#14AE9D" }, "accent-hover": { c: "#14AE9D", t: "#6FE0D3", b: "#14AE9D" }, "accent-soft": { c: "#0F2F2C", t: "#4FD1C2", b: "#1D4A45" } },
+} as const;
+
+export const darkShadow = {
+  sm: "0 1px 2px rgba(0, 0, 0, 0.4)",
+  md: "0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.45)",
+  seg: "0 2px 8px rgba(0, 0, 0, 0.5)",
 } as const;
 
 // --font-inter is set by next/font in each app's root layout

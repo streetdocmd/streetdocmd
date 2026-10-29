@@ -20,6 +20,7 @@ export interface BookableProvider {
   specialty: string;
   bio: string | null;
   rating: number;
+  reviews: number;
   total_visits: number;
   years_experience: number;
   available: boolean;
@@ -386,10 +387,12 @@ const REGULATOR: Record<string, string> = { doctor: "MDCN", nurse: "NMCN", physi
 const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
 
 function Rating({ provider }: { provider: BookableProvider }) {
-  return provider.rating > 0 ? (
-    <span className="inline-flex items-center gap-1 text-[13px] font-extrabold text-ink">
+  return provider.rating > 0 && provider.reviews > 0 ? (
+    <span className="inline-flex items-center gap-1 text-[13px] font-extrabold text-ink"
+      aria-label={`Rated ${provider.rating.toFixed(1)} out of 5 from ${provider.reviews} review${provider.reviews === 1 ? "" : "s"}`}>
       <Star size={14} className="fill-amber-500 text-amber-500" aria-hidden />
       {provider.rating.toFixed(1)}
+      <span className="font-semibold text-muted">({provider.reviews})</span>
     </span>
   ) : (
     <span className="text-[13px] font-semibold text-muted">New provider</span>
@@ -415,7 +418,7 @@ function ProviderProfile({ provider: p, regulator, serviceChargeRate, presetAt, 
   const stats = [
     [p.years_experience > 0 ? `${p.years_experience} yrs` : "New", "Experience"],
     [String(p.total_visits), "Visits"],
-    [p.rating > 0 ? p.rating.toFixed(1) : "New", "Rating"],
+    [p.rating > 0 ? p.rating.toFixed(1) : "New", p.reviews > 0 ? `${p.reviews} review${p.reviews === 1 ? "" : "s"}` : "Rating"],
   ];
   return (
     <div className="mx-auto max-w-2xl">

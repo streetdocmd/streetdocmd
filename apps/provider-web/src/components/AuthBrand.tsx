@@ -4,7 +4,8 @@ import Image from "next/image";
 export default function AuthBrand({ subtitle = "Provider Portal" }: { subtitle?: string }) {
   return (
     <div className="mb-8 text-center">
-      <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="mx-auto h-12 w-auto" priority />
+      <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="mx-auto h-12 w-auto dark:hidden" priority />
+      <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="hidden mx-auto h-12 w-auto dark:block" priority />
       <p className="mt-2 inline-block rounded-md bg-teal-tint px-2 py-0.5 text-ds-2xs font-bold uppercase tracking-[0.04em] text-teal-deep">
         {subtitle}
       </p>

@@ -3,8 +3,8 @@ import Link from "next/link";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
 import { SERVICE_LABELS, formatNaira } from "@streetdocmd/shared";
 import dynamic from "next/dynamic";
-import { ChevronRight, Lock } from "lucide-react";
-import { Avatar, Card, TopBar, cx, focusRing } from "@/components/ds";
+import { ChevronRight, Lock } from "lucide-react";
+import { Avatar, Card, TopBar, cx, focusRing } from "@/components/ds";
 import ActiveBookingClient from "./ActiveBookingClient";
 import LocationBroadcaster from "@/components/LocationBroadcaster";
 
@@ -61,9 +61,8 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
       />
 
       {/* Patient */}
-      <div className="flex items-center gap-3 rounded-ds-lg border border-[#CDEFEA] p-4"
-        style={{ background: "linear-gradient(135deg, #F0FBF9, #F5F9FE)" }}>
-        <Avatar name={patient?.name ?? "Patient"} size="sm" tint="#fff" />
+      <div className="flex items-center gap-3 rounded-ds-lg border border-teal-tint bg-gradient-to-br from-teal-soft to-sky p-4">
+        <Avatar name={patient?.name ?? "Patient"} size="sm" tint="var(--surface)" />
         <div className="min-w-0 flex-1">
           <b className="block text-ds-md text-ink">{patient?.name ?? "Patient"}</b>
           <span className="text-ds-sm text-muted">{[age != null ? `${age} years` : null, serviceLabel].filter(Boolean).join(" · ")}</span>

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import SocialLinks from "@/components/SocialLinks";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -8,6 +9,7 @@ import {
   Building2, ClipboardList, Package, Microscope, Settings, Wallet, BarChart3, Users, FileText,
   FolderLock, Bell, Plug, Menu, Star, X, ChevronDown, LogOut, Mail, type LucideIcon,
 } from "lucide-react";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { BottomTabBar } from "@/components/ds";
 import { createClient } from "@/lib/supabase";
 import { PORTALS, SUPPORT_MAILTO, type PortalType } from "./config";
@@ -156,6 +158,10 @@ function UserMenu({ type, userName, userEmail, showAccount }: { type: PortalType
             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-page">
             <Mail size={15} className="text-muted" aria-hidden /> Contact support
           </a>
+          <div className="border-t border-line px-4 py-2.5">
+            <p className="mb-1.5 text-ds-2xs font-bold uppercase tracking-[0.04em] text-muted">Appearance</p>
+            <ThemeToggle />
+          </div>
           <SocialLinks className="px-4 py-2 border-t border-line" />
           <button onClick={signOut} disabled={signingOut}
             className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 border-t border-line">
@@ -168,13 +174,15 @@ function UserMenu({ type, userName, userEmail, showAccount }: { type: PortalType
 }
 
 export default function PortalChrome({
-  type, userName, userEmail, facilityName, showNav, children,
+  type, userName, userEmail, facilityName, showNav, userId = null, children,
 }: {
   type: PortalType;
   userName: string;
   userEmail: string | null;
   facilityName: string | null;
   showNav: boolean;
+  /** Shows the notification bell once the account has portal access */
+  userId?: string | null;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -199,7 +207,8 @@ export default function PortalChrome({
               </button>
             )}
             <Link href={cfg.base} className="flex items-center shrink-0">
-              <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="h-8 w-auto" priority />
+              <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="h-8 w-auto dark:hidden" priority />
+              <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="hidden h-8 w-auto dark:block" priority />
             </Link>
             <span className="hidden sm:block w-px h-6 bg-line" aria-hidden />
             <div className="hidden sm:block min-w-0 leading-tight">
@@ -207,7 +216,10 @@ export default function PortalChrome({
               <p className="text-ds-2xs font-bold uppercase tracking-[0.04em] text-teal-deep truncate">{cfg.name}</p>
             </div>
           </div>
-          <UserMenu type={type} userName={userName} userEmail={userEmail} showAccount={showNav} />
+          <div className="flex items-center gap-1.5">
+            {userId && <NotificationBell userId={userId} inboxHref={`${cfg.base}/notifications`} />}
+            <UserMenu type={type} userName={userName} userEmail={userEmail} showAccount={showNav} />
+          </div>
         </div>
       </header>
 

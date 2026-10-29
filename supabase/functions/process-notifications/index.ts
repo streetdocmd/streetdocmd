@@ -51,6 +51,37 @@ async function sendEmail(to: string, subject: string, message: string): Promise<
   }
 }
 
+// Titles for the in-app inbox copy of each queued message (migration 065)
+const INBOX_TITLE: Record<string, string> = {
+  follow_up: "Follow up reminder",
+  follow_up_care: "Follow up recommended",
+  follow_up_reminder: "Follow up reminder",
+  preferred_provider_declined: "Provider unavailable",
+  preferred_provider_request: "New visit request",
+};
+
+// Adds the message to the recipient's inbox (notifications, inbox only:
+// this function already sends it by SMS or email)
+async function copyToInbox(row: any) {
+  const providerUserId = (row.providers as any)?.user_id ?? null;
+  const userId = row.patient_id ?? providerUserId;
+  if (!userId) return;
+  // A row that failed to send is retried; copy it to the inbox only once
+  const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true })
+    .eq("user_id", userId).contains("data", { queue_id: row.id });
+  if (count) return;
+  await supabase.from("notifications").insert({
+    data: { queue_id: row.id },
+    user_id: userId,
+    category: "visits",
+    title: INBOX_TITLE[row.type] ?? row.subject ?? "Update from StreetdocMD",
+    body: row.message,
+    link: row.patient_id ? "/dashboard/my-care" : "/dashboard",
+    app: row.patient_id ? "patient" : "provider",
+    channels: [],
+  });
+}
+
 Deno.serve(async (_req) => {
   const now = new Date().toISOString();
 
@@ -62,7 +93,7 @@ Deno.serve(async (_req) => {
     .select(`
       id, message, subject, type, channel, patient_id, provider_id,
       users!patient_id(phone, email),
-      providers!provider_id(users!user_id(email))
+      providers!provider_id(user_id, users!user_id(email))
     `)
     .eq("sent", false)
     .lte("send_at", now)
@@ -80,6 +111,7 @@ Deno.serve(async (_req) => {
 
   const results = await Promise.allSettled(
     rows.map(async (row) => {
+      await copyToInbox(row).catch(() => {});
       if (row.channel === "email") {
         const email = ((row.providers as any)?.users as any)?.email ?? (row.users as any)?.email;
         if (!RESEND_API_KEY || !email) {

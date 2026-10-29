@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { Profession } from "@streetdocmd/shared";
 import { BottomTabBar, cx, focusRing, type TabItem } from "@/components/ds";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import ProfileMenu from "./ProfileMenu";
 
 interface NavItem extends TabItem { mobile: boolean }
@@ -29,10 +30,13 @@ export default function Navbar({
   providerName,
   specialty,
   profession,
+  userId,
 }: {
   providerName: string;
   specialty?: string;
   profession?: Profession;
+  /** Shows the notification bell */
+  userId?: string;
 }) {
   const pathname = usePathname() ?? "";
 
@@ -50,7 +54,8 @@ export default function Navbar({
       <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5">
           <Link href="/dashboard" className={cx("flex shrink-0 items-center gap-2.5 rounded-ds-sm", focusRing)}>
-            <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="h-9 w-auto" priority />
+            <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="h-9 w-auto dark:hidden" priority />
+            <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="hidden h-9 w-auto dark:block" priority />
             <span className="rounded-md bg-teal-tint px-2 py-0.5 text-ds-2xs font-bold uppercase tracking-[0.04em] text-teal-deep">
               Provider
             </span>
@@ -79,6 +84,7 @@ export default function Navbar({
           </nav>
 
           <div className="flex shrink-0 items-center gap-2.5">
+            {userId && <NotificationBell userId={userId} inboxHref="/dashboard/notifications" />}
             <span className="hidden text-right leading-tight sm:block">
               <span className="block text-ds-sm font-bold text-ink">{providerName}</span>
               {specialty && <span className="block text-ds-2xs text-muted">{specialty}</span>}

@@ -40,6 +40,23 @@ export default function ReviewsClient({ reviews: initial }: { reviews: AdminRevi
   const shown = reviews.filter(r => !r.hidden);
   const avg = shown.length ? shown.reduce((a, r) => a + r.rating, 0) / shown.length : 0;
 
+  async function removeReply(r: AdminReview) {
+    if (!confirm(`Remove the reply to this review of ${r.subject}? This can't be undone.`)) return;
+    setBusy(r.id);
+    setError("");
+    const res = await fetch(`/api/reviews/${r.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: r.kind, removeReply: true }),
+    });
+    setBusy(null);
+    if (!res.ok) {
+      setError((await res.json().catch(() => ({}))).error ?? "Couldn't remove the reply.");
+      return;
+    }
+    setReviews(rs => rs.map(x => (x.id === r.id ? { ...x, reply: null } : x)));
+  }
+
   async function moderate(r: AdminReview, hidden: boolean) {
     setBusy(r.id);
     setError("");
@@ -63,7 +80,7 @@ export default function ReviewsClient({ reviews: initial }: { reviews: AdminRevi
       <div>
         <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Reviews</h1>
         <p className="mt-1 text-ds-sm text-muted">
-          Ratings from patients for providers, pharmacies, labs and hospitals. Hide a review that breaks the rules; it stops counting toward the average.
+          Ratings from patients for providers, pharmacies, labs and hospitals. Patients can't change a review once posted, and providers can't edit or remove their replies. Only admins can hide a review or remove a reply; a hidden review stops counting toward the average.
         </p>
       </div>
 
@@ -114,7 +131,13 @@ export default function ReviewsClient({ reviews: initial }: { reviews: AdminRevi
                 </div>
                 <div className="min-w-0">
                   {r.comment ? <p className="text-ds-sm text-ink/85">{r.comment}</p> : <p className="text-ds-sm text-muted">Rating only, no comment.</p>}
-                  {r.reply && <p className="mt-2 rounded-ds-sm bg-page px-3 py-2 text-ds-xs text-ink/85"><b className="text-navy">Reply:</b> {r.reply}</p>}
+                  {r.reply && (
+                    <div className="mt-2 rounded-ds-sm bg-page px-3 py-2">
+                      <p className="text-ds-xs text-ink/85"><b className="text-navy">Reply:</b> {r.reply}</p>
+                      <button type="button" disabled={busy === r.id} onClick={() => removeReply(r)}
+                        className="mt-1 text-ds-xs font-bold text-danger hover:underline disabled:opacity-50">Remove reply</button>
+                    </div>
+                  )}
                   <small className="mt-1.5 block text-ds-xs text-muted">{day(r.createdAt)}</small>
                   {r.hidden && <div className="mt-2"><Pill tone="idle">Hidden{r.hiddenReason ? `: ${r.hiddenReason}` : ""}</Pill></div>}
                   {hiding === r.id && (

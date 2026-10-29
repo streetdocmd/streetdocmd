@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import SocialLinks from "@/components/SocialLinks";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, LogOut, ChevronDown, Stethoscope, Users } from "lucide-react";
@@ -52,7 +53,7 @@ export default function ProfileMenu({
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-line overflow-hidden z-50 text-ink py-1">
+        <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-line overflow-hidden z-50 text-ink py-1">
           <div className="px-3.5 py-2 border-b border-line">
             <p className="text-sm font-semibold text-ink truncate">{userName}</p>
             {subtitle && <p className="text-xs text-muted truncate">{subtitle}</p>}
@@ -80,6 +81,10 @@ export default function ProfileMenu({
               <Stethoscope size={15} className="text-muted" /> My services
             </Link>
           )}
+          <div className="border-t border-line px-3.5 py-2.5">
+            <p className="mb-1.5 text-ds-2xs font-bold uppercase tracking-[0.04em] text-muted">Appearance</p>
+            <ThemeToggle />
+          </div>
           <SocialLinks className="px-3.5 py-2 border-t border-line" />
           <button
             onClick={signOut}

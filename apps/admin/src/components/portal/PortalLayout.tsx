@@ -133,6 +133,7 @@ export default async function PortalLayout({ type, children }: { type: PortalTyp
       userEmail={user.email}
       facilityName={facilityName ?? null}
       showNav={access.status === "ok"}
+      userId={access.status === "ok" ? user.id : null}
     >
       {body}
     </PortalChrome>

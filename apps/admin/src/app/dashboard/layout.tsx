@@ -30,7 +30,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <div className="flex h-screen bg-gray-50 overflow-hidden">
         <Sidebar counts={counts} />
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <Header adminName={name} adminEmail={user.email ?? null} />
+          <Header adminName={name} adminEmail={user.email ?? null} adminId={user.id} />
           <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8">
             <div className="max-w-7xl mx-auto">{children}</div>
           </main>

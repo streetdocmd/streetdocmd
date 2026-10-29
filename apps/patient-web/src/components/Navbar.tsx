@@ -4,7 +4,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { CalendarDays, Heart, House, Search, User } from "lucide-react";
 import { BottomTabBar, cx, focusRing, type TabItem } from "@/components/ds";
-import NotificationBell from "./NotificationBell";
+import NotificationBell from "./notifications/NotificationBell";
 import ProfileMenu from "./ProfileMenu";
 
 // One list for the desktop header links and the mobile tab bar (the design's five tabs).
@@ -29,7 +29,8 @@ export default function Navbar({ userName, userId }: { userName: string; userId:
       <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5">
           <Link href="/dashboard" className={cx("flex shrink-0 items-center rounded-ds-sm", focusRing)}>
-            <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="h-9 w-auto" priority />
+            <Image src="/logo.png" alt="StreetdocMD" width={220} height={88} className="h-9 w-auto dark:hidden" priority />
+            <Image src="/logo-white.png" alt="StreetdocMD" width={220} height={88} className="hidden h-9 w-auto dark:block" priority />
           </Link>
 
           <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
@@ -55,7 +56,7 @@ export default function Navbar({ userName, userId }: { userName: string; userId:
           </nav>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
-            <NotificationBell patientId={userId} />
+            <NotificationBell userId={userId} inboxHref="/dashboard/notifications" />
             <ProfileMenu userName={userName} />
           </div>
         </div>

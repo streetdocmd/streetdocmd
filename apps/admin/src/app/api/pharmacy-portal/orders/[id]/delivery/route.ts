@@ -63,21 +63,5 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { error: statusErr } = await admin.from("prescription_orders").update({ status: "delivered" }).eq("id", params.id);
   if (statusErr) return NextResponse.json({ error: statusErr.message }, { status: 500 });
 
-  // Notify patient
-  if (current.patient_id) {
-    await notifyUser(admin, current.patient_id, "Medication delivered!", "Your medications have been delivered. Please confirm receipt in the app.");
-  }
-
   return NextResponse.json({ ok: true, proofUrl });
-}
-
-async function notifyUser(admin: any, userId: string, title: string, body: string) {
-  const { data: u } = await admin.from("users").select("push_token").eq("id", userId).single();
-  const token = u?.push_token;
-  if (!token?.startsWith("ExponentPushToken")) return;
-  await fetch("https://exp.host/--/api/v2/push/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ to: token, title, body, sound: "default" }),
-  }).catch(() => {});
 }

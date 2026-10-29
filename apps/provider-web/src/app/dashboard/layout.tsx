@@ -30,7 +30,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen flex flex-col bg-page">
-      <Navbar providerName={displayName} specialty={provider.specialty} profession={provider.profession} />
+      <Navbar providerName={displayName} specialty={provider.specialty} profession={provider.profession} userId={user.id} />
       <main className="flex-1 max-w-6xl mx-auto w-full px-5 pt-5 pb-28 md:pt-8 md:pb-10">
         {children}
       </main>

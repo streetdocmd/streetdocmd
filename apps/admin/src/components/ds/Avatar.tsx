@@ -6,7 +6,7 @@ export type AvatarSize = "sm" | "md" | "lg";
 const sizes: Record<AvatarSize, string> = {
   sm: "w-10 h-10 rounded-[13px] text-[13px]",
   md: "w-14 h-14 rounded-[18px] text-ds-md",
-  lg: "w-[104px] h-[104px] rounded-[34px] text-[32px] border-4 border-white shadow-[0_12px_28px_rgba(13,43,94,0.18)]",
+  lg: "w-[104px] h-[104px] rounded-[34px] text-[32px] border-4 border-surface shadow-[0_12px_28px_rgba(13,43,94,0.18)]",
 };
 
 interface AvatarProps {

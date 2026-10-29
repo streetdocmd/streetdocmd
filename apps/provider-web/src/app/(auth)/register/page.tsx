@@ -35,7 +35,7 @@ export default function RegisterFork() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {ROLES.map(({ label, desc, reg, icon: Icon, href }) => {
           const className = cx(
-            "grid min-w-0 content-start gap-3 rounded-ds-lg border-[1.5px] border-line bg-surface px-3.5 py-4 text-left transition-colors hover:border-teal-deep hover:bg-[#F0FBF9]",
+            "grid min-w-0 content-start gap-3 rounded-ds-lg border-[1.5px] border-line bg-surface px-3.5 py-4 text-left transition-colors hover:border-teal-deep hover:bg-teal-soft",
             focusRing,
           );
           const body = (

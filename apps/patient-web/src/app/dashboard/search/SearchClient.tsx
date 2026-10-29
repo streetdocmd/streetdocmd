@@ -12,6 +12,7 @@ export interface ProviderResult {
   role: string;
   profession: string;
   rating: number;
+  reviews: number;
   visits: number;
   available: boolean;
   price: number;
@@ -25,6 +26,21 @@ export interface FacilityResult {
   area: string | null;
   note: string;
   href: string;
+  rating: number;
+  reviews: number;
+}
+
+// Star average with the number of reviews behind it, so a 5.0 from one
+// review isn't mistaken for a 4.8 from two hundred
+function Rating({ value, count, empty }: { value: number; count: number; empty: string }) {
+  if (!count || value <= 0) return <span className="text-[13px] font-semibold text-muted">{empty}</span>;
+  return (
+    <span className="inline-flex items-center gap-1 text-[13px] font-extrabold text-ink" aria-label={`Rated ${value.toFixed(1)} out of 5 from ${count} review${count === 1 ? "" : "s"}`}>
+      <Star size={14} className="fill-amber-500 text-amber-500" aria-hidden />
+      {value.toFixed(1)}
+      <span className="font-semibold text-muted">({count})</span>
+    </span>
+  );
 }
 
 const PROVIDER_FILTERS = [["all", "All"], ["doctor", "Doctors"], ["nurse", "Nurses"], ["physiotherapist", "Physiotherapy"]] as const;
@@ -103,9 +119,7 @@ export default function SearchClient({ providers, facilities, initialSeg, initia
                 <span className="block truncate text-ds-control font-extrabold text-navy">{p.name}</span>
                 {p.role && <span className="mt-0.5 block truncate text-[13px] text-muted">{p.role}</span>}
                 <span className="mt-1 flex items-center gap-2.5">
-                  {p.rating > 0
-                    ? <span className="inline-flex items-center gap-1 text-[13px] font-extrabold text-ink"><Star size={14} className="fill-amber-500 text-amber-500" aria-hidden />{p.rating.toFixed(1)}</span>
-                    : <span className="text-[13px] font-semibold text-muted">New provider</span>}
+                  <Rating value={p.rating} count={p.reviews} empty="New provider" />
                   {p.visits > 0 && <span className="text-ds-sm text-muted">{p.visits} visits</span>}
                 </span>
                 <VerifiedBadge className="mt-1">{REGULATOR[p.profession]} verified</VerifiedBadge>
@@ -125,6 +139,7 @@ export default function SearchClient({ providers, facilities, initialSeg, initia
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-ds-control font-extrabold text-navy">{f.name}</span>
                 <span className="mt-0.5 block truncate text-[13px] text-muted">{[TYPE_LABEL[f.type], f.area].filter(Boolean).join(" · ")}</span>
+                <span className="mt-1 block"><Rating value={f.rating} count={f.reviews} empty="No ratings yet" /></span>
                 <VerifiedBadge className="mt-1">{REGULATOR[f.type]} verified</VerifiedBadge>
                 <span className="mt-3 block"><Pill tone="teal" icon={NOTE_ICON[f.type]}>{f.note}</Pill></span>
               </span>
