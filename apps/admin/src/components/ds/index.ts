@@ -11,6 +11,7 @@ export { Chip } from "./Chip";
 export { Toggle } from "./Toggle";
 export { Stepper } from "./Stepper";
 export { Avatar, initials, type AvatarSize } from "./Avatar";
+export { DrugImage } from "./DrugImage";
 export { BottomTabBar, type TabItem } from "./BottomTabBar";
 export { TopBar, iconButtonClass } from "./TopBar";
 export { Notice, EmergencyNotice, type NoticeTone } from "./Notice";

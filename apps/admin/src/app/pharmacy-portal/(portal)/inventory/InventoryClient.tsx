@@ -1,11 +1,11 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ImageIcon, Package, Plus, X, Upload, Search, AlertCircle, AlertTriangle } from "lucide-react";
+import { Camera, Package, Plus, X, Upload, Search, AlertCircle, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { Card, EmptyState, Notice, PageHeader, Spinner, formatNaira, ui } from "@/components/portal/ui";
-import { Pill, SegmentedControl, Stepper } from "@/components/ds";
+import { DrugImage, Pill, SegmentedControl, Stepper, cx, focusRing } from "@/components/ds";
 import InventoryImport from "./InventoryImport";
-import PhotoUpload from "@/components/PhotoUpload";
+import PhotoUpload, { uploadPicture } from "@/components/PhotoUpload";
 import { SUPPORT_EMAIL } from "@/lib/brand";
 
 type StockFilter = "all" | "low" | "out";
@@ -43,6 +43,9 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
   const [saving, setSaving]           = useState(false);
   const [formError, setFormError]     = useState("");
   const [form, setForm]               = useState(BLANK_FORM);
+  // The picture chosen in the Add form, uploaded once the item exists
+  const [newPicture, setNewPicture]   = useState<{ file: File; preview: string } | null>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [editingId, setEditingId]     = useState<string | null>(null);
   const [editValues, setEditValues]   = useState<{ price: string; stock_quantity: string; low_stock_threshold: string }>({ price: "", stock_quantity: "", low_stock_threshold: "" });
   const [filter, setFilter]           = useState<StockFilter>("all");
@@ -99,7 +102,7 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
     if (!Number.isFinite(price) || price < 0) { setFormError("Enter a valid price."); return; }
     if (!Number.isInteger(stock) || stock < 0) { setFormError("Stock must be a whole number of 0 or more."); return; }
     setSaving(true);
-    const { error } = await createClient().from("drug_catalogue").insert({
+    const { data: added, error } = await createClient().from("drug_catalogue").insert({
       pharmacy_partner_id: partnerId,
       drug_name: form.drug_name.trim(),
       generic_name: form.generic_name.trim() || null,
@@ -110,12 +113,38 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
       in_stock: stock > 0,
       prescription_required: form.prescription_required,
       updated_at: new Date().toISOString(),
-    });
+    }).select("id").single();
+    if (error || !added) { setSaving(false); setFormError(`Couldn't add the drug: ${error?.message ?? "please try again."}`); return; }
+    // The item is saved either way: a failed picture shouldn't lose it
+    if (newPicture) {
+      await uploadPicture(`/api/pharmacy-portal/products/${added.id}/image`, newPicture.file)
+        .catch(() => setRowError(`${form.drug_name.trim()} was added, but its picture didn't upload. Tap its picture to try again.`));
+    }
     setSaving(false);
-    if (error) { setFormError(`Couldn't add the drug: ${error.message}`); return; }
     setForm(BLANK_FORM);
+    choosePicture(null);
     setShowForm(false);
     await loadDrugs();
+  }
+
+  function choosePicture(file: File | null) {
+    setNewPicture(prev => {
+      if (prev) URL.revokeObjectURL(prev.preview);
+      return file ? { file, preview: URL.createObjectURL(file) } : null;
+    });
+  }
+
+  // Straight from the stock list, without opening Edit
+  async function addPicture(d: any, file: File) {
+    setRowError("");
+    setUploadingId(d.id);
+    try {
+      const url = await uploadPicture(`/api/pharmacy-portal/products/${d.id}/image`, file);
+      setDrugs(prev => prev.map(x => x.id === d.id ? { ...x, image_url: url } : x));
+    } catch (e) {
+      setRowError((e as Error).message);
+    }
+    setUploadingId(null);
   }
 
   function startEdit(d: any) {
@@ -274,6 +303,21 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
               <div><label className={ui.label}>Price (₦) *</label><input className={ui.input} type="number" min="0" step="any" required value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} /></div>
               <div><label className={ui.label}>Stock quantity *</label><input className={ui.input} type="number" min="0" step="1" required value={form.stock_quantity} onChange={e => setForm(f => ({ ...f, stock_quantity: e.target.value }))} /></div>
             </div>
+            <div className="flex items-center gap-3.5">
+              <DrugImage src={newPicture?.preview} className="h-16 w-16" />
+              <div>
+                <div className="flex flex-wrap gap-x-3">
+                  <label className={cx("inline-flex cursor-pointer items-center gap-1.5 rounded text-ds-sm font-bold text-accent hover:underline", focusRing)}>
+                    <Camera size={15} aria-hidden /> {newPicture ? "Change picture" : "Add a picture"}
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
+                      onChange={e => { const f = e.target.files?.[0]; e.target.value = ""; if (f) choosePicture(f); }} />
+                  </label>
+                  {newPicture && <button type="button" onClick={() => choosePicture(null)} className="text-ds-sm font-bold text-muted hover:text-danger">Remove</button>}
+                </div>
+                <small className="mt-0.5 block text-ds-xs text-muted">Optional. Items without a picture show a placeholder.</small>
+              </div>
+            </div>
+
             <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">
               <input type="checkbox" className={ui.checkbox} checked={form.prescription_required} onChange={e => setForm(f => ({ ...f, prescription_required: e.target.checked }))} />
               Requires a prescription to dispense
@@ -330,13 +374,18 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
               return (
                 <li key={d.id} className="border-b border-line py-3.5 last:border-0">
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="grid h-12 w-12 flex-none place-items-center overflow-hidden rounded-ds-sm border border-line bg-page">
-                      {d.image_url
-                        // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={d.image_url} alt="" className="h-full w-full object-cover" />
-                        : <ImageIcon size={18} className="text-muted" aria-hidden />}
-                    </span>
-                    <div className="min-w-0 flex-1">
+                    {partnerId ? (
+                      <label className={cx("relative flex-none cursor-pointer rounded-ds-sm", focusRing)} title={d.image_url ? "Change picture" : "Add a picture"}>
+                        <DrugImage src={d.image_url} className={uploadingId === d.id ? "h-12 w-12 opacity-50" : "h-12 w-12"} />
+                        <span aria-hidden className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-accent text-white">
+                          <Camera size={11} />
+                        </span>
+                        <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={uploadingId === d.id}
+                          aria-label={`${d.image_url ? "Change" : "Add a"} picture for ${d.drug_name}`}
+                          onChange={e => { const f = e.target.files?.[0]; e.target.value = ""; if (f) addPicture(d, f); }} />
+                      </label>
+                    ) : <DrugImage src={d.image_url} />}
+                    <div className="min-w-[calc(100%-4rem)] flex-1 sm:min-w-0">
                       <b className="block text-ds-control text-ink">{d.drug_name}{d.strength ? ` ${d.strength}` : ""}</b>
                       <small className="text-ds-xs text-muted">
                         {[d.generic_name, d.formulation, formatNaira(d.price)].filter(Boolean).join(" · ")}

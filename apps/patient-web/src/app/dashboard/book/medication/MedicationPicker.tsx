@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, ShoppingCart } from "lucide-react";
-import { Avatar, Button, Card, Notice, Pill, Stepper, VerifiedBadge, cx, focusRing } from "@/components/ds";
+import { Avatar, Button, Card, DrugImage, Notice, Pill, Stepper, VerifiedBadge, cx, focusRing } from "@/components/ds";
 import { formatNaira } from "@/lib/shared";
 import LocationPicker from "@/components/LocationPicker";
 import { ratingSummary } from "@/lib/facility-reviews";
@@ -176,10 +176,7 @@ export default function MedicationPicker({ preselect = [] }: { preselect?: strin
                 const qty = quantities[item.id] ?? 0;
                 return (
                   <div key={item.id} className="flex items-center gap-3 border-b border-line py-3.5 last:border-b-0">
-                    {item.image_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.image_url} alt="" className="h-12 w-12 flex-none rounded-ds-sm border border-line object-cover" />
-                    )}
+                    <DrugImage src={item.image_url} />
                     <div className="min-w-0 flex-1">
                       <b className="block truncate text-ds-sm text-ink">{item.drug_name}</b>
                       <small className="block truncate text-ds-xs text-muted">

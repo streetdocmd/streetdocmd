@@ -1,8 +1,8 @@
 "use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, ImagePlus } from "lucide-react";
-import { Avatar, cx, focusRing, type AvatarSize, useDialog } from "@/components/ds";
+import { Camera } from "lucide-react";
+import { Avatar, DrugImage, cx, focusRing, type AvatarSize, useDialog } from "@/components/ds";
 
 // Shrinks the picture in the browser before upload, so it's quick on mobile
 // data: avatars are cropped square to 512px, product pictures fit in 900px.
@@ -23,6 +23,17 @@ async function shrink(file: File, square: boolean): Promise<Blob> {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   return new Promise((resolve, reject) => canvas.toBlob(b => (b ? resolve(b) : reject(new Error("resize"))), "image/jpeg", 0.85));
+}
+
+/** Shrinks and uploads a picture; returns its URL or throws a readable error */
+export async function uploadPicture(endpoint: string, file: File, square = false): Promise<string | null> {
+  const blob = await shrink(file, square).catch(() => file);
+  const form = new FormData();
+  form.append("file", new File([blob], "photo.jpg", { type: blob.type || "image/jpeg" }));
+  const res = await fetch(endpoint, { method: "POST", body: form });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error ?? "Couldn't upload the picture. Please try again.");
+  return json.url ?? null;
 }
 
 /**
@@ -57,14 +68,9 @@ export default function PhotoUpload({
     if (!file.type.startsWith("image/")) { setError("Choose a picture file."); return; }
     setBusy(true);
     try {
-      const blob = await shrink(file, variant === "avatar").catch(() => file);
-      const form = new FormData();
-      form.append("file", new File([blob], "photo.jpg", { type: blob.type || "image/jpeg" }));
-      const res = await fetch(endpoint, { method: "POST", body: form });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error ?? "Couldn't upload the picture. Please try again.");
-      setCurrent(json.url ?? null);
-      onChange?.(json.url ?? null);
+      const url = await uploadPicture(endpoint, file, variant === "avatar");
+      setCurrent(url);
+      onChange?.(url);
       router.refresh();
     } catch (e) {
       setError((e as Error).message);
@@ -89,12 +95,7 @@ export default function PhotoUpload({
   return (
     <div className={cx("flex items-center gap-3.5", className)}>
       {variant === "product" ? (
-        <span className="grid h-16 w-16 flex-none place-items-center overflow-hidden rounded-ds border border-line bg-page">
-          {current
-            // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={current} alt={name} className="h-full w-full object-cover" />
-            : <ImagePlus size={22} className="text-muted" aria-hidden />}
-        </span>
+        <DrugImage src={current} alt={name} className="h-16 w-16" />
       ) : (
         <Avatar name={name} src={current} size={size} tint={tint} />
       )}
