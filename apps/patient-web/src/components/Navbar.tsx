@@ -25,8 +25,9 @@ function isActive(pathname: string, { href, exact }: TabItem) {
 
 export default function Navbar({ userName, userId, photoUrl = null }: { userName: string; userId: string; photoUrl?: string | null }) {
   const pathname = usePathname() ?? "";
-  // Home: the header sits on the hero's gradient until the page scrolls,
-  // then takes its usual frosted background so content doesn't clash
+  // Home: the header sits on the hero's gradient until the page scrolls, then
+  // turns translucent. Other screens have no header on phones and tablets,
+  // where the tab bar is the navigation; on desktop it's the only menu, so it stays.
   const home = pathname === "/dashboard";
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -43,7 +44,8 @@ export default function Navbar({ userName, userId, photoUrl = null }: { userName
           the page content */}
       <header className={cx(
         "sticky top-0 z-30 border-b transition-colors duration-200 has-[[aria-expanded=true]]:z-50",
-        clear ? "border-transparent bg-transparent" : "border-line bg-surface/95 backdrop-blur",
+        !home && "hidden md:block",
+        clear ? "border-transparent bg-transparent" : "border-line/60 bg-surface/60 backdrop-blur-md",
       )}>
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5">
           <Link href="/dashboard" className={cx("flex shrink-0 items-center rounded-ds-sm", focusRing)}>

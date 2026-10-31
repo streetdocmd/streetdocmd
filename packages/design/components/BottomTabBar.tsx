@@ -40,11 +40,12 @@ export function BottomTabBar({ items, className }: BottomTabBarProps) {
             href={href}
             aria-current={active ? "page" : undefined}
             className={cx(
-              "flex flex-col items-center justify-center gap-[3px] min-h-12 rounded-ds-sm text-ds-2xs font-semibold no-underline",
+              "relative flex flex-col items-center justify-center gap-[3px] min-h-12 rounded-ds-sm text-ds-2xs font-semibold no-underline",
               active ? "text-accent" : "text-muted hover:text-navy",
               focusRing,
             )}
           >
+            {active && <span aria-hidden className="absolute -top-1.5 left-1/2 h-[3px] w-7 -translate-x-1/2 rounded-b-full bg-accent" />}
             <span className="relative">
               <Icon size={22} aria-hidden />
               {!!badge && (
