@@ -1,5 +1,7 @@
-// Patient service charge (migration 056). Patients pay the provider's fee plus
-// this charge; the rate lives in platform_settings so it can change without a deploy.
+// Patient service charge on what facilities supply: medicines and lab tests, not
+// a lab's home collection fee. Individual providers' visits don't carry it: the
+// patient pays the listed fee and StreetdocMD's 20 percent comes out of that.
+// The rate lives in platform_settings so it can change without a deploy.
 // Every amount is calculated on the server; the client only displays it.
 
 export const DEFAULT_SERVICE_CHARGE_RATE = 0.05;
@@ -18,7 +20,7 @@ export function serviceChargeFor(fee: number, rate: number): number {
   return Math.round(fee * rate);
 }
 
-/** What the patient pays for a booking row. Bookings made before migration 056 have no charge. */
+/** What the patient pays for a booking row. New bookings have no charge; ones made while it applied keep theirs. */
 export function bookingTotal(booking: { fee: number | string; service_charge?: number | string | null }): number {
   return Number(booking.fee) + Number(booking.service_charge ?? 0);
 }

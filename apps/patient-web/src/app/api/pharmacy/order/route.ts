@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
 import { nearestPartner } from "@/lib/proximity";
-
-const PLATFORM_COMMISSION_RATE = 0.08; // matches the rate already used when pharmacy staff price a provider-prescribed order
+import { getServiceChargeRate, serviceChargeFor } from "@/lib/service-charge";
 
 interface RequestedItem {
   catalogue_id: string;
@@ -73,8 +72,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const total = drugs.reduce((sum, d) => sum + d.price, 0);
-    const commission = Math.round(total * PLATFORM_COMMISSION_RATE);
+    // The pharmacy is paid the full item price; the service charge goes on top
+    const itemsTotal = drugs.reduce((sum, d) => sum + d.price, 0);
+    const serviceCharge = serviceChargeFor(itemsTotal, await getServiceChargeRate(admin));
 
     const { data: order, error } = await admin
       .from("prescription_orders")
@@ -87,8 +87,8 @@ export async function POST(req: NextRequest) {
         drugs,
         status: "pending_payment",
         payment_status: "pending",
-        total_amount: total,
-        commission_amount: commission,
+        total_amount: itemsTotal + serviceCharge,
+        commission_amount: serviceCharge,
       })
       .select("id")
       .single();

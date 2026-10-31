@@ -78,6 +78,12 @@ export default async function MedicationOrderPage({ params }: { params: { id: st
               <dd className="font-medium text-ink">{d.out_of_stock ? "Not available" : d.price > 0 ? formatNaira(d.price) : "Being priced"}</dd>
             </div>
           ))}
+          {Number(order.commission_amount ?? 0) > 0 && (
+            <div className="flex justify-between text-sm">
+              <dt className="text-muted">Service charge</dt>
+              <dd className="font-medium text-ink">{formatNaira(order.commission_amount)}</dd>
+            </div>
+          )}
         </dl>
         <div className="border-t border-line pt-3 flex justify-between">
           <span className="text-sm text-muted">Total</span>

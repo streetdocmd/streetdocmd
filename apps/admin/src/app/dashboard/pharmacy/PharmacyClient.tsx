@@ -90,7 +90,7 @@ export default function PharmacyClient({
         <Stat label="Total Orders" value={String(orders.length)} />
         <Stat label="Delivered" value={String(stats.deliveredCount)} green />
         <Stat label="Total Revenue" value={`₦${Number(stats.totalRevenue).toLocaleString()}`} />
-        <Stat label="Commission (8%)" value={`₦${Number(stats.totalCommission).toLocaleString()}`} teal />
+        <Stat label="Service charge earned" value={`₦${Number(stats.totalCommission).toLocaleString()}`} teal />
       </div>
 
       {stats.flaggedCount > 0 && (
@@ -129,7 +129,7 @@ export default function PharmacyClient({
                   <th className="pb-3 pr-4">Pharmacy</th>
                   <th className="pb-3 pr-4">Status</th>
                   <th className="pb-3 pr-4">Amount</th>
-                  <th className="pb-3 pr-4">Commission</th>
+                  <th className="pb-3 pr-4">Service charge</th>
                   <th className="pb-3">Date</th>
                 </tr>
               </thead>

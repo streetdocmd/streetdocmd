@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { getPortalApiAccess, ownsRecord } from "@/components/portal/access";
+import { getServiceChargeRate } from "@/lib/service-charge";
 
 export const dynamic = "force-dynamic";
 
@@ -90,10 +91,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!(total > 0)) {
       return NextResponse.json({ error: "Enter a price for at least one medication." }, { status: 400 });
     }
-    const commission = Math.round(total * 0.08);
+    // The pharmacy is paid the full item price; the patient's service charge goes on top
+    const serviceCharge = Math.round(total * await getServiceChargeRate(admin));
     updates.drugs           = updatedDrugs;
-    updates.total_amount    = total;
-    updates.commission_amount = commission;
+    updates.total_amount    = total + serviceCharge;
+    updates.commission_amount = serviceCharge;
   }
 
   // Dispensing is the point stock is physically pulled — the only point

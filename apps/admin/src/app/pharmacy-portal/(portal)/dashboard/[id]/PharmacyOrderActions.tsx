@@ -34,6 +34,8 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
   const status = PHARMACY_STATUS[order.status] ?? { label: order.status, tone: "gray" as const };
   const pricing = order.status === "sent";
   const draftTotal = drugs.reduce((s, _d, i) => s + (outOfStock.includes(i) ? 0 : prices[i] ?? 0), 0);
+  // What the pharmacy is paid. The patient's service charge isn't part of it.
+  const itemsTotal = Number(order.total_amount ?? 0) - Number(order.commission_amount ?? 0);
   const prescriber = order.requested_by === "patient"
     ? "Ordered directly by the patient"
     : `Dr ${order.providers?.name ?? "—"}${order.providers?.credentials ? ` (${order.providers.credentials})` : ""}`;
@@ -192,7 +194,7 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
             </ul>
             <div className="flex justify-between px-5 py-3 border-t border-line text-sm font-semibold">
               <span>Total</span>
-              <span>{formatNaira(pricing ? draftTotal : order.total_amount)}</span>
+              <span>{formatNaira(pricing ? draftTotal : itemsTotal)}</span>
             </div>
           </Card>
 
@@ -283,8 +285,8 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
                   {order.payment_status === "paid" ? "Paid" : order.payment_status === "released" ? "Released to pharmacy" : "Pending"}
                 </StatusBadge>
               </div>
-              {Number(order.total_amount) > 0 && (
-                <div className="flex justify-between"><span className="text-muted">Order total</span><span className="font-semibold">{formatNaira(order.total_amount)}</span></div>
+              {itemsTotal > 0 && (
+                <div className="flex justify-between"><span className="text-muted">Order total</span><span className="font-semibold">{formatNaira(itemsTotal)}</span></div>
               )}
             </div>
           </Card>

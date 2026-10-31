@@ -186,7 +186,8 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
           <dl className="space-y-2 text-sm">
             {[
               ["Visit fee", formatNaira(fee)],
-              ["Service charge", formatNaira(serviceCharge)],
+              // Only older bookings have one
+              ...(serviceCharge > 0 ? [["Service charge", formatNaira(serviceCharge)]] : []),
               ["Patient total", formatNaira(fee + serviceCharge)],
               ["StreetdocMD commission", b.commission != null ? formatNaira(Number(b.commission)) : null],
               ["Provider payout", b.net_payout != null ? formatNaira(Number(b.net_payout)) : null],

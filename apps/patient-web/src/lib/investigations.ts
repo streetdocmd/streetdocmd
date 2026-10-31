@@ -128,7 +128,7 @@ export async function quoteTests(
       sample_type: i.sample_type ?? null,
     }));
     const tests_total = items.reduce((a, i) => a + i.price, 0);
-    const service_charge = serviceChargeFor(tests_total + first.collection_fee, rate);
+    const service_charge = serviceChargeFor(tests_total, rate);
     return {
       lab_partner_id: first.lab_partner_id,
       lab_name: first.lab_name,

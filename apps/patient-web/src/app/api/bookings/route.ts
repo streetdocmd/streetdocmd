@@ -1,5 +1,4 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
-import { getServiceChargeRate, serviceChargeFor } from "@/lib/service-charge";
 import { createAdminSupabase, getRequestSupabase } from "@/lib/supabase-server";
 import { SERVICE_PRICES, SERVICE_PROFESSION, SERVICE_DURATION_MINUTES } from "@/lib/shared";
 import type { ServiceType, Profession } from "@/lib/shared";
@@ -204,9 +203,8 @@ export async function POST(req: NextRequest) {
       fee = Math.round(standardFee * (1 - discountRate));
     }
 
+    // The patient pays the provider's fee as listed; StreetdocMD's 20 percent comes out of it
     const commission = Math.round(fee * 0.2);
-    // Patient service charge on top of the fee (migration 056); the patient pays fee + service_charge
-    const serviceCharge = serviceChargeFor(fee, await getServiceChargeRate(admin));
 
     const row = {
       patient_id: user.id,
@@ -236,15 +234,7 @@ export async function POST(req: NextRequest) {
       // (if set) only influences dispatch ordering, it does not pin the provider.
     };
 
-    let { data: booking, error } = await admin
-      .from("bookings")
-      .insert({ ...row, service_charge: serviceCharge })
-      .select("id")
-      .single();
-    // Until migration 056 is applied the column doesn't exist: book without the charge
-    if (error && /service_charge/.test(error.message ?? "")) {
-      ({ data: booking, error } = await admin.from("bookings").insert(row).select("id").single());
-    }
+    const { data: booking, error } = await admin.from("bookings").insert(row).select("id").single();
 
     if (error || !booking) {
       return NextResponse.json({ error: error?.message ?? "Failed to create booking" }, { status: 500 });

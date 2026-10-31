@@ -13,7 +13,7 @@ export default async function PharmacyDashboard() {
   // Service-role read, always scoped to this staff member's pharmacy (admins see all)
   let q = admin
     .from("prescription_orders")
-    .select("id, status, total_amount, payment_status, requires_review, created_at, drugs, requested_by, users!patient_id(name), providers(name)")
+    .select("id, status, total_amount, commission_amount, payment_status, requires_review, created_at, drugs, requested_by, users!patient_id(name), providers(name)")
     .order("created_at", { ascending: false })
     .limit(300);
   if (access.partnerId) q = q.eq("pharmacy_partner_id", access.partnerId);
@@ -38,7 +38,8 @@ export default async function PharmacyDashboard() {
   const rows: PharmacyOrderRow[] = (orders ?? []).map((o: any) => ({
     id: o.id,
     status: o.status,
-    total_amount: Number(o.total_amount ?? 0),
+    // The item price, which is what the pharmacy is paid
+    total_amount: Number(o.total_amount ?? 0) - Number(o.commission_amount ?? 0),
     requires_review: !!o.requires_review,
     created_at: o.created_at,
     drugs: Array.isArray(o.drugs) ? o.drugs.map((d: any) => d?.drug_name).filter(Boolean) : [],

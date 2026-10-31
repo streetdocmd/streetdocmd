@@ -145,8 +145,8 @@ export default async function EarningsPage() {
       </section>
 
       <p className="mt-3.5 text-ds-xs text-muted">
-        Patients pay a 5 percent service charge on top of your fee. StreetdocMD&apos;s commission comes out of your fee, and what you
-        receive is shown on every request before you accept.
+        Patients pay the fee you set, with nothing added. StreetdocMD keeps 20 percent of it and you receive the other 80 percent,
+        which is shown on every request before you accept.
       </p>
     </div>
   );

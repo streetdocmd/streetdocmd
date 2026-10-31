@@ -43,7 +43,8 @@ versions of a test match the same order, and it grows by itself (migration 073):
 
 - **Price**: the best lab is picked before checkout: cheapest total (its listed test prices plus its home
   collection fee), then rating, then distance. Labs rated under 3 with 3 or more reviews are skipped. The
-  patient pays that plus the patient service charge (`platform_settings.patient_service_charge_rate`).
+  patient pays that plus the patient service charge (`platform_settings.patient_service_charge_rate`),
+  which is worked out on the test prices only, not the collection fee.
   A fallback lab fulfils at the price already paid; `lab_price_total` records what that lab earns.
 - **Matching**: a lab must offer every requested test (its catalogue rows are linked to StreetdocMD tests
   by `investigation_catalogue.platform_test_id`), be active, collect at home (unless the doctor took the

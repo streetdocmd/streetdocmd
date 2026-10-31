@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Search, ShoppingCart } from "lucide-react";
 import { Avatar, Button, Card, DrugImage, Notice, Pill, Stepper, VerifiedBadge, cx, focusRing } from "@/components/ds";
 import { formatNaira } from "@/lib/shared";
+import { serviceChargeFor } from "@/lib/service-charge";
 import LocationPicker from "@/components/LocationPicker";
 import { ratingSummary } from "@/lib/facility-reviews";
 
@@ -30,7 +31,7 @@ interface PharmacyInfo {
 
 // preselect: medicine names from a visit record ("Send to a pharmacy"); matching
 // catalogue items start with a quantity of 1 once the nearest pharmacy loads.
-export default function MedicationPicker({ preselect = [] }: { preselect?: string[] }) {
+export default function MedicationPicker({ preselect = [], serviceChargeRate }: { preselect?: string[]; serviceChargeRate: number }) {
   const router = useRouter();
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState("");
@@ -235,7 +236,8 @@ export default function MedicationPicker({ preselect = [] }: { preselect?: strin
                   <small className="inline-flex items-center gap-1 text-ds-2xs font-bold text-muted">
                     <ShoppingCart size={12} aria-hidden /> {selectedEntries.length} item{selectedEntries.length > 1 ? "s" : ""}
                   </small>
-                  <b className="block text-[20px] tracking-[-0.01em] text-navy tabular-nums">{formatNaira(total)}</b>
+                  <b className="block text-[20px] tracking-[-0.01em] text-navy tabular-nums">{formatNaira(total + serviceChargeFor(total, serviceChargeRate))}</b>
+                  <small className="block text-ds-2xs text-muted">Includes {formatNaira(serviceChargeFor(total, serviceChargeRate))} service charge</small>
                 </div>
                 <Button className="flex-1" onClick={placeOrder} disabled={submitting}>
                   {submitting ? "Placing order…" : "Continue order"}

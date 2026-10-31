@@ -25,7 +25,7 @@ export default async function ServicesPage() {
       <div>
         <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-navy">Rates and services</h1>
         <p className="text-sm text-muted mt-0.5">
-          Set your rate for each visit type. Patients see it when they choose you, plus a 5 percent service charge at checkout.
+          Set your rate for each visit type. Patients pay this rate with nothing added, and you receive 80 percent of it.
         </p>
       </div>
 

@@ -201,7 +201,7 @@ export default function ServicesClient({
             })}
             <div className="space-y-3 p-4">
               <p className="text-ds-xs text-muted">
-                Patients see your rate plus a 5 percent service charge. Follow up visits get the usual follow up discount.
+                Patients pay your rate with nothing added. You receive 80 percent and StreetdocMD keeps 20 percent. Follow up visits get the usual follow up discount.
               </p>
               {ratesError && <p role="alert" className="text-ds-sm font-semibold text-danger">{ratesError}</p>}
               <div className="flex flex-wrap items-center gap-3">

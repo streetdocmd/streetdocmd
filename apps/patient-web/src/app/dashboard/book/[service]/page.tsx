@@ -3,7 +3,6 @@ import { SERVICE_LABELS, SERVICE_PRICES, SERVICE_PROFESSION } from "@/lib/shared
 import type { ServiceType } from "@/lib/shared";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { weeklyHoursOf } from "@/lib/working-hours";
-import { getServiceChargeRate } from "@/lib/service-charge";
 import BookProviderClient, { type BookableProvider } from "./BookProviderClient";
 
 export const dynamic = "force-dynamic";
@@ -65,12 +64,10 @@ export default async function SelectProviderPage({
   // A follow-up continues with the same provider, so there's nobody to choose
   const isFollowUp = !!searchParams.follow_up_id;
   const providers = isFollowUp ? [] : await loadProviders(service);
-  const serviceChargeRate = await getServiceChargeRate(createAdminSupabase());
 
   return (
     <div>
       <BookProviderClient
-        serviceChargeRate={serviceChargeRate}
         openProviderId={searchParams.provider}
         title={sentenceCase(SERVICE_LABELS[service])}
         subtitle={isFollowUp
