@@ -5,7 +5,7 @@ import { Microscope, Plus, AlertCircle, AlertTriangle, Search, Truck, Upload, X 
 import { Card, EmptyState, Notice, PageHeader, Spinner, formatNaira, ui } from "@/components/portal/ui";
 import { Button, Chip, Pill, Toggle } from "@/components/ds";
 import { SUPPORT_EMAIL } from "@/lib/brand";
-import TestImport from "./TestImport";
+import TestImport, { downloadTestTemplate } from "./TestImport";
 
 export interface TestRow {
   id: string;
@@ -179,7 +179,9 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
       {loadError && <Notice tone="red" icon={AlertTriangle}>{loadError}</Notice>}
       {canEdit && (
         <p className="text-ds-sm text-muted">
-          List every test you run and keep prices current: doctors can only order tests a lab lists. Need help adding your tests? Contact{" "}
+          List every test you run and keep prices current: doctors can only order tests a lab lists.{" "}
+          <button type="button" onClick={downloadTestTemplate} className="font-bold text-accent hover:underline">Download the CSV template</button>
+          , add your prices, then use Import CSV. Need help? Contact{" "}
           <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Help adding our tests")}`} className="font-bold text-accent hover:underline">{SUPPORT_EMAIL}</a>
         </p>
       )}

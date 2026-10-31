@@ -6,11 +6,29 @@ import { formatNaira, ui } from "@/components/portal/ui";
 
 const MAX_ROWS = 2000;
 
-const TEMPLATE_CSV =
-  "test_name,price,turnaround_hours,sample_type,home_collection,test_code,preparation\r\n" +
-  "Full Blood Count,6500,24,Blood,yes,FBC,\r\n" +
-  "Fasting Blood Sugar,3000,8,Blood,yes,FBS,Fast for 8 to 10 hours before the test\r\n" +
-  "Urinalysis,2500,8,Urine,no,,\r\n";
+// The common tests, with prices left blank: a lab fills in what it offers and a
+// row without a price is skipped, so a sample price can never go live by accident.
+const TEMPLATE_CSV = [
+  "test_name,price,turnaround_hours,sample_type,home_collection,test_code,preparation",
+  "Full Blood Count,,24,Blood,yes,FBC,",
+  "Malaria Parasite Test,,8,Blood,yes,MP,",
+  "Widal Test (Typhoid),,24,Blood,yes,,",
+  "Fasting Blood Sugar,,8,Blood,yes,FBS,Fast for 8 to 10 hours before the test",
+  "Lipid Profile,,24,Blood,yes,,Fast for 9 to 12 hours before the test",
+  "Liver Function Test,,24,Blood,yes,LFT,",
+  "Kidney Function Test,,24,Blood,yes,KFT,",
+  "Thyroid Function Test,,48,Blood,yes,TFT,",
+  "Urinalysis,,8,Urine,yes,,",
+  "HIV Screening,,8,Blood,yes,,",
+  "Hepatitis B Screening,,8,Blood,yes,HBsAg,",
+].join("\r\n") + "\r\n";
+
+export function downloadTestTemplate() {
+  const url = URL.createObjectURL(new Blob([TEMPLATE_CSV], { type: "text/csv" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = "lab-tests-template.csv"; a.click();
+  URL.revokeObjectURL(url);
+}
 
 const ALIASES: Record<string, string[]> = {
   test_name: ["test_name", "test", "name", "investigation", "investigation_name", "test_or_investigation"],
@@ -62,13 +80,6 @@ export default function TestImport({ onDone }: { onDone: () => void }) {
   const [busy, setBusy] = useState<"checking" | "importing" | null>(null);
   const [result, setResult] = useState<{ added: number; updated: number; failed: number } | null>(null);
 
-  function downloadTemplate() {
-    const url = URL.createObjectURL(new Blob([TEMPLATE_CSV], { type: "text/csv" }));
-    const a = document.createElement("a");
-    a.href = url; a.download = "lab-tests-template.csv"; a.click();
-    URL.revokeObjectURL(url);
-  }
-
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -89,13 +100,15 @@ export default function TestImport({ onDone }: { onDone: () => void }) {
     const parsed: Row[] = table.slice(1).map((r, i) => {
       const get = (f: string) => (col[f] >= 0 ? (r[col[f]] ?? "").trim() : "");
       const name = get("test_name");
-      const price = parseFloat(get("price").replace(/[₦,\s]/g, ""));
+      const priceRaw = get("price");
+      const price = parseFloat(priceRaw.replace(/[₦,\s]/g, ""));
       const turnaround = hours(get("turnaround_hours"));
       const homeRaw = get("home_collection").toLowerCase();
       const home = ["yes", "y", "true", "1"].includes(homeRaw) ? true : ["no", "n", "false", "0"].includes(homeRaw) ? false : null;
 
       let error: string | null = null;
       if (!name) error = "Missing test name";
+      else if (!priceRaw) error = "No price, so skipped";
       else if (!Number.isFinite(price) || price <= 0) error = "Invalid price";
       else if (turnaround === "bad") error = "Turnaround must be in hours or days, like 24 or 2 days";
       else if (homeRaw !== "" && home === null) error = "home_collection must be yes or no";
@@ -161,7 +174,7 @@ export default function TestImport({ onDone }: { onDone: () => void }) {
           <FileUp size={16} aria-hidden /> Choose CSV file
           <input type="file" accept=".csv,text/csv" className="hidden" onChange={onFile} />
         </label>
-        <button type="button" onClick={downloadTemplate} className={`${ui.btnLink} inline-flex items-center gap-1`}>
+        <button type="button" onClick={downloadTestTemplate} className={`${ui.btnLink} inline-flex items-center gap-1`}>
           <Download size={14} aria-hidden /> Download template
         </button>
       </div>
@@ -179,7 +192,7 @@ export default function TestImport({ onDone }: { onDone: () => void }) {
           <div className="flex flex-wrap gap-2 text-xs font-medium">
             <span className="rounded-full bg-green-100 px-2.5 py-1 text-green-700">{valid.length} ready</span>
             {unanswered.length > 0 && <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">{unanswered.length} to confirm</span>}
-            {errors.length > 0 && <span className="rounded-full bg-red-100 px-2.5 py-1 text-red-700">{errors.length} with errors (skipped)</span>}
+            {errors.length > 0 && <span className="rounded-full bg-red-100 px-2.5 py-1 text-red-700">{errors.length} skipped</span>}
           </div>
 
           {unanswered.length > 0 && (
