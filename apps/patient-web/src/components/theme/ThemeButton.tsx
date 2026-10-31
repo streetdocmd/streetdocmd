@@ -1,37 +1,43 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { cx, focusRing } from "@/components/ds";
 
-type Theme = "system" | "light" | "dark";
-const NEXT: Record<Theme, Theme> = { system: "light", light: "dark", dark: "system" };
-const LABEL: Record<Theme, string> = { system: "System theme", light: "Light theme", dark: "Dark theme" };
+type Mode = "light" | "dark";
 
-// Header button: each tap moves System → Light → Dark (see ThemeScript)
+// What's showing now. System (still offered in the profile menu) follows the device.
+function currentMode(): Mode {
+  const saved = localStorage.getItem("sdmd-theme") || "light";
+  if (saved === "light" || saved === "dark") return saved;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+// Header button: each tap switches between Light and Dark (see ThemeScript)
 export default function ThemeButton({ className }: { className?: string }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [mode, setMode] = useState<Mode>("light");
 
   useEffect(() => {
-    const read = () => { try { setTheme((localStorage.getItem("sdmd-theme") as Theme) || "light"); } catch {} };
+    const read = () => { try { setMode(currentMode()); } catch {} };
     read();
     window.addEventListener("sdmd-theme", read);
     return () => window.removeEventListener("sdmd-theme", read);
   }, []);
 
-  function cycle() {
-    const next = NEXT[theme];
-    setTheme(next);
+  const next: Mode = mode === "dark" ? "light" : "dark";
+
+  function toggle() {
+    setMode(next);
     try { localStorage.setItem("sdmd-theme", next); } catch {}
     window.dispatchEvent(new Event("sdmd-theme"));
   }
 
-  const Icon = theme === "dark" ? Moon : theme === "light" ? Sun : Monitor;
+  const Icon = mode === "dark" ? Moon : Sun;
   return (
     <button
       type="button"
-      onClick={cycle}
-      aria-label={`${LABEL[theme]}. Switch to ${LABEL[NEXT[theme]].toLowerCase()}`}
-      title={`${LABEL[theme]} (tap to change)`}
+      onClick={toggle}
+      aria-label={`${mode === "dark" ? "Dark" : "Light"} theme. Switch to ${next} theme`}
+      title={`${mode === "dark" ? "Dark" : "Light"} theme (tap to change)`}
       className={cx("grid h-10 w-10 place-items-center rounded-full text-navy transition-colors hover:bg-page", focusRing, className)}
     >
       <Icon size={19} strokeWidth={2} aria-hidden />
