@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Microscope, Plus, AlertCircle, AlertTriangle, Search, Truck } from "lucide-react";
+import { Microscope, Plus, AlertCircle, AlertTriangle, Search, Truck, Upload, X } from "lucide-react";
 import { Card, EmptyState, Notice, PageHeader, Spinner, formatNaira, ui } from "@/components/portal/ui";
 import { Button, Chip, Pill, Toggle } from "@/components/ds";
 import { SUPPORT_EMAIL } from "@/lib/brand";
+import TestImport from "./TestImport";
 
 export interface TestRow {
   id: string;
@@ -65,6 +66,7 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
 }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState | null>(null);
+  const [showImport, setShowImport] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -166,7 +168,12 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
       <PageHeader
         title="Your tests and prices"
         description="Write the price and turnaround for each test or investigation you run. Doctors and patients see the tests that are switched on."
-        actions={canEdit && !form && <Button size="sm" onClick={() => openForm()}><Plus size={16} aria-hidden /> Add a test</Button>}
+        actions={canEdit && !form && <>
+          <Button size="sm" variant="secondary" onClick={() => setShowImport(s => !s)}>
+            {showImport ? <><X size={16} aria-hidden /> Close import</> : <><Upload size={16} aria-hidden /> Import CSV</>}
+          </Button>
+          <Button size="sm" onClick={() => { setShowImport(false); openForm(); }}><Plus size={16} aria-hidden /> Add a test</Button>
+        </>}
       />
 
       {loadError && <Notice tone="red" icon={AlertTriangle}>{loadError}</Notice>}
@@ -179,9 +186,11 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
       {!canEdit && <Notice tone="blue">You&apos;re viewing as a StreetdocMD admin. Each lab manages its own price list from its staff account.</Notice>}
       {canEdit && on.length === 0 && !form && (
         <Notice tone="amber" icon={AlertTriangle}>
-          Your lab has no tests switched on yet, so no one can order from you. Add the tests you offer to start receiving orders.
+          Your lab has no tests switched on yet, so no one can order from you. Import your test list from a spreadsheet, or add tests one at a time.
         </Notice>
       )}
+
+      {canEdit && showImport && !form && <TestImport onDone={() => router.refresh()} />}
 
       {canEdit && requested.length > 0 && !form && (
         <Card className="p-4">

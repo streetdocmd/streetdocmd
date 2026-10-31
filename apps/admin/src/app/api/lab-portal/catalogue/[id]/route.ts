@@ -1,24 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { getPortalApiAccess } from "@/components/portal/access";
+import { sharedTestId } from "@/lib/lab-tests";
 
 export const dynamic = "force-dynamic";
-
-// The test's name is what matches it to orders: it finds the shared test with
-// that name, or adds a new one (migration 073)
-// sameAs: the lab confirmed its test is one already on the list, under another
-// name. That name is remembered, so the next lab using it is matched directly.
-async function sharedTestId(admin: ReturnType<typeof createAdminSupabase>, name: string, sameAs?: unknown): Promise<string | null> {
-  if (typeof sameAs === "string" && sameAs) {
-    const { data: test } = await admin.from("investigation_catalogue").select("id").eq("id", sameAs).eq("scope", "platform").maybeSingle();
-    if (test) {
-      await admin.rpc("investigation_add_alias", { p_test: test.id, p_alias: name, p_source: "lab" });
-      return test.id;
-    }
-  }
-  const { data, error } = await admin.rpc("investigation_platform_test", { p_name: name });
-  return error ? null : (data as string | null);
-}
 
 // Update a test on the caller's own menu. A price change is dated (price_updated_at).
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {

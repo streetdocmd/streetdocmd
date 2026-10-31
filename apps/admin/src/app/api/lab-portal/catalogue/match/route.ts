@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { getPortalApiAccess } from "@/components/portal/access";
+import { matchTests } from "@/lib/lab-tests";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +14,5 @@ export async function GET(req: NextRequest) {
 
   const q = (req.nextUrl.searchParams.get("q") ?? "").trim().slice(0, 120);
   if (q.length < 2) return NextResponse.json({ matches: [] });
-  const { data } = await createAdminSupabase().rpc("investigation_match_tests_ranked", { p_query: q, p_limit: 5 });
-  return NextResponse.json({
-    matches: (data ?? []).map((m: any) => ({ id: m.id, test_name: m.test_name, matched: m.matched, exact: Number(m.score) >= 1 })),
-  });
+  return NextResponse.json({ matches: await matchTests(createAdminSupabase(), q) });
 }
