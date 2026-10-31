@@ -169,5 +169,6 @@ export const darkShadow = {
   seg: "0 2px 8px rgba(0, 0, 0, 0.5)",
 } as const;
 
-// --font-inter is set by next/font in each app's root layout
-export const fontStack = ["var(--font-inter)", "Inter", "system-ui", "-apple-system", '"Segoe UI"', "Roboto", "Arial", "sans-serif"];
+// Avenir is the brand font. Devices that have it (Apple) render it exactly; everyone
+// else gets Nunito Sans, the closest free match, set by next/font in each root layout
+export const fontStack = ['"Avenir"', '"Avenir Next"', "var(--font-fallback)", "system-ui", "-apple-system", '"Segoe UI"', "Roboto", "Arial", "sans-serif"];

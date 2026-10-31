@@ -1,4 +1,5 @@
 import { createAdminSupabase } from "@/lib/supabase-server";
+import { weeklyHoursOf } from "@/lib/working-hours";
 import { SERVICE_PRICES } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
 import SearchClient, { type FacilityResult, type ProviderResult } from "./SearchClient";
@@ -18,7 +19,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { seg
   const [providersRes, pharmaciesRes, labsRes, hospitalsRes] = await Promise.all([
     admin
       .from("providers")
-      .select("id, name, photo_url, specialty, specialist_field, profession, rating, review_count, total_visits, available")
+      .select("id, name, photo_url, specialty, specialist_field, profession, rating, review_count, total_visits, available, languages, weekly_hours, working_hours_start, working_hours_end")
       .eq("verification_status", "verified")
       .in("profession", Object.keys(SERVICE_BY_PROFESSION))
       .limit(200),
@@ -28,13 +29,19 @@ export default async function SearchPage({ searchParams }: { searchParams: { seg
   ]);
 
   const providerRows = (providersRes.data ?? []) as any[];
-  const { data: prices } = providerRows.length
-    ? await admin
-        .from("provider_services")
-        .select("provider_id, service_type, price")
-        .eq("active", true)
-        .in("provider_id", providerRows.map(p => p.id))
-    : { data: [] };
+  const today = new Date().toISOString().slice(0, 10);
+  const [{ data: prices }, { data: timeOff }] = providerRows.length
+    ? await Promise.all([
+        admin
+          .from("provider_services")
+          .select("provider_id, service_type, price")
+          .eq("active", true)
+          .in("provider_id", providerRows.map(p => p.id)),
+        admin.from("provider_time_off").select("provider_id, day").gte("day", today).in("provider_id", providerRows.map(p => p.id)),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const offDays = new Map<string, string[]>();
+  for (const t of (timeOff ?? []) as any[]) offDays.set(t.provider_id, [...(offDays.get(t.provider_id) ?? []), t.day]);
   const priceOf = new Map(((prices ?? []) as any[]).map(p => [`${p.provider_id}:${p.service_type}`, Number(p.price)]));
 
   const providers: ProviderResult[] = providerRows
@@ -52,6 +59,9 @@ export default async function SearchPage({ searchParams }: { searchParams: { seg
         available: !!p.available,
         price: priceOf.get(`${p.id}:${service}`) ?? SERVICE_PRICES[service],
         href: `/dashboard/book/${service}?provider=${p.id}`,
+        languages: (p.languages ?? []) as string[],
+        hours: weeklyHoursOf(p),
+        offDays: offDays.get(p.id) ?? [],
       };
     })
     .sort((a, b) => Number(b.available) - Number(a.available) || b.rating - a.rating || b.visits - a.visits);
@@ -61,16 +71,19 @@ export default async function SearchPage({ searchParams }: { searchParams: { seg
       id: f.id, type: "pharmacy" as const, name: f.name, area: f.address ?? null,
       note: f.delivery_eta_minutes ? `Delivery in about ${f.delivery_eta_minutes} min` : "Home delivery",
       href: "/dashboard/book/medication", rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0, logo_url: f.logo_url ?? null,
+      homeCollection: false, emergency: false, ambulance: false,
     })),
     ...((labsRes.data ?? []) as any[]).map(f => ({
       id: f.id, type: "lab" as const, name: f.name, area: f.address ?? null,
-      note: "Home sample collection", href: "/dashboard/book/lab-investigations",
+      note: f.home_collection_available ? "Home sample collection" : "Lab visit", href: "/dashboard/book/lab-investigations",
       rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0, logo_url: f.logo_url ?? null,
+      homeCollection: !!f.home_collection_available, emergency: false, ambulance: false,
     })),
     ...((hospitalsRes.data ?? []) as any[]).map(f => ({
       id: f.id, type: "hospital" as const, name: f.name, area: f.address ?? null,
       note: f.emergency_available ? "Emergency care" : "Referrals", href: `/dashboard/hospitals/${f.id}`,
       rating: Number(f.rating) || 0, reviews: Number(f.review_count) || 0, logo_url: f.logo_url ?? null,
+      homeCollection: false, emergency: !!f.emergency_available, ambulance: !!f.ambulance_available,
     })),
   ].sort((a, b) => b.rating - a.rating || b.reviews - a.reviews);
 

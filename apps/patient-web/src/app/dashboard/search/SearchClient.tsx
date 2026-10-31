@@ -1,35 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
-import { Building2, Clock, FlaskConical, Search, Star, Truck } from "lucide-react";
+import { Building2, Clock, FlaskConical, Search, SlidersHorizontal, Star, Truck } from "lucide-react";
 import { formatNaira } from "@/lib/shared";
-import { Avatar, Chip, Pill, SegmentedControl, VerifiedBadge, cx, focusRing } from "@/components/ds";
+import { Avatar, Button, Pill, SegmentedControl, VerifiedBadge, cx, focusRing } from "@/components/ds";
+import FilterSheet from "./FilterSheet";
+import {
+  FACILITY_TYPES, NO_FILTERS, PERSON_TYPES, countFilters, filterFacilities, filterProviders,
+  type FacilityResult, type Filters, type ProviderResult,
+} from "./filters";
 
-export interface ProviderResult {
-  id: string;
-  name: string;
-  photo_url: string | null;
-  role: string;
-  profession: string;
-  rating: number;
-  reviews: number;
-  visits: number;
-  available: boolean;
-  price: number;
-  href: string;
-}
-
-export interface FacilityResult {
-  id: string;
-  type: "pharmacy" | "lab" | "hospital";
-  name: string;
-  area: string | null;
-  note: string;
-  href: string;
-  rating: number;
-  reviews: number;
-  logo_url: string | null;
-}
+export type { FacilityResult, ProviderResult };
 
 // Star average with the number of reviews behind it, so a 5.0 from one
 // review isn't mistaken for a 4.8 from two hundred
@@ -44,8 +25,6 @@ function Rating({ value, count, empty }: { value: number; count: number; empty: 
   );
 }
 
-const PROVIDER_FILTERS = [["all", "All"], ["doctor", "Doctors"], ["nurse", "Nurses"], ["physiotherapist", "Physiotherapy"]] as const;
-const FACILITY_FILTERS = [["all", "All"], ["pharmacy", "Pharmacies"], ["lab", "Labs"], ["hospital", "Hospitals"]] as const;
 const REGULATOR: Record<string, string> = { doctor: "MDCN", nurse: "NMCN", physiotherapist: "MRTB", pharmacy: "PCN", lab: "MLSCN", hospital: "Ministry of Health" };
 const TYPE_LABEL: Record<string, string> = { pharmacy: "Pharmacy", lab: "Diagnostic lab", hospital: "Hospital" };
 const NOTE_ICON = { pharmacy: Truck, lab: FlaskConical, hospital: Building2 };
@@ -64,53 +43,83 @@ export default function SearchClient({ providers, facilities, initialSeg, initia
   initialQuery: string;
 }) {
   const [seg, setSeg] = useState<"providers" | "facilities">(initialSeg);
-  const [filter, setFilter] = useState(initialFilter);
+  const [filters, setFilters] = useState<Filters>({ ...NO_FILTERS, types: initialFilter !== "all" ? [initialFilter] : [] });
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState(initialQuery);
-  const q = query.trim().toLowerCase();
-  const filters = seg === "providers" ? PROVIDER_FILTERS : FACILITY_FILTERS;
+  const closeFilters = useCallback(() => setFiltersOpen(false), []);
 
-  const shownProviders = providers.filter(p =>
-    (filter === "all" || p.profession === filter) && (!q || `${p.name} ${p.role} ${p.profession}`.toLowerCase().includes(q)));
-  const shownFacilities = facilities.filter(f =>
-    (filter === "all" || f.type === filter) && (!q || `${f.name} ${f.area ?? ""} ${f.type}`.toLowerCase().includes(q)));
-  const empty = seg === "providers" ? shownProviders.length === 0 : shownFacilities.length === 0;
+  const shownProviders = filterProviders(providers, filters, query);
+  const shownFacilities = filterFacilities(facilities, filters, query);
+  const active = countFilters(filters);
+  const results = seg === "providers" ? shownProviders.length : shownFacilities.length;
+  const clear = () => setFilters(NO_FILTERS);
+
+  // Picking only one kind under Provider opens its tab; picking both keeps this
+  // one, and the tab labels show how many results wait on each side.
+  function applyFilters(next: Filters) {
+    setFilters(next);
+    const people = next.types.some(t => PERSON_TYPES.includes(t));
+    const places = next.types.some(t => FACILITY_TYPES.includes(t));
+    if (people !== places) setSeg(people ? "providers" : "facilities");
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="pb-3 text-center text-[17px] font-bold text-navy">Find care</h1>
 
-      <label className="flex h-[54px] items-center gap-2.5 rounded-[18px] border-[1.5px] border-line bg-surface px-4 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent-soft">
-        <Search size={20} className="flex-none text-navy" aria-hidden />
-        <input
-          className="min-w-0 flex-1 bg-transparent text-ds-control text-ink outline-none placeholder:text-muted"
-          placeholder="Name, specialty, pharmacy or lab"
-          aria-label="Search"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-        />
-      </label>
+      <div className="flex gap-2.5">
+        <label className="flex h-[54px] min-w-0 flex-1 items-center gap-2.5 rounded-[18px] border-[1.5px] border-line bg-surface px-4 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent-soft">
+          <Search size={20} className="flex-none text-navy" aria-hidden />
+          <input
+            className="min-w-0 flex-1 bg-transparent text-ds-control text-ink outline-none placeholder:text-muted"
+            placeholder="Name, specialty or facility"
+            aria-label="Search"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          aria-haspopup="dialog"
+          aria-label={active ? `Filters, ${active} on` : "Filters"}
+          className={cx(
+            "relative grid h-[54px] w-[54px] flex-none place-items-center rounded-[18px] border-[1.5px] transition-colors",
+            active ? "border-accent bg-accent-soft text-accent" : "border-line bg-surface text-navy hover:border-accent",
+            focusRing,
+          )}
+        >
+          <SlidersHorizontal size={20} aria-hidden />
+          {active > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-pill bg-accent px-1 text-[11px] font-bold text-white">{active}</span>
+          )}
+        </button>
+      </div>
 
       <SegmentedControl
         className="mt-3.5"
         label="What to search"
         value={seg}
-        onChange={v => { setSeg(v); setFilter("all"); }}
-        options={[{ value: "providers", label: "Individuals" }, { value: "facilities", label: "Facilities" }]}
+        onChange={setSeg}
+        options={[
+          { value: "providers", label: active ? `Individuals · ${shownProviders.length}` : "Individuals" },
+          { value: "facilities", label: active ? `Facilities · ${shownFacilities.length}` : "Facilities" },
+        ]}
       />
 
-      <div className="mt-3.5 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter">
-        {filters.map(([id, label]) => (
-          <Chip key={id} selected={filter === id} onClick={() => setFilter(id)}>{label}</Chip>
-        ))}
+      <div className="mb-3 mt-3 flex items-center justify-between gap-3 text-ds-xs text-muted">
+        <span aria-live="polite">
+          {results} {seg === "providers" ? (results === 1 ? "provider" : "providers") : (results === 1 ? "facility" : "facilities")}
+        </span>
+        {active > 0 && <button type="button" onClick={clear} className={cx("font-bold text-accent hover:underline rounded-sm", focusRing)}>Clear filters</button>}
       </div>
 
-      <p className="mb-3 mt-3 text-ds-xs text-muted">
-        {seg === "providers"
-          ? "Verified doctors, nurses and physiotherapists who visit you."
-          : "Pharmacies, labs and hospitals. Each shows what it stocks or offers."}
-      </p>
-
-      {empty && <p className="py-[18px] text-center text-ds-sm text-muted">Nothing matches that yet. Try another name, or clear the filter.</p>}
+      {results === 0 && (
+        <div className="py-[18px] text-center">
+          <p className="text-ds-sm text-muted">{active ? "Nothing matches these filters." : "Nothing matches that yet. Try another name."}</p>
+          {active > 0 && <Button variant="secondary" size="sm" className="mt-3" onClick={clear}>Clear filters</Button>}
+        </div>
+      )}
 
       {seg === "providers"
         ? shownProviders.map(p => (
@@ -121,7 +130,7 @@ export default function SearchClient({ providers, facilities, initialSeg, initia
                 {p.role && <span className="mt-0.5 block truncate text-[13px] text-muted">{p.role}</span>}
                 <span className="mt-1 flex items-center gap-2.5">
                   <Rating value={p.rating} count={p.reviews} empty="New provider" />
-                  {p.visits > 0 && <span className="text-ds-sm text-muted">{p.visits} visits</span>}
+                  {p.visits > 0 && <span className="text-ds-sm text-muted">{p.visits} {p.visits === 1 ? "visit" : "visits"}</span>}
                 </span>
                 <VerifiedBadge className="mt-1">{REGULATOR[p.profession]} verified</VerifiedBadge>
                 <span className="mt-3 flex items-center justify-between gap-2">
@@ -146,6 +155,10 @@ export default function SearchClient({ providers, facilities, initialSeg, initia
               </span>
             </Link>
           ))}
+
+      {filtersOpen && (
+        <FilterSheet tab={seg} providers={providers} facilities={facilities} value={filters} query={query} onApply={applyFilters} onClose={closeFilters} />
+      )}
     </div>
   );
 }

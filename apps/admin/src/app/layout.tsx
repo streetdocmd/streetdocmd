@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import ThemeScript from "@/components/theme/ThemeScript";
 import { DialogProvider } from "@/components/ds";
 
-// Inter for the design system: --font-inter feeds the Tailwind font stack and tokens.css
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+// Avenir is the brand font (see packages/design/tokens.ts). Nunito Sans, the closest
+// free match, is the fallback for devices without it: --font-fallback feeds the stack.
+const nunito = Nunito_Sans({ subsets: ["latin"], variable: "--font-fallback", display: "swap" });
 
 export const metadata: Metadata = {
   title: "StreetdocMD Admin",
@@ -19,11 +20,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={nunito.variable} suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>
-      <body className={inter.className}>
+      <body>
         <DialogProvider>{children}</DialogProvider>
       </body>
     </html>
