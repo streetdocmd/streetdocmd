@@ -81,14 +81,8 @@ export default function Navbar({ userName, userId, photoUrl = null }: { userName
         </div>
       </header>
 
-      {/* Mobile tab bar: no solid fill; the page's blue wash and the curves
-          show behind it, fading up so content beneath stays out of the way */}
-      <div className="fixed inset-x-0 bottom-0 z-30 md:hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-8 bottom-0 bg-[linear-gradient(to_top,#E6F0FF_0%,#EEF5FF_76%,transparent_100%)] dark:bg-[linear-gradient(to_top,rgb(var(--c-page))_0%,rgb(var(--c-page))_76%,transparent_100%)]" />
-        <img aria-hidden src="/images/home-curves-bottom.svg" alt=""
-          className="pointer-events-none absolute bottom-0 right-0 h-full w-auto max-w-[70%] dark:opacity-25" />
-        <BottomTabBar items={NAV} className="relative !border-t-0 !bg-transparent" />
-      </div>
+      {/* Mobile tab bar */}
+      <BottomTabBar items={NAV} className="fixed inset-x-0 bottom-0 z-30 md:hidden" />
     </>
   );
 }
