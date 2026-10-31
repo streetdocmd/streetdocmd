@@ -1,5 +1,10 @@
 import { getPractitionerType, PROVIDER_AGREEMENT_VERSION } from "@streetdocmd/shared";
 
+/** The portal a facility staff account belongs in, if it is one */
+export function partnerPortal(role: string | null | undefined): string | null {
+  return ({ lab_staff: "/lab-portal", pharmacy_staff: "/pharmacy-portal", hospital_staff: "/hospital-portal" } as Record<string, string>)[role ?? ""] ?? null;
+}
+
 export const DOC_LABELS: Record<string, string> = {
   certificate: "University / Degree Certificate",
   mdcn_licence: "MDCN Practising Licence",

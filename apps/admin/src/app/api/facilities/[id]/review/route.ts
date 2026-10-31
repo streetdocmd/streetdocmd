@@ -13,9 +13,9 @@ const STAFF_TABLE: Record<string, { table: string; fk: string }> = {
   hospital: { table: "hospital_staff", fk: "hospital_partner_id" },
 };
 const PORTAL_URLS: Record<string, string> = {
-  lab:      "https://admin.streetdocmd.com/lab-portal/login",
-  pharmacy: "https://admin.streetdocmd.com/pharmacy-portal/login",
-  hospital: "https://admin.streetdocmd.com/hospital-portal/login",
+  lab:      "https://provider.streetdocmd.com/lab-portal/login",
+  pharmacy: "https://provider.streetdocmd.com/pharmacy-portal/login",
+  hospital: "https://provider.streetdocmd.com/hospital-portal/login",
 };
 // A login that already belongs to one of these roles must never be silently
 // converted into facility staff (it would lock them out of their own app).

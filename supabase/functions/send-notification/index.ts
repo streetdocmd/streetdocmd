@@ -19,9 +19,9 @@ const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:contact@streetdoc
 const APP_URLS: Record<string, string> = {
   patient: Deno.env.get("PATIENT_APP_URL") ?? "https://app.streetdocmd.com",
   provider: Deno.env.get("PROVIDER_APP_URL") ?? "https://provider.streetdocmd.com",
-  pharmacy: Deno.env.get("ADMIN_APP_URL") ?? "https://admin.streetdocmd.com",
-  lab: Deno.env.get("ADMIN_APP_URL") ?? "https://admin.streetdocmd.com",
-  hospital: Deno.env.get("ADMIN_APP_URL") ?? "https://admin.streetdocmd.com",
+  pharmacy: Deno.env.get("PROVIDER_APP_URL") ?? "https://provider.streetdocmd.com",
+  lab: Deno.env.get("PROVIDER_APP_URL") ?? "https://provider.streetdocmd.com",
+  hospital: Deno.env.get("PROVIDER_APP_URL") ?? "https://provider.streetdocmd.com",
   admin: Deno.env.get("ADMIN_APP_URL") ?? "https://admin.streetdocmd.com",
 };
 

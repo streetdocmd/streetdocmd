@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import PasswordInput from "@/components/PasswordInput";
 import AuthBrand from "@/components/AuthBrand";
+import { partnerPortal } from "@/lib/onboarding";
 
 const ADMIN_LOGIN_URL = "https://admin.streetdocmd.com/login";
 
@@ -13,9 +14,6 @@ const ADMIN_LOGIN_URL = "https://admin.streetdocmd.com/login";
 function notAProviderMessage(role: string | null): { text: string; portal?: boolean } {
   if (role === "admin") {
     return { text: "This is a StreetdocMD admin account, not a provider account. Sign in to the admin console instead.", portal: true };
-  }
-  if (role === "pharmacy_staff" || role === "lab_staff" || role === "hospital_staff") {
-    return { text: "This is a pharmacy, lab or hospital account. Sign in to your partner portal instead.", portal: true };
   }
   if (role === "patient") {
     return { text: "This email has a patient account, but it isn't registered as a provider. To offer care, apply to join below with the same email and password." };
@@ -55,6 +53,9 @@ export default function LoginPage() {
     if (!provider) {
       const { data: profile } = await supabase
         .from("users").select("role").eq("id", data.user.id).maybeSingle();
+      // Facility staff sign in here too. A full page load: the portals are another app.
+      const portal = partnerPortal(profile?.role);
+      if (portal) { window.location.assign(portal); return; }
       await supabase.auth.signOut();
       const message = notAProviderMessage(profile?.role ?? null);
       setError(message.text);

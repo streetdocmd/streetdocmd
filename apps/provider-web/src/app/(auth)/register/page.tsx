@@ -3,7 +3,7 @@ import { Activity, Building2, FlaskConical, HeartPulse, Pill, Stethoscope, type 
 import AuthBrand from "@/components/AuthBrand";
 import { cx, focusRing } from "@/components/ds";
 
-const FACILITY_REGISTRATION_URL = "https://admin.streetdocmd.com/register/facility";
+const FACILITY_REGISTRATION_URL = "/register/facility";
 
 type Role = { label: string; desc: string; reg: string; icon: LucideIcon; href: string };
 
@@ -51,7 +51,8 @@ function RoleGroup({ title, description, roles, className }: {
               <span className="justify-self-start rounded-pill bg-teal-tint px-2.5 py-[5px] text-ds-xs font-bold text-teal-deep">{reg}</span>
             </>
           );
-          return href.startsWith("http")
+          // Facility registration is served by the admin app, so it's a full page load
+          return href.startsWith(FACILITY_REGISTRATION_URL)
             ? <a key={label} href={href} className={className}>{body}</a>
             : <Link key={label} href={href} className={className}>{body}</Link>;
         })}

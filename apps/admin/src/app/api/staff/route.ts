@@ -17,9 +17,9 @@ const STAFF: Record<string, { table: string; fk: string }> = {
   hospital: { table: "hospital_staff", fk: "hospital_partner_id" },
 };
 const PORTAL_URLS: Record<string, string> = {
-  lab:      "https://admin.streetdocmd.com/lab-portal/login",
-  pharmacy: "https://admin.streetdocmd.com/pharmacy-portal/login",
-  hospital: "https://admin.streetdocmd.com/hospital-portal/login",
+  lab:      "https://provider.streetdocmd.com/lab-portal/login",
+  pharmacy: "https://provider.streetdocmd.com/pharmacy-portal/login",
+  hospital: "https://provider.streetdocmd.com/hospital-portal/login",
 };
 
 export async function POST(req: NextRequest) {
