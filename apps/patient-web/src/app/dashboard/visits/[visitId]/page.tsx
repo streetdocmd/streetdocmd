@@ -57,6 +57,12 @@ export default async function VisitSummaryPage({ params }: { params: { visitId: 
             : { data: null })
       : Promise.resolve({ data: null }),
   ]);
+  // The prescription from this visit, which the patient reviews before a pharmacy sees it
+  const { data: rx } = bookingId
+    ? await admin.from("prescriptions").select("id").eq("booking_id", bookingId).eq("patient_id", user.id)
+        .order("created_at", { ascending: false }).limit(1).maybeSingle()
+    : { data: null };
+  const rxRes = { data: rx };
 
   const booking = bookingRes.data as any;
   const provider = booking?.providers ?? null;
@@ -83,6 +89,7 @@ export default async function VisitSummaryPage({ params }: { params: { visitId: 
     })),
     myRating: (reviewRes.data as any)?.rating ?? null,
     prescriptionOrderId: (orderRes.data as any)?.id ?? null,
+    prescriptionId: (rxRes.data as any)?.id ?? null,
     followUpHref: provider?.referral_code
       ? `/dashboard/book/preferred-provider?code=${encodeURIComponent(provider.referral_code)}`
       : booking?.service_type

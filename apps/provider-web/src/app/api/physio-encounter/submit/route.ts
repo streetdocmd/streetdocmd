@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     .eq("id", encounterId);
 
   if (encounterError) return NextResponse.json({ error: encounterError.message }, { status: 500 });
+  await admin.from("physiotherapy_encounters").update({ draft_state: null }).eq("id", encounterId);
 
   // Complete the booking and credit the provider's wallet — same idempotent
   // pattern as the doctor's clinical-note/submit route.

@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 // (pending_payment -> confirmed is set by the payment webhook, not staff.)
 const ALLOWED_FROM: Record<string, string> = {
   pending_payment: "sent",
+  cancelled: "sent", // can't supply anything on the prescription
   dispensing: "confirmed",
   dispatched: "dispensing",
   delivered: "dispatched",
@@ -25,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   // Fetch current order
   const { data: order } = await admin
     .from("prescription_orders")
-    .select("id, drugs, status, payment_status, patient_id, provider_id, pharmacy_partner_id")
+    .select("id, drugs, status, payment_status, patient_id, provider_id, pharmacy_partner_id, prescription_id")
     .eq("id", params.id)
     .maybeSingle();
 
@@ -118,6 +119,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const { error } = await admin.from("prescription_orders").update(updates).eq("id", params.id).eq("status", order.status);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Back to the patient, who can try another pharmacy
+  if (status === "cancelled" && order.prescription_id) {
+    await admin.from("prescriptions").update({ patient_reviewed_at: null }).eq("id", order.prescription_id);
+  }
 
   // When dispatching: create/update delivery_tracking row
   if (status === "dispatched" && riderName && riderPhone) {

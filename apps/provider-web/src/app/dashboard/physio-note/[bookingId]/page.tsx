@@ -56,6 +56,7 @@ export default async function PhysioNotePage({ params }: { params: { bookingId: 
   return (
     <PhysioEncounterClient
       encounterId={encounterId}
+      draft={existingEncounter}
       bookingId={params.bookingId}
       provider={provider as any}
       patient={booking.patient as any}

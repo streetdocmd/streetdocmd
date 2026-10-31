@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase";
 import Step1PatientBiodata from "@/components/clinical-note/Step1PatientBiodata";
 import Step2PresentingComplaints from "@/components/clinical-note/Step2PresentingComplaints";
 import Step3ChronicIssues from "@/components/clinical-note/Step3ChronicIssues";
@@ -17,11 +17,9 @@ import Step13Recommendations from "@/components/clinical-note/Step13Recommendati
 import Step14FollowUp from "@/components/clinical-note/Step14FollowUp";
 import SubmissionReview from "@/components/clinical-note/SubmissionReview";
 import PreviousNotes from "@/components/clinical-note/PreviousNotes";
+import { saveNoteDraft } from "@/lib/note-draft";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient();
 
 const STEP_LABELS = [
   "Patient", "Complaints", "Chronic", "History",
@@ -44,43 +42,49 @@ const VALID_NOTE_COLUMNS = new Set([
 ]);
 
 export default function ClinicalNoteClient({
-  noteId, bookingId, provider, patient, previousNotes, serviceType,
+  noteId, draft, bookingId, provider, patient, previousNotes, serviceType,
 }: {
   noteId: string;
+  /** The saved clinical_notes row when resuming, so the form reopens where it was left */
+  draft?: Record<string, any> | null;
   bookingId: string;
   provider: { id: string; name: string; credentials?: string; specialty?: string };
   patient: any;
   previousNotes: any[];
   serviceType?: string;
 }) {
-  const [step, setStep] = useState(1);
+  const saved = draft?.draft_state ?? {};
+  const [step, setStep] = useState<number>(saved.step ?? 1);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [showSaved, setShowSaved] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // All note data keyed by field name matching clinical_notes columns
   const [noteData, setNoteData] = useState<Record<string, any>>({
-    people_in_attendance: null,
-    presenting_complaints: null,
-    chronic_issues: null,
-    history: null,
-    social_history: null,
-    general_examination: null,
-    systemic_examinations: null,
-    interventions: null,
-    recommendations: null,
-    follow_up_date: null,
-    safeguarding_flag: false,
+    people_in_attendance: draft?.people_in_attendance ?? null,
+    presenting_complaints: draft?.presenting_complaints ?? null,
+    chronic_issues: draft?.chronic_issues ?? null,
+    history: draft?.history ?? null,
+    social_history: draft?.social_history ?? null,
+    general_examination: draft?.general_examination ?? null,
+    systemic_examinations: draft?.systemic_examinations ?? null,
+    interventions: draft?.interventions ?? null,
+    recommendations: draft?.recommendations ?? null,
+    follow_up_date: draft?.follow_up_date ?? null,
+    safeguarding_flag: draft?.safeguarding_flag ?? false,
+    current_medications_note: saved.current_medications_note,
+    allergies_note: saved.allergies_note,
   });
 
-  const [vitalsData, setVitalsData] = useState<Record<string, any>>({});
-  const [diagnosesData, setDiagnosesData] = useState<any[]>([]);
+  const [vitalsData, setVitalsData] = useState<Record<string, any>>(saved.vitals ?? {});
+  const [diagnosesData, setDiagnosesData] = useState<any[]>(saved.diagnoses ?? []);
   // Kept separate from noteData (which is spread directly into a
   // clinical_notes UPDATE on every autosave) — follow_up_type/reason
   // aren't clinical_notes columns, they belong to the follow_ups table.
-  const [followUpType, setFollowUpType] = useState<string | undefined>(undefined);
-  const [followUpReason, setFollowUpReason] = useState<string | undefined>(undefined);
+  const [followUpType, setFollowUpType] = useState<string | undefined>(saved.follow_up_type);
+  const [followUpReason, setFollowUpReason] = useState<string | undefined>(saved.follow_up_reason);
 
   const noteDataRef = useRef(noteData);
   noteDataRef.current = noteData;
@@ -88,16 +92,24 @@ export default function ClinicalNoteClient({
   vitalsRef.current = vitalsData;
   const diagnosesRef = useRef(diagnosesData);
   diagnosesRef.current = diagnosesData;
+  const draftStateRef = useRef<Record<string, unknown>>({});
+  draftStateRef.current = {
+    step,
+    vitals: vitalsData,
+    diagnoses: diagnosesData,
+    current_medications_note: noteData.current_medications_note,
+    allergies_note: noteData.allergies_note,
+    follow_up_type: followUpType,
+    follow_up_reason: followUpReason,
+  };
 
   const saveDraft = useCallback(async () => {
     const safeNoteData = Object.fromEntries(
       Object.entries(noteDataRef.current).filter(([k]) => VALID_NOTE_COLUMNS.has(k))
     );
-    const { error } = await supabase
-      .from("clinical_notes")
-      .update({ ...safeNoteData, updated_at: new Date().toISOString() })
-      .eq("id", noteId);
-    if (!error) {
+    const ok = await saveNoteDraft(supabase, "clinical_notes", noteId, safeNoteData, draftStateRef.current);
+    setSaveFailed(!ok);
+    if (ok) {
       setSavedAt(new Date());
       setShowSaved(true);
       setTimeout(() => setShowSaved(false), 2000);
@@ -189,6 +201,7 @@ export default function ClinicalNoteClient({
           <div className="text-right">
             <p className="text-xs text-muted font-mono">{bookingId.slice(0, 8).toUpperCase()}</p>
             {showSaved && <p className="text-xs text-green-600 transition-opacity">Draft saved</p>}
+            {saveFailed && <p role="alert" className="text-xs font-semibold text-red-600">Draft not saved. Check your connection and try again.</p>}
           </div>
         </div>
 

@@ -41,7 +41,7 @@ export default async function MedicationPaymentPage({ params }: { params: { id: 
         <h2 className="mb-1 text-ds-control font-bold text-navy">Price</h2>
         <dl>
           {drugs.map((d, i) => (
-            <Row key={i} label={`${d.drug_name} × ${d.quantity}`} value={formatNaira(d.price)} />
+            <Row key={i} label={`${d.drug_name} × ${d.quantity}`} value={d.out_of_stock ? "Not available" : formatNaira(d.price)} />
           ))}
           <Row label="Total" value={formatNaira(order.total_amount)} bold />
         </dl>

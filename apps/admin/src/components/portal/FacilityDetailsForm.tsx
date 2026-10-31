@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { Button } from "@/components/ds";
+import FacilityLocationField, { type FacilityLocation } from "./FacilityLocationField";
 import { ui } from "./ui";
 import type { PortalType } from "./config";
 
@@ -12,7 +13,7 @@ export default function FacilityDetailsForm({ type, initial }: {
   initial: {
     opening_hours: string | null; delivery_eta_minutes: number | null; services: string[];
     home_collection_available?: boolean; home_collection_fee?: number | null; service_radius_km?: number | null;
-    lat?: number | null; lng?: number | null;
+    address?: string | null; lat?: number | null; lng?: number | null;
   };
 }) {
   const router = useRouter();
@@ -20,9 +21,7 @@ export default function FacilityDetailsForm({ type, initial }: {
   const [eta, setEta] = useState(initial.delivery_eta_minutes ? String(initial.delivery_eta_minutes) : "");
   const [services, setServices] = useState<string[]>(initial.services);
   const [draft, setDraft] = useState("");
-  const [lat, setLat] = useState(initial.lat != null ? String(initial.lat) : "");
-  const [lng, setLng] = useState(initial.lng != null ? String(initial.lng) : "");
-  const [locating, setLocating] = useState(false);
+  const [location, setLocation] = useState<FacilityLocation>({ address: initial.address ?? "", lat: initial.lat ?? null, lng: initial.lng ?? null });
   const [homeCollection, setHomeCollection] = useState(initial.home_collection_available !== false);
   const [fee, setFee] = useState(String(initial.home_collection_fee ?? 0));
   const [radius, setRadius] = useState(String(initial.service_radius_km ?? 25));
@@ -45,7 +44,7 @@ export default function FacilityDetailsForm({ type, initial }: {
       body: JSON.stringify({
         type, opening_hours: hours, delivery_eta_minutes: eta, services,
         home_collection_available: homeCollection, home_collection_fee: fee, service_radius_km: radius,
-        lat, lng,
+        address: location.address, lat: location.lat, lng: location.lng,
       }),
     });
     setSaving(false);
@@ -75,32 +74,7 @@ export default function FacilityDetailsForm({ type, initial }: {
         )}
       </div>
 
-      <div className="space-y-2 rounded-ds border border-line p-4">
-        <b className="block text-ds-sm text-ink">Location</b>
-        <small className="block text-ds-xs text-muted">
-          Patients are matched to you by distance, so {type === "hospital" ? "referrals" : "orders"} can&apos;t reach you until this is set. Use your device while you&apos;re at the {type === "lab" ? "lab" : type}.
-        </small>
-        {!lat && <p className="text-ds-xs font-semibold text-warn">Not set yet</p>}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-          <div>
-            <label htmlFor="fd-lat" className={ui.label}>Latitude</label>
-            <input id="fd-lat" className={ui.input} inputMode="decimal" value={lat} onChange={e => setLat(e.target.value)} placeholder="6.5244" />
-          </div>
-          <div>
-            <label htmlFor="fd-lng" className={ui.label}>Longitude</label>
-            <input id="fd-lng" className={ui.input} inputMode="decimal" value={lng} onChange={e => setLng(e.target.value)} placeholder="3.3792" />
-          </div>
-          <Button type="button" variant="secondary" size="sm" disabled={locating} onClick={() => {
-            if (!navigator.geolocation) { setMsg({ ok: false, text: "This browser can't share its location." }); return; }
-            setLocating(true);
-            navigator.geolocation.getCurrentPosition(
-              pos => { setLat(pos.coords.latitude.toFixed(6)); setLng(pos.coords.longitude.toFixed(6)); setLocating(false); },
-              () => { setMsg({ ok: false, text: "Couldn't get your location. Allow location for this site, or enter it by hand." }); setLocating(false); },
-              { enableHighAccuracy: true, timeout: 15000 },
-            );
-          }}>{locating ? "Locating…" : "Use this device's location"}</Button>
-        </div>
-      </div>
+      <FacilityLocationField value={location} onChange={setLocation} noun={type === "hospital" ? "referrals" : "orders"} />
 
       {type === "lab" && (
         <div className="space-y-4 rounded-ds border border-line p-4">

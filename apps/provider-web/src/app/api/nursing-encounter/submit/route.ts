@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     .eq("id", encounterId);
 
   if (encounterError) return NextResponse.json({ error: encounterError.message }, { status: 500 });
+  await admin.from("nursing_encounters").update({ draft_state: null }).eq("id", encounterId);
 
   if (safeData.follow_up_date && patientId && providerId && bookingId) {
     await createFollowUp(admin, {

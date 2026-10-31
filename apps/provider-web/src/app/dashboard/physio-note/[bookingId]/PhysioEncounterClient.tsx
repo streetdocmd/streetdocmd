@@ -1,13 +1,11 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase";
+import { saveNoteDraft } from "@/lib/note-draft";
 import { FOLLOW_UP_TYPES_BY_PROFESSION, FOLLOW_UP_TYPE_LABELS, type FollowUpType } from "@streetdocmd/shared";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient();
 
 const PAIN_SCALE = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const INTERVENTION_OPTIONS = [
@@ -17,39 +15,44 @@ const INTERVENTION_OPTIONS = [
 const PROGRESS_OPTIONS = ["improving", "unchanged", "regressing"] as const;
 
 export default function PhysioEncounterClient({
-  encounterId, bookingId, provider, patient,
+  encounterId, draft, bookingId, provider, patient,
 }: {
   encounterId: string;
+  /** The saved physiotherapy_encounters row when resuming */
+  draft?: Record<string, any> | null;
   bookingId: string;
   provider: { id: string; name: string; credentials?: string };
   patient: any;
 }) {
   const router = useRouter();
   const [showSaved, setShowSaved] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const [referralReason, setReferralReason] = useState("");
-  const [subjective, setSubjective] = useState("");
-  const [painScore, setPainScore] = useState<number | null>(null);
-  const [painLocation, setPainLocation] = useState("");
-  const [objective, setObjective] = useState("");
-  const [rom, setRom] = useState("");
-  const [strength, setStrength] = useState("");
-  const [mobility, setMobility] = useState("");
-  const [gaitBalance, setGaitBalance] = useState("");
-  const [professionalAssessment, setProfessionalAssessment] = useState("");
-  const [interventionsDone, setInterventionsDone] = useState<string[]>([]);
-  const [interventionNotes, setInterventionNotes] = useState("");
-  const [patientResponse, setPatientResponse] = useState("");
-  const [progressStatus, setProgressStatus] = useState<string>("unchanged");
-  const [progressNotes, setProgressNotes] = useState("");
-  const [homeProgram, setHomeProgram] = useState("");
-  const [nextSessionPlan, setNextSessionPlan] = useState("");
-  const [followUpDate, setFollowUpDate] = useState("");
+  const [referralReason, setReferralReason] = useState<string>(draft?.referral_reason ?? "");
+  const [subjective, setSubjective] = useState<string>(draft?.subjective_assessment?.notes ?? "");
+  const [painScore, setPainScore] = useState<number | null>(draft?.pain_symptoms?.score ?? null);
+  const [painLocation, setPainLocation] = useState<string>(draft?.pain_symptoms?.location ?? "");
+  const [objective, setObjective] = useState<string>(draft?.objective_assessment?.notes ?? "");
+  const [rom, setRom] = useState<string>(draft?.functional_measurements?.range_of_motion ?? "");
+  const [strength, setStrength] = useState<string>(draft?.functional_measurements?.strength ?? "");
+  const [mobility, setMobility] = useState<string>(draft?.functional_measurements?.mobility ?? "");
+  const [gaitBalance, setGaitBalance] = useState<string>(draft?.functional_measurements?.gait_balance ?? "");
+  const [professionalAssessment, setProfessionalAssessment] = useState<string>(draft?.professional_assessment?.notes ?? "");
+  const [interventionsDone, setInterventionsDone] = useState<string[]>(draft?.intervention?.performed ?? []);
+  const [interventionNotes, setInterventionNotes] = useState<string>(draft?.intervention?.notes ?? "");
+  const [patientResponse, setPatientResponse] = useState<string>(draft?.patient_response?.notes ?? "");
+  const [progressStatus, setProgressStatus] = useState<string>(draft?.progress?.status ?? "unchanged");
+  const [progressNotes, setProgressNotes] = useState<string>(draft?.progress?.notes ?? "");
+  const [homeProgram, setHomeProgram] = useState<string>(draft?.home_program?.notes ?? "");
+  const [nextSessionPlan, setNextSessionPlan] = useState<string>(draft?.next_session_plan ?? "");
+  const [followUpDate, setFollowUpDate] = useState<string>(draft?.follow_up_date ?? "");
   // Kept out of stateRef (spread directly into a physiotherapy_encounters
   // UPDATE on every autosave) — follow_up_type isn't a column there.
-  const [followUpType, setFollowUpType] = useState<FollowUpType>("home_visit");
+  const [followUpType, setFollowUpType] = useState<FollowUpType>(draft?.draft_state?.follow_up_type ?? "home_visit");
+  const followUpTypeRef = useRef(followUpType);
+  followUpTypeRef.current = followUpType;
 
   const stateRef = useRef<any>({});
   stateRef.current = {
@@ -70,11 +73,9 @@ export default function PhysioEncounterClient({
   };
 
   const saveDraft = useCallback(async () => {
-    const { error } = await supabase
-      .from("physiotherapy_encounters")
-      .update({ ...stateRef.current, updated_at: new Date().toISOString() })
-      .eq("id", encounterId);
-    if (!error) {
+    const ok = await saveNoteDraft(supabase, "physiotherapy_encounters", encounterId, stateRef.current, { follow_up_type: followUpTypeRef.current });
+    setSaveFailed(!ok);
+    if (ok) {
       setShowSaved(true);
       setTimeout(() => setShowSaved(false), 2000);
     }
@@ -129,6 +130,7 @@ export default function PhysioEncounterClient({
           <p className="text-sm text-muted">{patient?.name ?? "Patient"}</p>
         </div>
         {showSaved && <span className="text-xs text-teal-deep font-medium">Draft saved</span>}
+        {saveFailed && <span role="alert" className="text-xs font-semibold text-red-600">Draft not saved. Check your connection and try again.</span>}
       </div>
 
       <Section title="1. Referral / Reason">

@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const quote = await quoteTests(admin, ids, lat, lng, order.collection_method === "doctor" ? "doctor" : "home");
     if (!quote) {
       return NextResponse.json({
-        error: "No partner lab can do all of these tests at this address yet. Try another address, or remove a test.",
+        error: "No partner lab near you lists all of these tests yet. We'll let you know when one does, or try another address.",
         code: "no_lab",
       }, { status: 409 });
     }

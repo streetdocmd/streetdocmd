@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase, createServerSupabase } from "@/lib/supabase-server";
 
 // POST /api/investigations: a doctor orders tests during a home visit
-// (migration 067). Body: { bookingId, testIds (StreetdocMD tests), notes,
+// (migration 067). Body: { bookingId, testIds (tests on the list), testNames
+// (anything else, which joins the list: migration 073), notes,
 // collection: "home" | "doctor", sampleNotes? }.
 // The order waits for the patient's approval and payment; the best lab is
 // chosen when they check out. "doctor" means the sample was taken during the
@@ -12,10 +13,13 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
-  const ids: string[] = Array.isArray(body.testIds) ? body.testIds.filter((x: unknown) => typeof x === "string").slice(0, 30) : [];
+  const listed: string[] = Array.isArray(body.testIds) ? body.testIds.filter((x: unknown) => typeof x === "string").slice(0, 30) : [];
+  const typed: string[] = Array.isArray(body.testNames)
+    ? body.testNames.filter((x: unknown) => typeof x === "string" && x.trim()).map((x: string) => x.trim().slice(0, 200)).slice(0, 10)
+    : [];
   const notes = typeof body.notes === "string" ? body.notes.trim().slice(0, 1000) : "";
   const collection = body.collection === "doctor" ? "doctor" : "home";
-  if (!ids.length) return NextResponse.json({ error: "Choose at least one test." }, { status: 400 });
+  if (!listed.length && !typed.length) return NextResponse.json({ error: "Choose at least one test." }, { status: 400 });
   if (!notes) return NextResponse.json({ error: "Add the clinical indication for these tests." }, { status: 400 });
 
   const admin = createAdminSupabase();
@@ -30,6 +34,13 @@ export async function POST(req: NextRequest) {
   if (!booking || booking.provider_id !== provider.id) return NextResponse.json({ error: "Visit not found" }, { status: 404 });
   if (!["arrived", "in_progress", "completed"].includes(booking.status)) {
     return NextResponse.json({ error: "Tests can be ordered once you're with the patient." }, { status: 409 });
+  }
+
+  const ids = [...listed];
+  for (const name of typed) {
+    const { data: id, error: testErr } = await admin.rpc("investigation_platform_test", { p_name: name, p_requested: true });
+    if (testErr || !id) return NextResponse.json({ error: "Couldn't save the order. Please try again." }, { status: 500 });
+    ids.push(id as string);
   }
 
   const { data: tests } = await admin

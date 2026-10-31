@@ -75,7 +75,7 @@ export default async function MedicationOrderPage({ params }: { params: { id: st
           {drugs.map((d, i) => (
             <div key={i} className="flex justify-between text-sm">
               <dt className="text-muted">{d.drug_name} × {d.quantity}</dt>
-              <dd className="font-medium text-ink">{formatNaira(d.price)}</dd>
+              <dd className="font-medium text-ink">{d.out_of_stock ? "Not available" : d.price > 0 ? formatNaira(d.price) : "Being priced"}</dd>
             </div>
           ))}
         </dl>

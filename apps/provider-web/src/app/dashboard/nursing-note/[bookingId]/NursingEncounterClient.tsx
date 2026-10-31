@@ -1,13 +1,11 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase";
+import { saveNoteDraft } from "@/lib/note-draft";
 import { FOLLOW_UP_TYPES_BY_PROFESSION, FOLLOW_UP_TYPE_LABELS, type FollowUpType } from "@streetdocmd/shared";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient();
 
 const OUTCOME_OPTIONS = ["improved", "stable", "deteriorated"] as const;
 const INTERVENTION_OPTIONS = [
@@ -18,9 +16,11 @@ const INTERVENTION_OPTIONS = [
 type CareTask = { task: string; completed: boolean };
 
 export default function NursingEncounterClient({
-  encounterId, bookingId, provider, patient,
+  encounterId, draft, bookingId, provider, patient,
 }: {
   encounterId: string;
+  /** The saved nursing_encounters row when resuming */
+  draft?: Record<string, any> | null;
   bookingId: string;
   provider: { id: string; name: string; credentials?: string };
   patient: any;
@@ -28,28 +28,31 @@ export default function NursingEncounterClient({
   const router = useRouter();
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [showSaved, setShowSaved] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const [visitReason, setVisitReason] = useState("");
-  const [patientAssessment, setPatientAssessment] = useState("");
-  const [vitals, setVitals] = useState<Record<string, string>>({});
-  const [nursingAssessment, setNursingAssessment] = useState("");
-  const [interventionsDone, setInterventionsDone] = useState<string[]>([]);
-  const [interventionNotes, setInterventionNotes] = useState("");
-  const [educationTopics, setEducationTopics] = useState("");
-  const [outcomeStatus, setOutcomeStatus] = useState<string>("stable");
-  const [outcomeNotes, setOutcomeNotes] = useState("");
-  const [escalated, setEscalated] = useState(false);
-  const [escalationDetails, setEscalationDetails] = useState("");
-  const [careTasks, setCareTasks] = useState<CareTask[]>([]);
+  const [visitReason, setVisitReason] = useState<string>(draft?.visit_reason ?? "");
+  const [patientAssessment, setPatientAssessment] = useState<string>(draft?.patient_assessment?.notes ?? "");
+  const [vitals, setVitals] = useState<Record<string, string>>(draft?.vitals ?? {});
+  const [nursingAssessment, setNursingAssessment] = useState<string>(draft?.nursing_assessment?.notes ?? "");
+  const [interventionsDone, setInterventionsDone] = useState<string[]>(draft?.intervention?.performed ?? []);
+  const [interventionNotes, setInterventionNotes] = useState<string>(draft?.intervention?.notes ?? "");
+  const [educationTopics, setEducationTopics] = useState<string>(draft?.patient_education?.notes ?? "");
+  const [outcomeStatus, setOutcomeStatus] = useState<string>(draft?.outcome?.status ?? "stable");
+  const [outcomeNotes, setOutcomeNotes] = useState<string>(draft?.outcome?.notes ?? "");
+  const [escalated, setEscalated] = useState<boolean>(!!draft?.escalation?.escalated);
+  const [escalationDetails, setEscalationDetails] = useState<string>(draft?.escalation?.details ?? "");
+  const [careTasks, setCareTasks] = useState<CareTask[]>(draft?.care_tasks ?? []);
   const [newTask, setNewTask] = useState("");
-  const [followUpDate, setFollowUpDate] = useState("");
-  const [followUpNotes, setFollowUpNotes] = useState("");
-  const [safeguardingFlag, setSafeguardingFlag] = useState(false);
+  const [followUpDate, setFollowUpDate] = useState<string>(draft?.follow_up_date ?? "");
+  const [followUpNotes, setFollowUpNotes] = useState<string>(draft?.follow_up_notes ?? "");
+  const [safeguardingFlag, setSafeguardingFlag] = useState<boolean>(!!draft?.safeguarding_flag);
   // Kept out of stateRef (spread directly into a nursing_encounters
   // UPDATE on every autosave) — follow_up_type isn't a column there.
-  const [followUpType, setFollowUpType] = useState<FollowUpType>("home_visit");
+  const [followUpType, setFollowUpType] = useState<FollowUpType>(draft?.draft_state?.follow_up_type ?? "home_visit");
+  const followUpTypeRef = useRef(followUpType);
+  followUpTypeRef.current = followUpType;
 
   const stateRef = useRef<any>({});
   stateRef.current = {
@@ -69,11 +72,9 @@ export default function NursingEncounterClient({
   };
 
   const saveDraft = useCallback(async () => {
-    const { error } = await supabase
-      .from("nursing_encounters")
-      .update({ ...stateRef.current, updated_at: new Date().toISOString() })
-      .eq("id", encounterId);
-    if (!error) {
+    const ok = await saveNoteDraft(supabase, "nursing_encounters", encounterId, stateRef.current, { follow_up_type: followUpTypeRef.current });
+    setSaveFailed(!ok);
+    if (ok) {
       setSavedAt(new Date());
       setShowSaved(true);
       setTimeout(() => setShowSaved(false), 2000);
@@ -139,6 +140,7 @@ export default function NursingEncounterClient({
           <p className="text-sm text-muted">{patient?.name ?? "Patient"}</p>
         </div>
         {showSaved && <span className="text-xs text-teal-deep font-medium">Draft saved</span>}
+        {saveFailed && <span role="alert" className="text-xs font-semibold text-red-600">Draft not saved. Check your connection and try again.</span>}
       </div>
 
       <Section title="1. Visit Reason">

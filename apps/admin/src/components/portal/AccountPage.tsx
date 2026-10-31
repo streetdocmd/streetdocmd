@@ -107,6 +107,7 @@ export default async function AccountPage({ type }: { type: PortalType }) {
                 home_collection_available: p.home_collection_available ?? true,
                 home_collection_fee: p.home_collection_fee ?? 0,
                 service_radius_km: p.service_radius_km ?? 25,
+                address: p.address ?? null,
                 lat: p.lat ?? null,
                 lng: p.lng ?? null,
               }}

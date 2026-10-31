@@ -6,10 +6,10 @@ export default async function CustomLabInvestigationsPage({ searchParams }: { se
 
   const { data: catalogue } = await supabase
     .from("investigation_catalogue")
-    .select("id, test_name, test_code, price, turnaround_hours, sample_type, preparation")
+    .select("*")
     .eq("scope", "platform")
     .eq("active", true)
     .order("test_name");
 
-  return <LabInvestigationClient catalogue={catalogue ?? []} preselect={searchParams?.add?.split("|").filter(Boolean) ?? []} />;
+  return <LabInvestigationClient catalogue={(catalogue ?? []).filter(t => !t.requested_only)} preselect={searchParams?.add?.split("|").filter(Boolean) ?? []} />;
 }

@@ -15,6 +15,7 @@ export interface VisitExtras {
   referrals: { id: string; hospital: string; reason: string | null; status: string }[];
   myRating: number | null;
   prescriptionOrderId: string | null;
+  prescriptionId: string | null;
   followUpHref: string;
   patientId: string;
 }
@@ -150,7 +151,7 @@ export default function VisitSummaryClient({ summary, extras }: { summary: any; 
               Track your medicine order
             </Button>
           ) : (
-            <Button href={`/dashboard/book/medication?add=${medsParam}`} block className="mt-3 print:hidden">
+            <Button href={extras.prescriptionId ? `/dashboard/prescriptions/${extras.prescriptionId}` : `/dashboard/book/medication?add=${medsParam}`} block className="mt-3 print:hidden">
               Send to a pharmacy
             </Button>
           )}

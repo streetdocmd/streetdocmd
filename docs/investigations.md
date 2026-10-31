@@ -27,6 +27,18 @@ One fulfilment engine serves both ways a test is started. Schema and rules live 
    the database keeps the path and every viewer gets a 10 minute signed link from a route that checks
    their access. A `critical` flag raises urgent notifications to the doctor and admins.
 
+## Which tests can be ordered
+
+Any test. The shared list of tests (`scope = 'platform'`) is only a common name that lets two labs'
+versions of a test match the same order, and it grows by itself (migration 073):
+
+- A lab adds any test to its price list. Its name is matched to the shared list, case insensitive,
+  or added to it as a new test (`investigation_platform_test()`).
+- A doctor can request a test nobody lists. It joins the list as `requested_only` (hidden from the
+  patient's self service picker) and every active lab is asked to price it. The patient can pay as
+  soon as a lab near them lists every test on the order; the first lab to list a requested test
+  notifies patients whose orders were waiting on it.
+
 ## Rules
 
 - **Price**: the best lab is picked before checkout: cheapest total (its listed test prices plus its home

@@ -40,7 +40,6 @@ const shortDate = (iso: string | null | undefined) =>
 
 interface FormState {
   id: string | null;
-  platform_test_id: string;
   test_name: string;
   test_code: string;
   price: string;
@@ -52,14 +51,16 @@ interface FormState {
 }
 
 const BLANK: FormState = {
-  id: null, platform_test_id: "", test_name: "", test_code: "", price: "", turnaround_hours: "24", sample_type: "Blood",
+  id: null, test_name: "", test_code: "", price: "", turnaround_hours: "24", sample_type: "Blood",
   home_collection: true, active: true, preparation: "",
 };
 
 export interface PlatformTest { id: string; test_name: string; test_code: string | null }
 
-export default function TestMenuClient({ tests, canEdit, loadError, platformTests = [] }: {
+export default function TestMenuClient({ tests, canEdit, loadError, platformTests = [], requested = [] }: {
   tests: TestRow[]; canEdit: boolean; loadError: string | null; platformTests?: PlatformTest[];
+  /** Tests doctors have requested that no lab lists yet */
+  requested?: string[];
 }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState | null>(null);
@@ -73,14 +74,13 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
   const priceNum = Number(form?.price);
   const valid = !!form && form.test_name.trim().length > 0 && Number.isFinite(priceNum) && priceNum > 0;
 
-  function openForm(t?: TestRow) {
+  function openForm(t?: TestRow, name = "") {
     setError("");
     setForm(t ? {
       id: t.id, test_name: t.test_name, test_code: t.test_code ?? "", price: String(t.price),
       turnaround_hours: t.turnaround_hours ? String(t.turnaround_hours) : "", sample_type: t.sample_type ?? "",
       home_collection: t.home_collection, active: t.active, preparation: t.preparation ?? "",
-      platform_test_id: t.platform_test_id ?? "",
-    } : BLANK);
+    } : { ...BLANK, test_name: name });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -90,7 +90,6 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
     setError("");
     setSaving(true);
     const body: Record<string, unknown> = {
-      platform_test_id: form.platform_test_id || null,
       test_name: form.test_name, test_code: form.test_code, turnaround_hours: form.turnaround_hours,
       sample_type: form.sample_type, home_collection: form.home_collection, active: form.active, preparation: form.preparation,
     };
@@ -157,6 +156,20 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
         </Notice>
       )}
 
+      {canEdit && requested.length > 0 && !form && (
+        <Card className="p-4">
+          <b className="block text-ds-sm text-ink">Doctors have requested these tests</b>
+          <small className="mb-2.5 block text-ds-xs text-muted">No lab lists them yet. Add a price for any you offer and patients can book them.</small>
+          <div className="flex flex-wrap gap-2">
+            {requested.map(name => (
+              <Button key={name} size="sm" variant="secondary" onClick={() => openForm(undefined, name)}>
+                <Plus size={14} aria-hidden /> {name}
+              </Button>
+            ))}
+          </div>
+        </Card>
+      )}
+
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {kpis.map(k => (
           <div key={k.label} className={`${ui.card} p-4`}>
@@ -173,21 +186,11 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
             <p className="text-ds-md font-bold text-navy">{form.id ? "Edit test" : "Add a test"}</p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className={ui.label} htmlFor="t-platform">Which StreetdocMD test is this?</label>
-                <select id="t-platform" className={ui.input} value={form.platform_test_id}
-                  onChange={e => {
-                    const p = platformTests.find(x => x.id === e.target.value);
-                    setForm(f => f && { ...f, platform_test_id: e.target.value, test_name: f.test_name || p?.test_name || "", test_code: f.test_code || p?.test_code || "" });
-                  }}>
-                  <option value="">Choose the matching test</option>
-                  {platformTests.map(p => <option key={p.id} value={p.id}>{p.test_name}{p.test_code ? ` (${p.test_code})` : ""}</option>)}
-                </select>
-                <p className={ui.hint}>Patients and doctors order StreetdocMD tests. Linking yours lets us send you those orders.</p>
-              </div>
-              <div className="sm:col-span-2">
                 <label className={ui.label} htmlFor="t-name">Test or investigation name</label>
-                <input id="t-name" className={ui.input} placeholder="e.g. Full blood count" value={form.test_name}
+                <input id="t-name" className={ui.input} list="t-names" placeholder="e.g. Full blood count" value={form.test_name}
                   onChange={e => setForm(f => f && { ...f, test_name: e.target.value })} />
+                <datalist id="t-names">{platformTests.map(p => <option key={p.id} value={p.test_name} />)}</datalist>
+                <p className={ui.hint}>Pick a suggestion when it&apos;s the same test, so orders for it reach you. Anything else is added as a new test.</p>
               </div>
               <div>
                 <label className={ui.label} htmlFor="t-price">Your price (₦)</label>
@@ -288,7 +291,6 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {t.home_collection ? <Pill tone="teal" icon={Truck}>Home collection</Pill> : <Pill tone="idle" icon={null}>Lab visit only</Pill>}
                       {!t.active && <Pill tone="idle">Not offered</Pill>}
-                      {!t.platform_test_id && <Pill tone="warn">Not linked to a StreetdocMD test</Pill>}
                     </div>
                     {t.preparation && <small className="mt-1.5 block text-ds-xs text-ink/80">{t.preparation}</small>}
                   </div>

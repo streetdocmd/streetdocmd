@@ -2,6 +2,7 @@ import { createServerSupabase } from "@/lib/supabase-server";
 import HomeView from "./HomeView";
 import { refillItems, REFILL_SOON_DAYS } from "@/lib/refills";
 import LiveRefresh from "@/components/LiveRefresh";
+import { formatNaira } from "@/lib/shared";
 
 const ACTIVE_STATUSES = ["accepted", "en_route", "arrived", "in_progress"];
 
@@ -74,6 +75,7 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
       .select("id, drugs, created_at, pharmacy_partners(name)")
       .eq("patient_id", user!.id)
       .eq("status", "pending_payment")
+      .eq("requested_by", "patient")
       .gt("created_at", new Date(Date.now() - 2 * 86_400_000).toISOString())
       .order("created_at", { ascending: false })
       .limit(1)
@@ -92,6 +94,57 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
     : unpaidOrder
       ? { href: `/dashboard/book/medication/payment/${(unpaidOrder as any).id}`, kind: "order" as const, title: ((unpaidOrder as any).drugs ?? []).map((d: any) => d.drug_name).join(", ") || "Medicine order", sub: (unpaidOrder as any).pharmacy_partners?.name ?? null }
       : null;
+  // What the doctor ordered and the patient still has to pay for. No time limit:
+  // these stay until they're paid or declined.
+  const [{ data: testsToPay }, { data: medicinesToPay }, { data: toReview }] = await Promise.all([
+    supabase
+      .from("investigation_orders")
+      .select("id, status, tests")
+      .eq("patient_id", user!.id)
+      .in("status", ["awaiting_patient_approval", "awaiting_payment", "payment_failed"])
+      .order("ordered_at", { ascending: false }),
+    supabase
+      .from("prescription_orders")
+      .select("id, drugs, total_amount, pharmacy_partners(name)")
+      .eq("patient_id", user!.id)
+      .eq("status", "pending_payment")
+      .eq("requested_by", "provider")
+      .order("created_at", { ascending: false }),
+    // Prescriptions the patient hasn't gone through yet
+    supabase
+      .from("prescriptions")
+      .select("id, drugs")
+      .eq("patient_id", user!.id)
+      .is("patient_reviewed_at", null)
+      .gt("created_at", new Date(Date.now() - 30 * 86_400_000).toISOString())
+      .order("created_at", { ascending: false }),
+  ]);
+  const actions = [
+    ...((toReview ?? []) as any[]).map(p => ({
+      id: p.id as string,
+      kind: "medicine" as const,
+      href: `/dashboard/prescriptions/${p.id}`,
+      title: "Your doctor prescribed medicines",
+      sub: ((p.drugs ?? []) as any[]).map(d => d.name ?? d.drug_name).filter(Boolean).join(", ") || "Prescription",
+      cta: "Review",
+    })),
+    ...((testsToPay ?? []) as any[]).map(o => ({
+      id: o.id as string,
+      kind: "tests" as const,
+      href: `/dashboard/investigations/${o.id}`,
+      title: o.status === "payment_failed" ? "Your lab test payment failed" : "Your doctor requested lab tests",
+      sub: ((o.tests ?? []) as any[]).map(t => t.test_name).filter(Boolean).join(", ") || "Lab tests",
+      cta: o.status === "payment_failed" ? "Try again" : "Review and pay",
+    })),
+    ...((medicinesToPay ?? []) as any[]).map(o => ({
+      id: o.id as string,
+      kind: "medicine" as const,
+      href: `/dashboard/medications/${o.id}`,
+      title: "Your medicines are ready to pay for",
+      sub: [((o.drugs ?? []) as any[]).filter(d => !d.out_of_stock).map(d => d.drug_name).join(", "), o.pharmacy_partners?.name, formatNaira(Number(o.total_amount ?? 0))].filter(Boolean).join(" · "),
+      cta: "Pay now",
+    })),
+  ];
   const seen = new Set<string>();
   const bookAgain = ((pastVisits ?? []) as any[])
     .filter(v => v.providers && !seen.has(v.provider_id) && seen.add(v.provider_id))
@@ -111,7 +164,7 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
 
   return (
     <>
-    <LiveRefresh sources={[{ table: "bookings" }]} />
+    <LiveRefresh sources={[{ table: "bookings" }, { table: "investigation_orders" }, { table: "prescription_orders" }, { table: "prescriptions" }]} />
     <HomeView
       firstName={firstName}
       justOnboarded={justOnboarded}
@@ -126,6 +179,7 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
       } : null}
       careIsActive={!!activeBooking}
       refill={refill}
+      actions={actions}
       resume={resume}
       bookAgain={bookAgain}
       now={new Date()}

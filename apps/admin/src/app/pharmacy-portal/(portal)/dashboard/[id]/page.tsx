@@ -13,7 +13,7 @@ export default async function PharmacyOrderPage({ params }: { params: { id: stri
     .from("prescription_orders")
     .select(`
       id, status, total_amount, commission_amount, payment_status, requested_by,
-      prescription_pdf_url, drugs, requires_review, created_at, pharmacy_partner_id, care_episode_id,
+      prescription_pdf_url, drugs, requires_review, created_at, pharmacy_partner_id, care_episode_id, delivery_address,
       users!patient_id(id, name, phone),
       providers(name, credentials, specialty),
       pharmacy_partners(name, phone),

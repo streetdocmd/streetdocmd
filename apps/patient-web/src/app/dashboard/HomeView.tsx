@@ -29,6 +29,8 @@ export interface HomeViewProps {
   careIsActive: boolean;
   /** Medicine running out soonest, if within the refill window */
   refill: { name: string; daysLeft: number } | null;
+  /** Tests and medicines the doctor ordered that are waiting for payment */
+  actions: { id: string; kind: "tests" | "medicine"; href: string; title: string; sub: string; cta: string }[];
   /** An unpaid booking or medicine order from the last two days */
   resume: { href: string; kind: "visit" | "order"; title: string; sub: string | null } | null;
   /** Recent providers from completed visits */
@@ -170,7 +172,7 @@ function ProfileProgress({ checks }: { checks: NonNullable<HomeViewProps["profil
 }
 
 export default function HomeView({
-  firstName, justOnboarded, profileChecks, isFirstVisit, careBooking, careIsActive, refill, resume, bookAgain, now,
+  firstName, justOnboarded, profileChecks, isFirstVisit, careBooking, careIsActive, refill, actions, resume, bookAgain, now,
 }: HomeViewProps) {
   const profileIncomplete = !!profileChecks && Object.values(profileChecks).some(v => !v);
 
@@ -197,6 +199,25 @@ export default function HomeView({
       </Link>
 
       {careBooking && <NextVisitCard booking={careBooking} active={careIsActive} now={now} />}
+
+      {actions.length > 0 && (
+        <section aria-label="Needs your attention" className="mt-[26px] space-y-2.5">
+          {actions.map(a => (
+            <Link key={a.id} href={a.href}
+              className={cx("flex items-center gap-3 rounded-[20px] border border-warn bg-warn-bg p-3.5", focusRing)}>
+              <span className="grid h-10 w-10 flex-none place-items-center rounded-[13px] bg-surface text-navy">
+                {a.kind === "tests" ? <FlaskConical size={20} aria-hidden /> : <Pill size={20} aria-hidden />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <b className="block text-ds-sm text-ink">{a.title}</b>
+                <span className="line-clamp-2 block text-ds-xs text-ink/70">{a.sub}</span>
+              </span>
+              <span className="flex-none text-ds-xs font-bold text-ink">{a.cta}</span>
+              <ChevronRight size={18} className="flex-none text-ink/60" aria-hidden />
+            </Link>
+          ))}
+        </section>
+      )}
 
       {resume && (
         <Link href={resume.href}

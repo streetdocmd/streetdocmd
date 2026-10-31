@@ -58,12 +58,16 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
 
     if (next.status === "pending_payment") {
       const inStock = drugs.map((_, i) => i).filter(i => !outOfStock.includes(i));
-      if (inStock.length === 0) { setError("Every item is marked out of stock. Contact support to cancel or reassign this order."); return; }
+      if (inStock.length === 0) {
+        body.status = "cancelled"; // goes back to the patient to try another pharmacy
+      }
       const unpriced = inStock.filter(i => !(prices[i] > 0)).map(i => drugs[i]?.drug_name ?? `Item ${i + 1}`);
       if (unpriced.length > 0) { setError(`Enter a price for ${unpriced.join(", ")}, or mark it out of stock.`); return; }
-      body.drugPrices = prices;
-      body.outOfStock = outOfStock;
-      body.catalogueLinks = catalogueLinks;
+      if (inStock.length > 0) {
+        body.drugPrices = prices;
+        body.outOfStock = outOfStock;
+        body.catalogueLinks = catalogueLinks;
+      }
     }
     if (next.status === "dispatched") {
       if (!riderName.trim() || !riderPhone.trim()) { setError("Enter the rider's name and phone number before dispatching."); return; }
@@ -245,7 +249,8 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
           {next && (
             <button onClick={advanceStatus} disabled={advancing}
               className={`${next.status === "delivered" ? ui.btnSecondary : ui.btnPrimary} w-full py-3`}>
-              {advancing ? <><Spinner /> Updating…</> : next.status === "delivered" ? "Mark as delivered without proof" : next.label}
+              {advancing ? <><Spinner /> Updating…</> : next.status === "delivered" ? "Mark as delivered without proof"
+                : pricing && drugs.length > 0 && outOfStock.length === drugs.length ? "We can't supply this order" : next.label}
             </button>
           )}
         </div>
@@ -255,6 +260,7 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
             <CardHeader title="Patient" />
             <div className="p-5 space-y-3 text-sm">
               <p className="flex items-center gap-2 text-ink"><User size={15} className="text-muted" aria-hidden /> {order.users?.name ?? "Patient"}</p>
+              {order.delivery_address && <p className="text-sm text-ink">{order.delivery_address}</p>}
               {order.users?.phone && (
                 <a href={`tel:${order.users.phone}`} className="flex items-center gap-2 text-accent hover:underline">
                   <Phone size={15} aria-hidden /> {order.users.phone}

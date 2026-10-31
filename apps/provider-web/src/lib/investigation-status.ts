@@ -15,7 +15,7 @@ export type StatusTone = "ok" | "warn" | "bad" | "info" | "idle" | "teal";
 
 export const INVESTIGATION_STATUS: Record<InvestigationStatus, { label: string; tone: StatusTone }> = {
   draft:                     { label: "Not booked yet", tone: "idle" },
-  awaiting_patient_approval: { label: "Waiting for your approval", tone: "warn" },
+  awaiting_patient_approval: { label: "Waiting for the patient to pay", tone: "warn" },
   declined_by_patient:       { label: "Declined", tone: "idle" },
   awaiting_payment:          { label: "Awaiting payment", tone: "warn" },
   payment_failed:            { label: "Payment failed", tone: "bad" },

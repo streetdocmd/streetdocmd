@@ -1,12 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase";
 import { statusOf } from "@/lib/investigation-status";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient();
 
 // quantity = units dispensed; with the frequency it tells the patient when a refill is due
 type Drug = { name: string; dosage: string; frequency: string; duration: string; quantity: string };
@@ -46,7 +43,8 @@ export default function Step13Recommendations({
   const [showRxForm, setShowRxForm] = useState(false);
   const [drugs, setDrugs] = useState<Drug[]>([{ ...BLANK_DRUG }]);
   const [savingRx, setSavingRx] = useState(false);
-  const [rxSaved, setRxSaved] = useState(false);
+  const [rxNotice, setRxNotice] = useState("");
+  const [rxError, setRxError] = useState("");
 
   // Elderly-review nurse follow-up
   const [requestingFollowUp, setRequestingFollowUp] = useState(false);
@@ -95,10 +93,16 @@ export default function Step13Recommendations({
     const validDrugs = drugs.filter(d => d.name.trim());
     if (!validDrugs.length) return;
     setSavingRx(true);
-    await supabase.from("prescriptions").insert({ booking_id: bookingId, provider_id: providerId, patient_id: patientId, drugs: validDrugs });
+    setRxError("");
+    const { error } = await supabase.from("prescriptions").insert({ booking_id: bookingId, provider_id: providerId, patient_id: patientId, drugs: validDrugs });
+    if (error) {
+      setSavingRx(false);
+      setRxError("Couldn't save the prescription. Check your connection and try again.");
+      return;
+    }
     setSavingRx(false);
     setShowRxForm(false);
-    setRxSaved(true);
+    setRxNotice("Prescription saved. The patient reviews the list, then a pharmacy prices what they need.");
     setDrugs([{ ...BLANK_DRUG }]);
     const { data: d } = await supabase.from("prescriptions").select("drugs, pdf_url").eq("booking_id", bookingId);
     setPrescriptions(d ?? []);
@@ -125,6 +129,14 @@ export default function Step13Recommendations({
     });
   };
 
+  // A test that isn't on the list yet. Labs are asked to price it.
+  const addCustomTest = () => {
+    const name = invSearch.trim().replace(/\s+/g, " ");
+    if (!name) return;
+    setSelectedTests(prev => prev.some(t => t.test_name.toLowerCase() === name.toLowerCase()) ? prev : [...prev, { catalogue_id: null, test_name: name, test_code: null }]);
+    setInvSearch("");
+  };
+
   const saveInvestigations = async () => {
     if (!selectedTests.length) return;
     if (!invNotes.trim()) { setInvError("Add the clinical indication for these tests."); return; }
@@ -135,7 +147,8 @@ export default function Step13Recommendations({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         bookingId,
-        testIds: selectedTests.map(t => t.catalogue_id),
+        testIds: selectedTests.filter(t => t.catalogue_id).map(t => t.catalogue_id),
+        testNames: selectedTests.filter(t => !t.catalogue_id).map(t => t.test_name),
         notes: invNotes.trim(),
         collection: sampleTaken ? "doctor" : "home",
         sampleNotes: sampleTaken ? sampleNotes.trim() : undefined,
@@ -208,8 +221,8 @@ export default function Step13Recommendations({
           <p className="text-xs text-muted">No prescriptions yet</p>
         )}
 
-        {rxSaved && !showRxForm && (
-          <p className="text-xs text-green-600 font-medium">✓ Prescription saved</p>
+        {rxNotice && !showRxForm && (
+          <p className="text-xs text-green-600 font-medium">✓ {rxNotice}</p>
         )}
 
         {!showRxForm ? (
@@ -264,6 +277,7 @@ export default function Step13Recommendations({
             <button onClick={addDrug} className="w-full py-2 border border-dashed border-line rounded-lg text-xs text-muted hover:border-accent hover:text-accent transition-colors">
               + Add another drug
             </button>
+            {rxError && <p role="alert" className="text-xs font-semibold text-red-600">{rxError}</p>}
             <div className="flex gap-2 pt-1">
               <button onClick={savePrescription} disabled={savingRx || !drugs.some(d => d.name.trim())}
                 className="flex-1 py-2.5 bg-accent text-white rounded-xl text-sm font-semibold hover:bg-accent-hover disabled:opacity-40 transition-colors">
@@ -315,11 +329,10 @@ export default function Step13Recommendations({
               <p className="text-xs text-muted text-center py-3">Loading catalogue…</p>
             ) : (
               <div className="space-y-1 max-h-52 overflow-y-auto">
-                {filteredCatalogue.length === 0 && invSearch ? (
-                  <p className="text-xs text-muted text-center py-3">No tests found</p>
-                ) : filteredCatalogue.length === 0 ? (
-                  <p className="text-xs text-muted text-center py-3">No tests are available yet</p>
-                ) : filteredCatalogue.map(item => {
+                {filteredCatalogue.length === 0 && !invSearch && (
+                  <p className="text-xs text-muted text-center py-3">Search for a test, or type its name to request it</p>
+                )}
+                {filteredCatalogue.map(item => {
                   const selected = !!selectedTests.find(t => t.catalogue_id === item.id);
                   return (
                     <button key={item.id} onClick={() => toggleTest(item)}
@@ -333,11 +346,25 @@ export default function Step13Recommendations({
                     </button>
                   );
                 })}
+                {invSearch.trim() && !catalogue.some(c => c.test_name.toLowerCase() === invSearch.trim().toLowerCase()) && (
+                  <button onClick={addCustomTest} className="w-full rounded-lg border border-dashed border-teal-400 px-3 py-2 text-left text-sm font-medium text-teal-700 hover:bg-teal-50">
+                    + Request &ldquo;{invSearch.trim()}&rdquo;
+                    <small className="block text-xs font-normal text-muted">Not on the list yet. We&apos;ll ask our labs to price it.</small>
+                  </button>
+                )}
               </div>
             )}
 
             {selectedTests.length > 0 && (
-              <p className="text-xs text-teal-700 font-medium">{selectedTests.length} test{selectedTests.length > 1 ? "s" : ""} selected</p>
+              <div className="flex flex-wrap gap-1.5">
+                {selectedTests.map(t => (
+                  <button key={t.test_name} onClick={() => setSelectedTests(prev => prev.filter(x => x !== t))}
+                    aria-label={`Remove ${t.test_name}`}
+                    className="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700 hover:bg-teal-100">
+                    {t.test_name} ×
+                  </button>
+                ))}
+              </div>
             )}
 
             <div>

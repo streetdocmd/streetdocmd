@@ -58,6 +58,7 @@ export default async function NursingNotePage({ params }: { params: { bookingId:
   return (
     <NursingEncounterClient
       encounterId={encounterId}
+      draft={existingEncounter}
       bookingId={params.bookingId}
       provider={provider as any}
       patient={booking.patient as any}

@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
         provider_id: null,
         requested_by: "patient",
         pharmacy_partner_id: pharmacy.id,
+        delivery_address: patient_address,
         drugs,
         status: "pending_payment",
         payment_status: "pending",

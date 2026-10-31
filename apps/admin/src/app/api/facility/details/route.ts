@@ -30,16 +30,19 @@ export async function PATCH(req: NextRequest) {
     patch.delivery_eta_minutes = eta;
   }
 
-  // Location: patients are matched to facilities by distance
+  // Location: patients are matched to facilities by distance. The address and
+  // its coordinates are saved together so the profile and the matching agree.
   if (body.lat !== undefined || body.lng !== undefined) {
     const lat = body.lat === "" || body.lat == null ? null : Number(body.lat);
     const lng = body.lng === "" || body.lng == null ? null : Number(body.lng);
-    if ((lat == null) !== (lng == null)) return NextResponse.json({ error: "Enter both latitude and longitude." }, { status: 400 });
+    if ((lat == null) !== (lng == null)) return NextResponse.json({ error: "Search for your address again and pick a match." }, { status: 400 });
     if (lat != null && (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lng!) || lng! < -180 || lng! > 180)) {
-      return NextResponse.json({ error: "Enter a valid location." }, { status: 400 });
+      return NextResponse.json({ error: "Search for your address again and pick a match." }, { status: 400 });
     }
     patch.lat = lat;
     patch.lng = lng;
+    const address = String(body.address ?? "").trim().slice(0, 500);
+    if (address) patch.address = address;
   }
 
   if (type === "lab") {

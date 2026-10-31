@@ -22,10 +22,13 @@ export default async function LabTestMenuPage() {
 
   const { data: platformTests } = await createAdminSupabase()
     .from("investigation_catalogue")
-    .select("id, test_name, test_code")
+    .select("*")
     .eq("scope", "platform")
     .eq("active", true)
     .order("test_name");
 
-  return <TestMenuClient tests={tests} canEdit={!!access.partnerId} loadError={loadError} platformTests={(platformTests ?? []) as PlatformTest[]} />;
+  const mine = new Set(tests.map(t => t.platform_test_id));
+  const requested = ((platformTests ?? []) as any[]).filter(p => p.requested_only && !mine.has(p.id)).map(p => p.test_name as string);
+
+  return <TestMenuClient tests={tests} canEdit={!!access.partnerId} loadError={loadError} platformTests={(platformTests ?? []) as PlatformTest[]} requested={requested} />;
 }

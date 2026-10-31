@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
     .eq("id", noteId);
 
   if (noteError) return NextResponse.json({ error: noteError.message }, { status: 500 });
+  await admin.from("clinical_notes").update({ draft_state: null }).eq("id", noteId);
 
   // 2. Save vitals
   if (vitalsData && Object.values(vitalsData).some(v => v)) {

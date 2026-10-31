@@ -89,6 +89,7 @@ export default async function ClinicalNotePage({ params }: { params: { bookingId
   return (
     <ClinicalNoteClient
       noteId={noteId}
+      draft={existingNote}
       bookingId={params.bookingId}
       provider={provider as any}
       patient={patient}
