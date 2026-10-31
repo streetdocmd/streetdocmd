@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase";
 import { statusOf } from "@/lib/investigation-status";
+import DrugSearch, { type Medicine } from "./DrugSearch";
 
 const supabase = createClient();
 
@@ -45,6 +46,7 @@ export default function Step13Recommendations({
   const [savingRx, setSavingRx] = useState(false);
   const [rxNotice, setRxNotice] = useState("");
   const [rxError, setRxError] = useState("");
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
 
   // Elderly-review nurse follow-up
   const [requestingFollowUp, setRequestingFollowUp] = useState(false);
@@ -91,6 +93,17 @@ export default function Step13Recommendations({
   const updateDrug = (i: number, f: keyof Drug, v: string) =>
     setDrugs(d => d.map((drug, idx) => idx === i ? { ...drug, [f]: v } : drug));
   const addDrug = () => setDrugs(d => [...d, { ...BLANK_DRUG }]);
+  const pickDrug = (i: number, m: Medicine) =>
+    setDrugs(d => d.map((drug, idx) => idx === i ? { ...drug, name: m.name, dosage: m.strength ?? drug.dosage } : drug));
+
+  // The search still works as plain typing if this doesn't load
+  const openRxForm = async () => {
+    setShowRxForm(true);
+    if (medicines.length) return;
+    const res = await fetch(`/api/prescriptions/catalogue?bookingId=${bookingId}`).catch(() => null);
+    const json = res?.ok ? await res.json().catch(() => null) : null;
+    if (json?.medicines) setMedicines(json.medicines);
+  };
   const removeDrug = (i: number) => setDrugs(d => d.filter((_, idx) => idx !== i));
 
   const savePrescription = async () => {
@@ -305,7 +318,7 @@ export default function Step13Recommendations({
         )}
 
         {!showRxForm ? (
-          <button onClick={() => setShowRxForm(true)} className="text-sm text-accent hover:underline font-medium">
+          <button onClick={openRxForm} className="text-sm text-accent hover:underline font-medium">
             + Add Prescription
           </button>
         ) : (
@@ -319,16 +332,15 @@ export default function Step13Recommendations({
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { label: "Drug name *", field: "name" as keyof Drug, placeholder: "e.g. Amoxicillin" },
-                    { label: "Dosage", field: "dosage" as keyof Drug, placeholder: "e.g. 500mg" },
-                  ].map(({ label, field, placeholder }) => (
-                    <div key={field}>
-                      <label className="text-xs font-medium text-muted block mb-1">{label}</label>
-                      <input value={drug[field]} onChange={e => updateDrug(i, field, e.target.value)} placeholder={placeholder}
-                        className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
-                    </div>
-                  ))}
+                  <div className="col-span-2">
+                    <span className="text-xs font-medium text-muted block mb-1">Drug name *</span>
+                    <DrugSearch value={drug.name} medicines={medicines} onChange={v => updateDrug(i, "name", v)} onPick={m => pickDrug(i, m)} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted block mb-1">Dosage</label>
+                    <input value={drug.dosage} onChange={e => updateDrug(i, "dosage", e.target.value)} placeholder="e.g. 500mg"
+                      className="w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent" />
+                  </div>
                   <div>
                     <label className="text-xs font-medium text-muted block mb-1">Frequency</label>
                     <select value={drug.frequency} onChange={e => updateDrug(i, "frequency", e.target.value)}

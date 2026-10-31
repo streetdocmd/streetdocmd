@@ -86,6 +86,12 @@ export default function ClinicalNoteClient({
   const [followUpType, setFollowUpType] = useState<string | undefined>(saved.follow_up_type);
   const [followUpReason, setFollowUpReason] = useState<string | undefined>(saved.follow_up_reason);
 
+  // The strip scrolls sideways on phones: keep the current step in view
+  const currentStepRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    currentStepRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [step]);
+
   const noteDataRef = useRef(noteData);
   noteDataRef.current = noteData;
   const vitalsRef = useRef(vitalsData);
@@ -208,7 +214,7 @@ export default function ClinicalNoteClient({
         {/* Step Progress Bar */}
         {step <= 14 && (
           <div className="max-w-3xl mx-auto mt-3">
-            <div className="flex items-center gap-0.5 overflow-x-auto pb-1">
+            <div className="flex items-start gap-1 overflow-x-auto pb-1">
               {STEP_LABELS.map((label, i) => {
                 const n = i + 1;
                 const isComplete = n < step;
@@ -216,14 +222,16 @@ export default function ClinicalNoteClient({
                 return (
                   <button
                     key={n}
+                    ref={isCurrent ? currentStepRef : undefined}
+                    aria-current={isCurrent ? "step" : undefined}
                     onClick={() => n < step && setStep(n)}
-                    className={`flex flex-col items-center min-w-[3.2rem] group ${n < step ? "cursor-pointer" : "cursor-default"}`}
+                    className={`flex flex-none flex-col items-center min-w-[3.2rem] px-0.5 group ${n < step ? "cursor-pointer" : "cursor-default"}`}
                   >
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors
                       ${isComplete ? "bg-green-500 text-white" : isCurrent ? "bg-accent text-white" : "bg-line text-muted"}`}>
                       {isComplete ? "✓" : n}
                     </div>
-                    <span className={`text-[9px] mt-0.5 leading-tight text-center
+                    <span className={`text-[9px] mt-0.5 leading-tight text-center whitespace-nowrap
                       ${isComplete ? "text-green-600" : isCurrent ? "text-accent font-semibold" : "text-muted"}`}>
                       {label}
                     </span>

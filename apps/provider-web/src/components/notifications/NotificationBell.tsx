@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Bell, CheckCheck, Inbox } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Bell, CheckCheck, Inbox, X } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { cx, focusRing } from "@/components/ds";
 import { timeAgo, type NotificationItem } from "@/lib/notifications";
@@ -13,7 +13,11 @@ export default function NotificationBell({ userId, inboxHref }: { userId: string
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
+  const [toast, setToast] = useState<NotificationItem | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const pathRef = useRef(pathname);
+  pathRef.current = pathname;
 
   async function load() {
     const supabase = createClient();
@@ -32,11 +36,22 @@ export default function NotificationBell({ userId, inboxHref }: { userId: string
     const supabase = createClient();
     const channel = supabase
       .channel(`notifications-${userId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, payload => {
+        load();
+        // Not when they're already looking at it, e.g. the same chat
+        const n = payload.new as NotificationItem;
+        if (payload.eventType === "INSERT" && n.link !== pathRef.current) setToast(n);
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 7000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -63,6 +78,17 @@ export default function NotificationBell({ userId, inboxHref }: { userId: string
 
   return (
     <div className="relative" ref={wrapRef}>
+      {toast && (
+        <div role="status" className="fixed inset-x-4 top-4 z-[70] mx-auto flex max-w-sm items-start gap-2 rounded-ds-lg border border-line bg-surface p-3 shadow-ds sm:left-auto sm:right-4 sm:mx-0">
+          <button type="button" onClick={() => { const n = toast; setToast(null); openItem(n); }} className={cx("min-w-0 flex-1 rounded-ds-sm text-left", focusRing)}>
+            <b className="block truncate text-ds-sm text-ink">{toast.title}</b>
+            {toast.body && <span className="line-clamp-2 text-ds-xs text-muted">{toast.body}</span>}
+          </button>
+          <button type="button" onClick={() => setToast(null)} aria-label="Dismiss" className={cx("grid h-7 w-7 flex-none place-items-center rounded-full text-muted hover:bg-page", focusRing)}>
+            <X size={15} aria-hidden />
+          </button>
+        </div>
+      )}
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
