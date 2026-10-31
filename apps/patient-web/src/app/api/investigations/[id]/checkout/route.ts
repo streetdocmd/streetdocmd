@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase, getRequestSupabase } from "@/lib/supabase-server";
-import { quoteTests, testsSnapshot, transition } from "@/lib/investigations";
+import { missingMessage, orderTestIds, quoteTests, testsSnapshot, transition } from "@/lib/investigations";
 
 const PAYABLE = ["draft", "awaiting_patient_approval", "awaiting_payment", "payment_failed"];
 const WINDOWS = ["morning", "afternoon", "evening"];
@@ -23,12 +23,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const admin = createAdminSupabase();
   const { data: order } = await admin
     .from("investigation_orders")
-    .select("id, patient_id, status, payment_status, tests, collection_method, external_request")
+    .select("id, patient_id, provider_id, booking_id, care_episode_id, requested_by, clinical_notes, status, payment_status, tests, collection_method, collected_at, collected_by, identity_checked, sample_notes, external_request, group_id")
     .eq("id", params.id)
     .maybeSingle();
   if (!order || order.patient_id !== user.id) return NextResponse.json({ error: "Order not found" }, { status: 404 });
   if (order.payment_status === "paid") return NextResponse.json({ error: "This order is already paid." }, { status: 409 });
   if (!PAYABLE.includes(order.status)) return NextResponse.json({ error: "This order can no longer be paid for." }, { status: 409 });
+  if (order.group_id && order.group_id !== order.id) {
+    return NextResponse.json({ error: "These tests are paid for together with the rest of your order.", order_id: order.group_id }, { status: 409 });
+  }
 
   const doctorCollected = order.collection_method === "doctor";
   const lat = Number(field("lat")), lng = Number(field("lng"));
@@ -70,25 +73,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
   }
 
-  const ids = ((order.tests as any[]) ?? []).map(t => t?.platform_test_id).filter(Boolean);
-  let quote;
+  const { ids, unpaidParts, preferred } = await orderTestIds(admin, order);
+  let result;
   try {
-    quote = await quoteTests(admin, ids, lat, lng, doctorCollected ? "doctor" : "home");
+    result = await quoteTests(admin, ids, lat, lng, doctorCollected ? "doctor" : "home", preferred);
   } catch {
     return NextResponse.json({ error: "Couldn't work out the price. Please try again." }, { status: 500 });
   }
-  if (!quote) {
-    return NextResponse.json({ error: "No partner lab near you lists all of these tests yet. We'll let you know when one does, or try another address.", code: "no_lab" }, { status: 409 });
-  }
+  const quote = result.quote;
+  if (!quote) return NextResponse.json({ error: missingMessage(result.missing), code: "no_lab" }, { status: 409 });
 
-  const { error: upErr } = await admin.from("investigation_orders").update({
-    tests: testsSnapshot(quote),
-    lab_partner_id: quote.lab_partner_id,
-    lab_price_total: quote.tests_total,
-    tests_total: quote.tests_total,
-    collection_fee: quote.collection_fee,
-    service_charge: quote.service_charge,
-    total_amount: quote.total,
+  // Parts split off by an earlier, unpaid checkout are re-planned from scratch
+  if (unpaidParts.length) await admin.from("investigation_orders").delete().in("id", unpaidParts).neq("payment_status", "paid");
+
+  const split = quote.labs.length > 1;
+  const shared = {
     collection_address: address,
     collection_lat: lat,
     collection_lng: lng,
@@ -96,13 +95,54 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     preferred_date: doctorCollected ? null : date,
     preferred_window: doctorCollected ? null : window,
     external_request: external,
+    group_id: split ? order.id : null,
     updated_at: new Date().toISOString(),
-  }).eq("id", order.id).eq("payment_status", "unpaid");
+  };
+  const priced = (part: typeof quote.labs[number]) => ({
+    tests: testsSnapshot(part),
+    lab_partner_id: part.lab_partner_id,
+    lab_price_total: part.tests_total,
+    tests_total: part.tests_total,
+    collection_fee: part.collection_fee,
+    service_charge: part.service_charge,
+    total_amount: part.total,
+  });
+
+  // This order becomes the first lab's part
+  const { error: upErr } = await admin.from("investigation_orders")
+    .update({ ...priced(quote.labs[0]), ...shared })
+    .eq("id", order.id).eq("payment_status", "unpaid");
   if (upErr) return NextResponse.json({ error: "Couldn't save your details. Please try again." }, { status: 500 });
 
   const moveErr = await transition(admin, order.id, "awaiting_payment", user.id, "patient",
     order.status === "awaiting_patient_approval" ? "Patient approved the order" : "Patient confirmed details");
   if (moveErr) return NextResponse.json({ error: "This order can no longer be paid for." }, { status: 409 });
+
+  // Every other lab gets its own order, so each can go ahead on its own
+  const orderIds = [order.id];
+  for (const part of quote.labs.slice(1)) {
+    const { data: extra, error: insErr } = await admin.from("investigation_orders").insert({
+      patient_id: order.patient_id,
+      provider_id: order.provider_id,
+      booking_id: order.booking_id,
+      care_episode_id: order.care_episode_id,
+      requested_by: order.requested_by,
+      clinical_notes: order.clinical_notes,
+      collection_method: order.collection_method,
+      collected_at: order.collected_at,
+      collected_by: order.collected_by,
+      identity_checked: order.identity_checked,
+      sample_notes: order.sample_notes,
+      status: "draft",
+      payment_status: "unpaid",
+      ...priced(part),
+      ...shared,
+    }).select("id").single();
+    if (insErr || !extra) return NextResponse.json({ error: "Couldn't prepare your order. Please try again." }, { status: 500 });
+    const err = await transition(admin, extra.id, "awaiting_payment", user.id, "patient", "Split from a larger order: no single lab offers every test");
+    if (err) return NextResponse.json({ error: "Couldn't prepare your order. Please try again." }, { status: 500 });
+    orderIds.push(extra.id);
+  }
 
   const paystackKey = process.env.PAYSTACK_SECRET_KEY;
   if (!paystackKey) return NextResponse.json({ error: "Payment isn't available right now. Please try again later." }, { status: 503 });
@@ -118,7 +158,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       amount: Math.round(quote.total * 100),
       reference,
       callback_url: `${base}/api/investigations/${order.id}/payment/verify`,
-      metadata: { type: "investigation_order", order_id: order.id },
+      // order_ids: every part of a split order, each confirmed for its own total
+      metadata: { type: "investigation_order", order_id: order.id, order_ids: orderIds },
     }),
   }).catch(() => null);
   const json = res ? await res.json().catch(() => null) : null;
@@ -126,6 +167,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: "Couldn't start the payment. Please try again." }, { status: 502 });
   }
 
-  await admin.from("investigation_orders").update({ payment_reference: reference }).eq("id", order.id);
+  await admin.from("investigation_orders").update({ payment_reference: reference }).in("id", orderIds);
   return NextResponse.json({ authorization_url: json.data.authorization_url, total: quote.total });
 }

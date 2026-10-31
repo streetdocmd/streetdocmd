@@ -167,27 +167,36 @@ export default function CheckoutPanel({
             <Notice tone="warn">{quoteError}</Notice>
           ) : quote && (
             <Card padded={false} className="px-4 py-1">
-              <div className="flex items-center justify-between gap-3 border-b border-line py-3">
-                <span className="min-w-0">
-                  <b className="block text-ds-sm text-ink">{quote.lab_name}</b>
-                  <small className="text-ds-xs text-muted">
-                    {quote.review_count > 0
-                      ? <span className="inline-flex items-center gap-1"><Star size={12} className="fill-amber-500 text-amber-500" aria-hidden />{quote.rating.toFixed(1)} ({quote.review_count})</span>
-                      : "New partner lab"} · {quote.distance_km.toFixed(1)} km away
-                  </small>
-                </span>
-              </div>
-              {quote.items.map(i => (
-                <div key={i.platform_test_id} className="border-b border-line py-3">
-                  <div className="flex items-start justify-between gap-3 text-ds-sm">
-                    <span className="text-ink">{i.test_name}</span>
-                    <span className="font-bold text-ink tabular-nums">{formatNaira(i.price)}</span>
+              {quote.labs.length > 1 && (
+                <p className="border-b border-line py-3 text-ds-xs text-muted">
+                  No single lab near you offers all of these tests, so they&apos;re split between {quote.labs.length} labs. Each part goes ahead on its own, so one lab never holds up the others&apos; results.
+                </p>
+              )}
+              {quote.labs.map(lab => (
+                <div key={lab.lab_partner_id}>
+                  <div className="flex items-center justify-between gap-3 border-b border-line py-3">
+                    <span className="min-w-0">
+                      <b className="block text-ds-sm text-ink">{lab.lab_name}</b>
+                      <small className="text-ds-xs text-muted">
+                        {lab.review_count > 0
+                          ? <span className="inline-flex items-center gap-1"><Star size={12} className="fill-amber-500 text-amber-500" aria-hidden />{lab.rating.toFixed(1)} ({lab.review_count})</span>
+                          : "New partner lab"} · {lab.distance_km.toFixed(1)} km away
+                      </small>
+                    </span>
                   </div>
-                  {i.preparation && <small className="mt-1 block text-ds-xs text-warn">{i.preparation}</small>}
+                  {lab.items.map(i => (
+                    <div key={i.platform_test_id} className="border-b border-line py-3">
+                      <div className="flex items-start justify-between gap-3 text-ds-sm">
+                        <span className="text-ink">{i.test_name}</span>
+                        <span className="font-bold text-ink tabular-nums">{formatNaira(i.price)}</span>
+                      </div>
+                      {i.preparation && <small className="mt-1 block text-ds-xs text-warn">{i.preparation}</small>}
+                    </div>
+                  ))}
+                  <Row label={doctorCollected ? "Home collection (sample already taken)" : "Home collection"} value={formatNaira(lab.collection_fee)} />
+                  <Row label="StreetdocMD service charge" value={formatNaira(lab.service_charge)} />
                 </div>
               ))}
-              <Row label={doctorCollected ? "Home collection (sample already taken)" : "Home collection"} value={formatNaira(quote.collection_fee)} />
-              <Row label="StreetdocMD service charge" value={formatNaira(quote.service_charge)} />
               <div className="flex items-center justify-between py-3">
                 <b className="text-ds-control text-navy">Total</b>
                 <b className="text-ds-lg font-extrabold text-navy tabular-nums">{formatNaira(quote.total)}</b>

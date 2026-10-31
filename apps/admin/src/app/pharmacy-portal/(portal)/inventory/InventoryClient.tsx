@@ -6,6 +6,7 @@ import { Card, EmptyState, Notice, PageHeader, Spinner, formatNaira, ui } from "
 import { Pill, SegmentedControl, Stepper } from "@/components/ds";
 import InventoryImport from "./InventoryImport";
 import PhotoUpload from "@/components/PhotoUpload";
+import { SUPPORT_EMAIL } from "@/lib/brand";
 
 type StockFilter = "all" | "low" | "out";
 
@@ -203,6 +204,25 @@ export default function InventoryClient({ partnerId }: { partnerId: string | nul
       />
 
       {loadError && <Notice tone="red" icon={AlertTriangle}>{loadError}</Notice>}
+
+      {partnerId && (
+        <Card className="space-y-2 p-4 text-ds-sm text-ink">
+          <b className="block">List everything you sell, and keep it matching your shelves</b>
+          <p className="text-muted">
+            Patients and doctors order from this list, so please add every medication you stock and update the counts
+            whenever your physical stock changes. Orders for items that turn out to be unavailable delay patients&apos; care
+            and can affect your standing on StreetdocMD.
+          </p>
+          <p className="text-muted">
+            Stock goes down automatically when you dispense an order placed through StreetdocMD. For a prescription, link each
+            line to an item here when you price it.
+          </p>
+          <p className="text-muted">
+            Need help uploading your inventory? Contact{" "}
+            <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Help uploading our inventory")}`} className="font-bold text-accent hover:underline">{SUPPORT_EMAIL}</a>
+          </p>
+        </Card>
+      )}
       {!partnerId && <Notice tone="blue">You&apos;re viewing every pharmacy&apos;s inventory as a StreetdocMD admin. Adding drugs is done from a pharmacy staff account.</Notice>}
 
       {partnerId && (activeDrugs.length === 0 ? (

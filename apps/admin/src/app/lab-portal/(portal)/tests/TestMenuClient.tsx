@@ -1,9 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Microscope, Plus, AlertCircle, AlertTriangle, Search, Truck } from "lucide-react";
 import { Card, EmptyState, Notice, PageHeader, Spinner, formatNaira, ui } from "@/components/portal/ui";
 import { Button, Chip, Pill, Toggle } from "@/components/ds";
+import { SUPPORT_EMAIL } from "@/lib/brand";
 
 export interface TestRow {
   id: string;
@@ -69,10 +70,30 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
   const [search, setSearch] = useState("");
   const [rowBusy, setRowBusy] = useState<string | null>(null);
   const [rowError, setRowError] = useState("");
+  // Tests already on the shared list that look like the name being typed
+  const [matches, setMatches] = useState<{ id: string; test_name: string; matched: string; exact: boolean }[]>([]);
+  const [sameAs, setSameAs] = useState<string | "new" | null>(null);
+  const typed = form?.test_name.trim() ?? "";
+
+  useEffect(() => {
+    setSameAs(null);
+    if (typed.length < 2) { setMatches([]); return; }
+    const t = setTimeout(async () => {
+      const res = await fetch(`/api/lab-portal/catalogue/match?q=${encodeURIComponent(typed)}`).catch(() => null);
+      const json = res?.ok ? await res.json().catch(() => null) : null;
+      setMatches(json?.matches ?? []);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [typed]);
+
 
   const editingRow = form?.id ? tests.find(t => t.id === form.id) : undefined;
   const priceNum = Number(form?.price);
-  const valid = !!form && form.test_name.trim().length > 0 && Number.isFinite(priceNum) && priceNum > 0;
+  const editingRowName = () => editingRow?.test_name.trim() ?? "";
+  // An exact name or known alias is matched by the server; only close names need confirming
+  const exact = matches.find(m => m.exact);
+  const needsAnswer = !exact && matches.length > 0 && sameAs === null && editingRowName() !== typed;
+  const valid = !!form && form.test_name.trim().length > 0 && Number.isFinite(priceNum) && priceNum > 0 && !needsAnswer;
 
   function openForm(t?: TestRow, name = "") {
     setError("");
@@ -90,7 +111,7 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
     setError("");
     setSaving(true);
     const body: Record<string, unknown> = {
-      test_name: form.test_name, test_code: form.test_code, turnaround_hours: form.turnaround_hours,
+      test_name: form.test_name, same_as: sameAs && sameAs !== "new" ? sameAs : null, test_code: form.test_code, turnaround_hours: form.turnaround_hours,
       sample_type: form.sample_type, home_collection: form.home_collection, active: form.active, preparation: form.preparation,
     };
     // Only send the price when it changed, so its "updated" date stays honest
@@ -149,6 +170,12 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
       />
 
       {loadError && <Notice tone="red" icon={AlertTriangle}>{loadError}</Notice>}
+      {canEdit && (
+        <p className="text-ds-sm text-muted">
+          List every test you run and keep prices current: doctors can only order tests a lab lists. Need help adding your tests? Contact{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Help adding our tests")}`} className="font-bold text-accent hover:underline">{SUPPORT_EMAIL}</a>
+        </p>
+      )}
       {!canEdit && <Notice tone="blue">You&apos;re viewing as a StreetdocMD admin. Each lab manages its own price list from its staff account.</Notice>}
       {canEdit && on.length === 0 && !form && (
         <Notice tone="amber" icon={AlertTriangle}>
@@ -187,10 +214,24 @@ export default function TestMenuClient({ tests, canEdit, loadError, platformTest
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label className={ui.label} htmlFor="t-name">Test or investigation name</label>
-                <input id="t-name" className={ui.input} list="t-names" placeholder="e.g. Full blood count" value={form.test_name}
+                <input id="t-name" className={ui.input} placeholder="e.g. Full blood count" value={form.test_name}
                   onChange={e => setForm(f => f && { ...f, test_name: e.target.value })} />
-                <datalist id="t-names">{platformTests.map(p => <option key={p.id} value={p.test_name} />)}</datalist>
-                <p className={ui.hint}>Pick a suggestion when it&apos;s the same test, so orders for it reach you. Anything else is added as a new test.</p>
+                {exact ? (
+                  <p className={ui.hint}>Matched to {exact.test_name}. Orders for it will reach you.</p>
+                ) : matches.length > 0 && (!editingRow || editingRowName() !== typed) ? (
+                  <div className="mt-2 space-y-2 rounded-ds border border-line p-3">
+                    <p className="text-ds-sm font-bold text-ink">Is this the same test as one of these?</p>
+                    <p className="text-ds-xs text-muted">Labs name tests differently. Choosing the same test means doctors&apos; orders for it reach you, and we remember your name for it.</p>
+                    <div className="flex flex-wrap gap-2">
+                      {matches.map(m => (
+                        <Chip key={m.id} selected={sameAs === m.id} onClick={() => setSameAs(m.id)}>
+                          {m.test_name}{m.matched !== m.test_name ? ` (${m.matched})` : ""}
+                        </Chip>
+                      ))}
+                      <Chip selected={sameAs === "new"} onClick={() => setSameAs("new")}>No, it&apos;s a different test</Chip>
+                    </div>
+                  </div>
+                ) : null}
               </div>
               <div>
                 <label className={ui.label} htmlFor="t-price">Your price (₦)</label>

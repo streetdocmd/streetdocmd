@@ -57,7 +57,7 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
   const [patientRes, familyRes, paymentsRes, dispatchRes, notesRes, nursingRes, physioRes, rxRes, invRes, reviewRes, pkgRes] = await Promise.all([
     admin.from("users").select("id, name, phone, email, dob, gender").eq("id", b.patient_id).maybeSingle(),
     b.family_member_id
-      ? admin.from("family_members").select("name, relationship, dob").eq("id", b.family_member_id).maybeSingle()
+      ? admin.from("family_members").select("*").eq("id", b.family_member_id).maybeSingle()
       : Promise.resolve({ data: null }),
     admin.from("payments").select("id, amount, method, paystack_reference, status, created_at").eq("booking_id", b.id).order("created_at"),
     admin.from("dispatch_queue").select("id, provider_id, sent_at, expires_at, response, responded_at").eq("booking_id", b.id).order("sent_at"),
@@ -132,6 +132,7 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
             <Field label="Phone">{patient?.phone && <a href={`tel:${patient.phone}`} className="text-blue-brand hover:underline">{patient.phone}</a>}</Field>
             <Field label="Email">{patient?.email}</Field>
             <Field label="Visit is for">{family ? `${family.name} (${family.relationship ?? "family member"})` : "The account holder"}</Field>
+            {family && <Field label="Their phone">{family.phone && <a href={`tel:${family.phone}`} className="text-blue-brand hover:underline">{family.phone}</a>}</Field>}
           </dl>
         </Section>
 

@@ -5,8 +5,10 @@ import { X } from "lucide-react";
 import { cx, focusRing } from "@/components/ds";
 import { SUPPORT_WHATSAPP, SUPPORT_WHATSAPP_URL } from "@/lib/brand";
 
-// Pages with their own fixed bottom bar, where the button would cover it
-const HIDDEN_ON = [/^\/share\//, /^\/zz-preview/];
+// Not before sign in (welcome, sign in, sign up and password screens
+// show the support email instead), and not on pages with their own
+// fixed bottom bar, where the button would cover it
+const HIDDEN_ON = [/^\/$/, /^\/(login|register|forgot-password|reset-password)(\/|$)/, /^\/share\//, /^\/zz-preview/];
 const MESSAGE = "Hello StreetdocMD, I need some help.";
 
 function WhatsAppIcon({ size = 26 }: { size?: number }) {

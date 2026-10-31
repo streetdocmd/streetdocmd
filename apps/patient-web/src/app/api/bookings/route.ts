@@ -77,13 +77,17 @@ export async function POST(req: NextRequest) {
     if (family_member_id) {
       const { data: familyMember } = await supabase
         .from("family_members")
-        .select("id")
+        .select("*")
         .eq("id", family_member_id)
         .eq("account_holder_id", user.id)
         .maybeSingle();
       familyMemberId = familyMember?.id ?? null;
       if (!familyMemberId) {
         return NextResponse.json({ error: "Invalid family member" }, { status: 400 });
+      }
+      // The provider calls the person being seen (migration 075)
+      if (String((familyMember as any).phone ?? "").replace(/\D/g, "").length < 10) {
+        return NextResponse.json({ error: `Add ${(familyMember as any).name}'s phone number so the provider can reach them.` }, { status: 400 });
       }
     }
 

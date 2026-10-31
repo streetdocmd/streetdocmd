@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { Avatar, Button, Card, Input, cx, focusRing, useDialog } from "@/components/ds";
 
-interface FamilyMember { id: string; name: string; relationship: string; dob?: string | null }
+interface FamilyMember { id: string; name: string; relationship: string; dob?: string | null; phone?: string | null }
 
 const TINTS = ["var(--tint-amber)", "var(--tint-mint)", "var(--tint-violet)", "var(--tint-rose)", "var(--tint-blue)"];
 
@@ -24,6 +24,7 @@ export default function FamilyMembersSection({ initialMembers }: { initialMember
   const [name, setName] = useState("");
   const [relationship, setRelationship] = useState("");
   const [dob, setDob] = useState("");
+  const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,14 +42,15 @@ export default function FamilyMembersSection({ initialMembers }: { initialMember
   async function addMember(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !relationship.trim()) return;
+    if (!(phone.replace(/\D/g, "").length >= 10)) { setError("Enter their phone number, e.g. 08012345678, so a provider can reach them."); return; }
     setSaving(true);
     setError("");
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from("family_members")
-      .insert({ account_holder_id: user!.id, name: name.trim(), relationship: relationship.trim(), dob: dob || null })
-      .select("id, name, relationship, dob")
+      .insert({ account_holder_id: user!.id, name: name.trim(), relationship: relationship.trim(), dob: dob || null, phone: phone.trim() })
+      .select("*")
       .single();
     setSaving(false);
     if (error || !data) { setError(error?.message ?? "Could not add family member"); return; }
@@ -57,6 +59,7 @@ export default function FamilyMembersSection({ initialMembers }: { initialMember
     setName("");
     setRelationship("");
     setDob("");
+    setPhone("");
     router.refresh();
   }
 
@@ -73,7 +76,8 @@ export default function FamilyMembersSection({ initialMembers }: { initialMember
                 <Avatar name={m.name} size="sm" tint={TINTS[i % TINTS.length]} />
                 <div className="min-w-0 flex-1">
                   <b className="block truncate text-ds-sm text-ink">{m.name}</b>
-                  <small className="text-ds-xs text-muted">{[m.relationship, years !== null && `${years}`].filter(Boolean).join(" · ")}</small>
+                  <small className="text-ds-xs text-muted">{[m.relationship, years !== null && `${years}`, m.phone].filter(Boolean).join(" · ")}</small>
+                  {!m.phone && <small className="block text-ds-xs font-semibold text-warn">Add a phone number when you next book for them</small>}
                 </div>
                 <Button href="/dashboard" variant="secondary" size="xs">Book</Button>
                 <button
@@ -98,6 +102,8 @@ export default function FamilyMembersSection({ initialMembers }: { initialMember
         <form onSubmit={addMember} className="mt-4 space-y-3 rounded-ds-lg border border-line bg-surface p-4">
           <Input label="Full name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Adaeze Okafor" required />
           <Input label="Relationship" value={relationship} onChange={e => setRelationship(e.target.value)} placeholder="e.g. Mother, Son, Spouse" required />
+          <Input label="Their phone number" type="tel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)}
+            placeholder="08012345678" required hint="A provider calls this number to reach them for a visit." />
           <Input label={<>Date of birth <span className="font-normal text-muted">(optional)</span></>} type="date" value={dob}
             onChange={e => setDob(e.target.value)} max={new Date().toISOString().split("T")[0]} />
           {error && <p className="text-ds-xs font-semibold text-danger">{error}</p>}

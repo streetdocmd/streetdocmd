@@ -96,10 +96,10 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
       : null;
   // What the doctor ordered and the patient still has to pay for. No time limit:
   // these stay until they're paid or declined.
-  const [{ data: testsToPay }, { data: medicinesToPay }, { data: toReview }] = await Promise.all([
+  const [{ data: testsToPay }, { data: medicinesToPay }, { data: toReview }, { data: followUps }] = await Promise.all([
     supabase
       .from("investigation_orders")
-      .select("id, status, tests")
+      .select("id, status, tests, group_id")
       .eq("patient_id", user!.id)
       .in("status", ["awaiting_patient_approval", "awaiting_payment", "payment_failed"])
       .order("ordered_at", { ascending: false }),
@@ -118,8 +118,31 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
       .is("patient_reviewed_at", null)
       .gt("created_at", new Date(Date.now() - 30 * 86_400_000).toISOString())
       .order("created_at", { ascending: false }),
+    // Follow up visits a provider scheduled that haven't been booked yet
+    supabase
+      .from("follow_ups")
+      .select("id, follow_up_date, reason, continuing_provider:providers!follow_ups_continuing_provider_id_fkey(name, profession)")
+      .eq("patient_id", user!.id)
+      .eq("status", "scheduled")
+      .order("follow_up_date", { ascending: true }),
   ]);
+  const FOLLOW_UP_SERVICE: Record<string, string> = {
+    doctor: "general_consultation", nurse: "nursing_care", physiotherapist: "physiotherapy_session",
+  };
+  const today = new Date().toISOString().slice(0, 10);
   const actions = [
+    ...((followUps ?? []) as any[]).map(f => {
+      const due = f.follow_up_date as string | null;
+      const when = due ? new Date(`${due}T00:00:00`).toLocaleDateString("en-NG", { weekday: "short", day: "numeric", month: "short" }) : null;
+      return {
+        id: f.id as string,
+        kind: "followup" as const,
+        href: `/dashboard/book/${FOLLOW_UP_SERVICE[f.continuing_provider?.profession] ?? "general_consultation"}?follow_up_id=${f.id}`,
+        title: due && due < today ? "Your follow up visit is overdue" : `Follow up visit${when ? ` due ${when}` : ""}`,
+        sub: [f.continuing_provider?.name, f.reason].filter(Boolean).join(" · ") || "Recommended by your provider",
+        cta: "Book",
+      };
+    }),
     ...((toReview ?? []) as any[]).map(p => ({
       id: p.id as string,
       kind: "medicine" as const,
@@ -128,7 +151,7 @@ export default async function DashboardHome({ searchParams }: { searchParams?: {
       sub: ((p.drugs ?? []) as any[]).map(d => d.name ?? d.drug_name).filter(Boolean).join(", ") || "Prescription",
       cta: "Review",
     })),
-    ...((testsToPay ?? []) as any[]).map(o => ({
+    ...((testsToPay ?? []) as any[]).filter(o => !o.group_id || o.group_id === o.id).map(o => ({
       id: o.id as string,
       kind: "tests" as const,
       href: `/dashboard/investigations/${o.id}`,

@@ -1,46 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminSupabase, createServerSupabase } from "@/lib/supabase-server";
+import { coverage, doctorVisit } from "@/lib/investigation-access";
 
 // POST /api/investigations: a doctor orders tests during a home visit
-// (migration 067). Body: { bookingId, testIds (tests on the list), testNames
-// (anything else, which joins the list: migration 073), notes,
+// (migration 067). Body: { bookingId, tests: [{ id, labId }] (a test on the
+// shared list and the lab the doctor chose for it), notes,
 // collection: "home" | "doctor", sampleNotes? }.
-// The order waits for the patient's approval and payment; the best lab is
-// chosen when they check out. "doctor" means the sample was taken during the
-// visit, so there's no home collection fee.
+// Every test must be offered by a lab that serves the visit address
+// (migration 073), so a patient is never asked to pay for a test no lab can do.
+// The order waits for the patient's approval and payment. Checkout keeps the
+// doctor's labs where they still serve the address (migration 074). "doctor" means
+// the sample was taken during the visit, so there's no home collection fee.
 export async function POST(req: NextRequest) {
-  const { data: { user } } = await (await createServerSupabase()).auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const body = await req.json().catch(() => ({}));
-  const listed: string[] = Array.isArray(body.testIds) ? body.testIds.filter((x: unknown) => typeof x === "string").slice(0, 30) : [];
-  const typed: string[] = Array.isArray(body.testNames)
-    ? body.testNames.filter((x: unknown) => typeof x === "string" && x.trim()).map((x: string) => x.trim().slice(0, 200)).slice(0, 10)
-    : [];
+  const picks = new Map<string, string | null>();
+  for (const t of (Array.isArray(body.tests) ? body.tests : []).slice(0, 30)) {
+    if (typeof t?.id === "string") picks.set(t.id, typeof t.labId === "string" ? t.labId : null);
+  }
+  const ids = Array.from(picks.keys());
   const notes = typeof body.notes === "string" ? body.notes.trim().slice(0, 1000) : "";
   const collection = body.collection === "doctor" ? "doctor" : "home";
-  if (!listed.length && !typed.length) return NextResponse.json({ error: "Choose at least one test." }, { status: 400 });
+  if (!ids.length) return NextResponse.json({ error: "Choose at least one test." }, { status: 400 });
   if (!notes) return NextResponse.json({ error: "Add the clinical indication for these tests." }, { status: 400 });
 
-  const admin = createAdminSupabase();
-  const { data: provider } = await admin.from("providers").select("id, profession").eq("user_id", user.id).maybeSingle();
-  if (!provider || provider.profession !== "doctor") return NextResponse.json({ error: "Only doctors can order investigations." }, { status: 403 });
-
-  const { data: booking } = await admin
-    .from("bookings")
-    .select("id, patient_id, provider_id, status, care_episode_id, patient_address, patient_lat, patient_lng")
-    .eq("id", typeof body.bookingId === "string" ? body.bookingId : "")
-    .maybeSingle();
-  if (!booking || booking.provider_id !== provider.id) return NextResponse.json({ error: "Visit not found" }, { status: 404 });
+  const v = await doctorVisit(body.bookingId);
+  if ("error" in v) return NextResponse.json({ error: v.error }, { status: v.status });
+  const { admin, provider, booking } = v;
   if (!["arrived", "in_progress", "completed"].includes(booking.status)) {
     return NextResponse.json({ error: "Tests can be ordered once you're with the patient." }, { status: 409 });
-  }
-
-  const ids = [...listed];
-  for (const name of typed) {
-    const { data: id, error: testErr } = await admin.rpc("investigation_platform_test", { p_name: name, p_requested: true });
-    if (testErr || !id) return NextResponse.json({ error: "Couldn't save the order. Please try again." }, { status: 500 });
-    ids.push(id as string);
   }
 
   const { data: tests } = await admin
@@ -49,8 +35,27 @@ export async function POST(req: NextRequest) {
     .eq("scope", "platform")
     .eq("active", true)
     .in("id", ids);
-  if (!tests?.length || tests.length !== new Set(ids).size) {
+  if (!tests?.length || tests.length !== ids.length) {
     return NextResponse.json({ error: "Some of the selected tests are no longer available." }, { status: 400 });
+  }
+
+  const labs = await coverage(admin, ids, booking.patient_lat, booking.patient_lng);
+  const counts = collection === "doctor" ? labs.doctor : labs.home;
+  const unavailable = tests.filter(t => !(counts.get(t.id) ?? 0)).map(t => t.test_name);
+  // A chosen lab must really offer that test at this address
+  const { data: offers } = await admin.rpc("investigation_offers", {
+    p_test_ids: ids, p_lat: booking.patient_lat, p_lng: booking.patient_lng, p_collection: collection,
+  });
+  const offered = new Set(((offers ?? []) as any[]).map(o => `${o.platform_test_id}:${o.lab_partner_id}`));
+  const preferredLab = (id: string) => {
+    const lab = picks.get(id);
+    return lab && offered.has(`${id}:${lab}`) ? lab : null;
+  };
+  if (unavailable.length) {
+    return NextResponse.json({
+      error: `No laboratory near this patient offers ${unavailable.join(", ")}. Remove ${unavailable.length > 1 ? "them" : "it"} or choose another test.`,
+      unavailable,
+    }, { status: 409 });
   }
 
   const now = new Date().toISOString();
@@ -64,7 +69,7 @@ export async function POST(req: NextRequest) {
       requested_by: "provider",
       status: "awaiting_patient_approval",
       payment_status: "unpaid",
-      tests: tests.map(t => ({ catalogue_id: t.id, platform_test_id: t.id, test_name: t.test_name, test_code: t.test_code, price: null, preparation: t.preparation })),
+      tests: tests.map(t => ({ catalogue_id: t.id, platform_test_id: t.id, test_name: t.test_name, test_code: t.test_code, price: null, preparation: t.preparation, preferred_lab_id: preferredLab(t.id) })),
       clinical_notes: notes,
       collection_method: collection,
       // The visit address is the default; the patient confirms it at checkout

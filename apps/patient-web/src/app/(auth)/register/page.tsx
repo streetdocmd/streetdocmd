@@ -8,6 +8,7 @@ import PasswordInput from "@/components/PasswordInput";
 import { Button, Input, Notice, TopBar, fieldLabelClass, inputClass } from "@/components/ds";
 import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
 import { TERMS_VERSION, PRIVACY_VERSION } from "@/lib/legal-acceptance";
+import AuthHelp from "@/components/AuthHelp";
 
 type Field = "name" | "email" | "phone" | "password";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -142,6 +143,7 @@ function RegisterForm() {
             Already have an account?{" "}
             <Link href="/login" className="font-bold text-accent hover:underline">Sign in</Link>
           </p>
+          <AuthHelp />
         </div>
       </div>
     </main>

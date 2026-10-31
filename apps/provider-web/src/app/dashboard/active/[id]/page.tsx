@@ -25,7 +25,7 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
   const admin = createAdminSupabase();
   const { data: booking } = await admin
     .from("bookings")
-    .select("id, service_type, status, patient_address, patient_lat, patient_lng, fee, net_payout, notes, patient_id, care_episode_id, patient:users!patient_id(phone, name, dob, allergies)")
+    .select("id, service_type, status, patient_address, patient_lat, patient_lng, fee, net_payout, notes, patient_id, care_episode_id, family_member_id, patient:users!patient_id(phone, name, dob, allergies)")
     .eq("id", params.id)
     .eq("provider_id", provider.id)
     .single();
@@ -33,7 +33,14 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
   if (!booking) redirect("/dashboard");
   if (!["accepted", "en_route", "arrived", "in_progress"].includes(booking.status)) redirect("/dashboard");
 
-  const patient = booking.patient as any;
+  // Booked for a family member: that's who is seen and called; the account holder booked it
+  const holder = booking.patient as any;
+  const { data: member } = (booking as any).family_member_id
+    ? await admin.from("family_members").select("*").eq("id", (booking as any).family_member_id).maybeSingle()
+    : { data: null };
+  const patient = member
+    ? { name: member.name, dob: member.dob, allergies: member.allergies ?? [], phone: member.phone || holder?.phone }
+    : holder;
   const rawLabel = (SERVICE_LABELS as Record<string, string>)[booking.service_type] ?? booking.service_type;
   const serviceLabel = rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1).toLowerCase();
   const age = patient?.dob
@@ -66,6 +73,11 @@ export default async function ActiveBookingPage({ params }: { params: { id: stri
         <div className="min-w-0 flex-1">
           <b className="block text-ds-md text-ink">{patient?.name ?? "Patient"}</b>
           <span className="text-ds-sm text-muted">{[age != null ? `${age} years` : null, serviceLabel].filter(Boolean).join(" · ")}</span>
+          {member && (
+            <span className="mt-0.5 block text-ds-xs text-muted">
+              {member.relationship ? `${member.relationship} of ` : "Booked by "}{holder?.name ?? "the account holder"}{holder?.phone ? ` · ${holder.phone}` : ""}
+            </span>
+          )}
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             <span className="rounded-[10px] bg-surface px-2.5 py-[5px] text-ds-xs font-bold text-navy">
               Allergies: {allergies.length ? allergies.join(", ") : "None recorded"}

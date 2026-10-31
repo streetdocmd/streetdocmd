@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import AuthHelp from "./AuthHelp";
 
 // Shared frame for sign in and the password screens, in the design's light
 // style (sign up and onboarding use their own top bars).
@@ -23,6 +24,7 @@ export default function AuthShell({
           {subtitle && <p className="mt-2 text-ds-sm text-muted">{subtitle}</p>}
         </div>
         {children}
+        <AuthHelp />
       </div>
     </main>
   );

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase, getRequestSupabase } from "@/lib/supabase-server";
-import { quoteTests } from "@/lib/investigations";
+import { missingMessage, orderTestIds, quoteTests } from "@/lib/investigations";
 
 // POST /api/investigations/quote { orderId, lat, lng }: the best lab and the
 // itemised price for one of the patient's own orders at this address.
@@ -18,19 +18,16 @@ export async function POST(req: NextRequest) {
   const admin = createAdminSupabase();
   const { data: order } = await admin
     .from("investigation_orders")
-    .select("id, patient_id, tests, collection_method")
+    .select("id, patient_id, tests, collection_method, group_id")
     .eq("id", body.orderId)
     .maybeSingle();
   if (!order || order.patient_id !== user.id) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
-  const ids = ((order.tests as any[]) ?? []).map(t => t?.platform_test_id).filter(Boolean);
   try {
-    const quote = await quoteTests(admin, ids, lat, lng, order.collection_method === "doctor" ? "doctor" : "home");
+    const { ids, preferred } = await orderTestIds(admin, order);
+    const { quote, missing } = await quoteTests(admin, ids, lat, lng, order.collection_method === "doctor" ? "doctor" : "home", preferred);
     if (!quote) {
-      return NextResponse.json({
-        error: "No partner lab near you lists all of these tests yet. We'll let you know when one does, or try another address.",
-        code: "no_lab",
-      }, { status: 409 });
+      return NextResponse.json({ error: missingMessage(missing), code: "no_lab", missing }, { status: 409 });
     }
     return NextResponse.json({ quote });
   } catch {

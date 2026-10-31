@@ -6,7 +6,16 @@ export const dynamic = "force-dynamic";
 
 // The test's name is what matches it to orders: it finds the shared test with
 // that name, or adds a new one (migration 073)
-async function sharedTestId(admin: ReturnType<typeof createAdminSupabase>, name: string): Promise<string | null> {
+// sameAs: the lab confirmed its test is one already on the list, under another
+// name. That name is remembered, so the next lab using it is matched directly.
+async function sharedTestId(admin: ReturnType<typeof createAdminSupabase>, name: string, sameAs?: unknown): Promise<string | null> {
+  if (typeof sameAs === "string" && sameAs) {
+    const { data: test } = await admin.from("investigation_catalogue").select("id").eq("id", sameAs).eq("scope", "platform").maybeSingle();
+    if (test) {
+      await admin.rpc("investigation_add_alias", { p_test: test.id, p_alias: name, p_source: "lab" });
+      return test.id;
+    }
+  }
   const { data, error } = await admin.rpc("investigation_platform_test", { p_name: name });
   return error ? null : (data as string | null);
 }
@@ -31,7 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const name = String(body.test_name ?? "").trim();
     if (!name) return NextResponse.json({ error: "Enter the test name." }, { status: 400 });
     patch.test_name = name.slice(0, 200);
-    const platformTestId = await sharedTestId(createAdminSupabase(), name);
+    const platformTestId = await sharedTestId(createAdminSupabase(), name, body.same_as);
     if (!platformTestId) return NextResponse.json({ error: "Couldn't save the test. Please try again." }, { status: 500 });
     patch.platform_test_id = platformTestId;
   }

@@ -6,7 +6,7 @@ export default async function FamilyMembersPage() {
   const supabase = await createServerSupabase();
   const { data: members } = await supabase
     .from("family_members")
-    .select("id, name, relationship, dob")
+    .select("*")
     .order("created_at", { ascending: true });
 
   return (

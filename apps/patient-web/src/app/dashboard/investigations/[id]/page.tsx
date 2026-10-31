@@ -34,6 +34,13 @@ export default async function InvestigationPage({ params, searchParams }: { para
     .maybeSingle();
   if (!order) notFound();
 
+  // An order no single lab could do is split into one order per lab (migration 073)
+  const { data: parts } = order.group_id
+    ? await admin.from("investigation_orders").select("id, status, tests, lab_partners(name)")
+        .eq("group_id", order.group_id).neq("id", order.id).eq("patient_id", user.id)
+    : { data: [] as any[] };
+  const isExtraPart = !!order.group_id && order.group_id !== order.id;
+
   const [{ data: events }, { data: me }, { data: rated }] = await Promise.all([
     admin.from("investigation_order_events").select("to_status, created_at").eq("order_id", order.id).order("created_at"),
     admin.from("users").select("phone").eq("id", user.id).maybeSingle(),
@@ -74,8 +81,31 @@ export default async function InvestigationPage({ params, searchParams }: { para
         {order.clinical_notes && fromDoctor && <p className="mt-1.5 text-ds-sm text-muted">Reason: {order.clinical_notes}</p>}
       </div>
 
+      {(parts ?? []).length > 0 && (
+        <Card padded={false} className="px-4 py-1">
+          <p className="border-b border-line py-3 text-ds-sm text-muted">
+            No single lab offers all of your tests, so they&apos;re split between labs. Each part goes ahead on its own.
+          </p>
+          {((parts ?? []) as any[]).map(p => (
+            <Link key={p.id} href={`/dashboard/investigations/${p.id}`} className="flex items-center justify-between gap-3 border-b border-line py-3 text-ds-sm last:border-b-0">
+              <span className="min-w-0">
+                <b className="block text-ink">{((p.tests ?? []) as any[]).map(t => t.test_name).join(", ") || "Lab tests"}</b>
+                <small className="text-ds-xs text-muted">{p.lab_partners?.name ?? "Partner lab"}</small>
+              </span>
+              <Pill tone={statusOf(p.status).tone}>{statusOf(p.status).label}</Pill>
+            </Link>
+          ))}
+        </Card>
+      )}
+
       {/* Before payment */}
-      {CHECKOUT.includes(status) && (
+      {CHECKOUT.includes(status) && isExtraPart && (
+        <Notice tone="info">
+          These tests are paid for together with the rest of your order.{" "}
+          <Link href={`/dashboard/investigations/${order.group_id}`} className="font-bold underline">Go to your order</Link>
+        </Notice>
+      )}
+      {CHECKOUT.includes(status) && !isExtraPart && (
         <>
           {searchParams.paid && status === "awaiting_payment" ? (
             <>

@@ -30,7 +30,7 @@ export interface HomeViewProps {
   /** Medicine running out soonest, if within the refill window */
   refill: { name: string; daysLeft: number } | null;
   /** Tests and medicines the doctor ordered that are waiting for payment */
-  actions: { id: string; kind: "tests" | "medicine"; href: string; title: string; sub: string; cta: string }[];
+  actions: { id: string; kind: "tests" | "medicine" | "followup"; href: string; title: string; sub: string; cta: string }[];
   /** An unpaid booking or medicine order from the last two days */
   resume: { href: string; kind: "visit" | "order"; title: string; sub: string | null } | null;
   /** Recent providers from completed visits */
@@ -201,12 +201,15 @@ export default function HomeView({
       {careBooking && <NextVisitCard booking={careBooking} active={careIsActive} now={now} />}
 
       {actions.length > 0 && (
-        <section aria-label="Needs your attention" className="mt-[26px] space-y-2.5">
+        <section aria-labelledby="todo-title" className="mt-[26px] space-y-2.5 rounded-[24px] border border-warn bg-warn-bg/60 p-3">
+          <h2 id="todo-title" className="px-1 text-ds-sm font-bold text-ink">
+            Still to do <span className="font-semibold text-ink/60">· {actions.length}</span>
+          </h2>
           {actions.map(a => (
             <Link key={a.id} href={a.href}
-              className={cx("flex items-center gap-3 rounded-[20px] border border-warn bg-warn-bg p-3.5", focusRing)}>
-              <span className="grid h-10 w-10 flex-none place-items-center rounded-[13px] bg-surface text-navy">
-                {a.kind === "tests" ? <FlaskConical size={20} aria-hidden /> : <Pill size={20} aria-hidden />}
+              className={cx("flex items-center gap-3 rounded-[18px] bg-surface p-3.5 shadow-ds-sm", focusRing)}>
+              <span className="grid h-10 w-10 flex-none place-items-center rounded-[13px] bg-warn-bg text-navy">
+                {a.kind === "tests" ? <FlaskConical size={20} aria-hidden /> : a.kind === "followup" ? <CalendarClock size={20} aria-hidden /> : <Pill size={20} aria-hidden />}
               </span>
               <span className="min-w-0 flex-1">
                 <b className="block text-ds-sm text-ink">{a.title}</b>

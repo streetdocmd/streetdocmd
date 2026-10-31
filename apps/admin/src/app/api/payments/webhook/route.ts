@@ -41,6 +41,8 @@ export async function POST(req: NextRequest) {
 
     if (metadata?.type === "prescription_order" && metadata.order_id) {
       await confirmPrescriptionOrder(admin, String(metadata.order_id), paidNaira);
+    } else if (metadata?.type === "investigation_order" && Array.isArray(metadata.order_ids) && metadata.order_ids.length > 1) {
+      await confirmSplitInvestigationOrder(admin, (metadata.order_ids as unknown[]).map(String), paidNaira, String((event.data as any).reference ?? ""));
     } else if (metadata?.type === "investigation_order" && metadata.order_id) {
       await confirmInvestigationOrder(admin, String(metadata.order_id), paidNaira, String((event.data as any).reference ?? ""));
     } else if (metadata?.booking_id) {
@@ -137,4 +139,18 @@ async function confirmInvestigationOrder(admin: ReturnType<typeof createAdminSup
   } else if (data !== "ok" && data !== "already_paid") {
     console.warn(`[payments/webhook] investigation order ${orderId} not confirmed: ${data}`);
   }
+}
+
+// One payment for an order split between labs (migration 073). Each part is
+// confirmed for its own total, but only when the amount paid is exactly the
+// sum of the parts; otherwise nothing is confirmed and the mismatch is logged
+// on the first part.
+async function confirmSplitInvestigationOrder(admin: ReturnType<typeof createAdminSupabase>, orderIds: string[], paidNaira: number, reference: string) {
+  const { data: parts } = await admin.from("investigation_orders").select("id, total_amount").in("id", orderIds);
+  const sum = (parts ?? []).reduce((a, p: any) => a + Number(p.total_amount ?? 0), 0);
+  if ((parts ?? []).length !== orderIds.length || Math.round(sum * 100) !== Math.round(paidNaira * 100)) {
+    await confirmInvestigationOrder(admin, orderIds[0], paidNaira, reference);
+    return;
+  }
+  for (const p of parts as any[]) await confirmInvestigationOrder(admin, p.id, Number(p.total_amount), reference);
 }
