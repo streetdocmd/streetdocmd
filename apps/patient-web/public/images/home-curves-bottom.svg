@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 720 390 124" fill="none" preserveAspectRatio="xMaxYMax meet">
+  <defs>
+    <linearGradient id="lowerWash" x1="185" y1="735" x2="390" y2="844" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DCEBFF" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#B8D6FF" stop-opacity=".62"/>
+    </linearGradient>
+  </defs>
+  <path d="M390 755C342 729 291 720 246 735C206 748 178 776 153 812C145 824 137 835 128 844H390V755Z" fill="url(#lowerWash)"/>
+  <path d="M390 790C343 772 306 772 270 787C239 800 216 822 196 844H390V790Z" fill="#C5DEFF" fill-opacity=".25"/>
+</svg>

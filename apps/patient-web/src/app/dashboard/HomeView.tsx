@@ -180,9 +180,9 @@ export default function HomeView({
     <div className="mx-auto max-w-3xl">
       {/* Hero: greeting on the left, the doctor on the right filling the
           hero's height (see HeroPortrait), standing on the search bar */}
-      <div className="relative -mx-5 -mt-5 overflow-hidden bg-gradient-to-b from-sky/70 to-transparent px-5 md:-mt-8 md:mx-0 md:rounded-t-ds-lg md:px-6">
-        <div className="relative flex min-h-[172px] items-center sm:min-h-[250px]">
-          <div className="relative z-10 w-[62%] pb-2 pt-4 sm:w-[58%]">
+      <div className="relative -mx-5 -mt-5 overflow-hidden px-5 md:-mt-8 md:mx-0 md:px-6">
+        <div className="relative flex min-h-[186px] items-center sm:min-h-[250px]">
+          <div className="relative z-10 w-[62%] pb-2 pt-6 sm:w-[58%] sm:pt-4">
             <p className="text-ds-md font-medium text-muted">{greeting(now)}</p>
             <h1 className="mt-1 text-[24px] font-extrabold leading-[1.18] tracking-[-0.02em] text-navy sm:text-[32px]">
               {justOnboarded ? `Welcome to StreetdocMD, ${firstName}` : `${firstName}, how are you feeling?`}
@@ -193,9 +193,9 @@ export default function HomeView({
       </div>
 
       <Link href="/dashboard/search"
-        className={cx("relative z-10 mb-4 flex h-[56px] items-center gap-2.5 rounded-pill border border-line bg-surface px-5 text-muted shadow-ds", focusRing)}>
+        className={cx("relative z-10 mb-4 flex h-[50px] items-center gap-2.5 sm:h-[56px] rounded-pill border border-line bg-surface px-5 text-muted shadow-ds", focusRing)}>
         <Search size={20} className="flex-none text-navy" aria-hidden />
-        <span className="text-ds-control">Search doctors, medicines, tests</span>
+        <span className="truncate text-ds-control">Search doctors, medicines, tests</span>
       </Link>
 
       {careBooking && <NextVisitCard booking={careBooking} active={careIsActive} now={now} />}

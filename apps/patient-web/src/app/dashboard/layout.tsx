@@ -3,6 +3,7 @@ import { createServerSupabase } from "@/lib/supabase-server";
 import Navbar from "@/components/Navbar";
 import PolicyUpdateBanner from "@/components/PolicyUpdateBanner";
 import { needsLegalAcceptance } from "@/lib/legal-acceptance";
+import HomeBackdrop from "@/components/HomeBackdrop";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabase();
@@ -40,9 +41,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const neverAccepted = !legal?.terms_accepted_at && !legal?.privacy_acknowledged_at;
 
   return (
-    <div className="min-h-screen flex flex-col bg-page">
+    <div className="relative min-h-screen flex flex-col bg-page">
+      <HomeBackdrop />
       <Navbar userName={firstName} userId={user.id} photoUrl={profile?.photo_url ?? null} />
-      <main className="flex-1 max-w-6xl mx-auto w-full px-5 pt-5 pb-28 md:pt-8 md:pb-10">
+      <main className="relative flex-1 max-w-6xl mx-auto w-full px-5 pt-5 pb-28 md:pt-8 md:pb-10">
         {needsPolicyReview && <PolicyUpdateBanner firstTime={neverAccepted} />}
         {children}
       </main>
