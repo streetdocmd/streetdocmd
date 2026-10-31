@@ -1,27 +1,24 @@
 "use client";
 import { useState } from "react";
-import { MapPin, Edit3, Loader2, Search, ArrowLeft } from "lucide-react";
+import { MapPin, Edit3, Loader2, Navigation, ArrowLeft } from "lucide-react";
 import dynamic from "next/dynamic";
-import { Button, Notice, cx, focusRing } from "@/components/ds";
+import { Button, Input, Notice, cx, focusRing } from "@/components/ds";
+import { usePlaceSearch } from "@/lib/use-place-search";
+import type { Place } from "@/lib/places";
 
 const LiveMap = dynamic(() => import("./LiveMap"), { ssr: false });
+const PinPicker = dynamic(() => import("./PinPicker"), { ssr: false });
 
 type Coords = { lat: number; lng: number };
-type Mode = "choice" | "current" | "manual";
+type Mode = "choice" | "current" | "manual" | "pin";
 type GeoState = "idle" | "locating" | "denied";
-
-interface SearchResult {
-  display_name: string;
-  lat: string;
-  lon: string;
-}
 
 // Shared by every booking flow (generic service, wellness, lab tests,
 // preferred-provider) — was previously copy-pasted per flow as
 // browser-geolocation-only. Now offers a real choice: use the device's
-// current position, or search and pick a different address. Either path
-// converges on the same onReady(coords, address) callback the booking
-// forms already expect.
+// current position, search for an address (suggestions appear as you type),
+// or drop a pin for places no search knows. Every path converges on the same
+// onReady(coords, address) callback the booking forms already expect.
 export default function LocationPicker({
   onReady,
   onReset,
@@ -34,16 +31,18 @@ export default function LocationPicker({
   const [confirmed, setConfirmed] = useState<{ coords: Coords; address: string } | null>(null);
 
   const [query, setQuery] = useState("");
-  const [searching, setSearching] = useState(false);
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [details, setDetails] = useState("");
+  const [locating, setLocating] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const { results, searching, failed, noMatches, locate } = usePlaceSearch("/api/places", mode === "manual" ? query : "");
 
   function reset() {
     setMode("choice");
     setGeoState("idle");
     setConfirmed(null);
-    setResults([]);
     setQuery("");
+    setDetails("");
+    setSearchError("");
     onReset?.();
   }
 
@@ -76,33 +75,25 @@ export default function LocationPicker({
     );
   }
 
-  async function searchAddress(e: React.FormEvent) {
-    e.preventDefault();
-    if (!query.trim()) return;
-    setSearching(true);
-    setSearchError("");
-    setResults([]);
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`,
-        { headers: { "Accept-Language": "en" } }
-      );
-      const data: SearchResult[] = await res.json();
-      if (!data || data.length === 0) {
-        setSearchError("No matching addresses found. Try being more specific.");
-      } else {
-        setResults(data);
-      }
-    } catch {
-      setSearchError("Could not search right now. Check your connection and try again.");
-    }
-    setSearching(false);
+  function choose(coords: Coords, address: string) {
+    setConfirmed({ coords, address });
+    onReady(coords, address);
   }
 
-  function pickResult(r: SearchResult) {
-    const coords = { lat: parseFloat(r.lat), lng: parseFloat(r.lon) };
-    setConfirmed({ coords, address: r.display_name });
-    onReady(coords, r.display_name);
+  async function pickResult(place: Place) {
+    setLocating(true);
+    setSearchError("");
+    const found = await locate(place);
+    setLocating(false);
+    if (!found) { setSearchError("Couldn't get that address. Try another, or drop a pin on the map."); return; }
+    choose({ lat: found.lat, lng: found.lng }, found.address);
+  }
+
+  // Search rarely knows house numbers here, so they're added by hand
+  function saveDetails() {
+    if (!confirmed) return;
+    const extra = details.trim();
+    onReady(confirmed.coords, extra ? `${extra}, ${confirmed.address}` : confirmed.address);
   }
 
   const heading = <h3 className="mb-3 text-[17px] font-bold text-navy">Where?</h3>;
@@ -131,6 +122,9 @@ export default function LocationPicker({
             <b className="line-clamp-2 font-semibold text-ink">{confirmed.address}</b>
           </div>
         </div>
+        <Input wrapperClassName="mt-2.5" label={<>House number, street or landmark <span className="font-normal text-muted">(optional)</span></>}
+          placeholder="e.g. No. 4, blue gate opposite the church" value={details}
+          onChange={e => setDetails(e.target.value)} onBlur={saveDetails} maxLength={150} />
       </section>
     );
   }
@@ -190,6 +184,21 @@ export default function LocationPicker({
     );
   }
 
+  if (mode === "pin") {
+    return (
+      <section>
+        <div className="mb-3 flex items-baseline justify-between">
+          <h3 className="text-[17px] font-bold text-navy">Where?</h3>
+          <button type="button" onClick={() => setMode("manual")}
+            className={cx("inline-flex items-center gap-1 text-[13px] font-bold text-accent rounded-sm", focusRing)}>
+            <ArrowLeft size={13} aria-hidden /> Back to search
+          </button>
+        </div>
+        <PinPicker onPick={choose} />
+      </section>
+    );
+  }
+
   // mode === "manual"
   return (
     <section>
@@ -200,39 +209,49 @@ export default function LocationPicker({
           <ArrowLeft size={13} aria-hidden /> Back
         </button>
       </div>
-      <form onSubmit={searchAddress} className="flex gap-2">
-        <label className="flex h-[54px] min-w-0 flex-1 items-center gap-2.5 rounded-[18px] border-[1.5px] border-line bg-surface px-4 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent-soft">
-          <MapPin size={20} className="flex-none text-navy" aria-hidden />
-          <input
-            className="min-w-0 flex-1 bg-transparent text-ds-control text-ink outline-none placeholder:text-muted"
-            placeholder="e.g. 12 Allen Avenue, Ikeja, Lagos"
-            aria-label="Search for an address"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-          />
-        </label>
-        <Button type="submit" disabled={searching || !query.trim()} aria-label="Search" size="lg">
-          {searching ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Search size={18} aria-hidden />}
-        </Button>
-      </form>
+      <label className="flex h-[54px] items-center gap-2.5 rounded-[18px] border-[1.5px] border-line bg-surface px-4 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent-soft">
+        <MapPin size={20} className="flex-none text-navy" aria-hidden />
+        <input
+          className="min-w-0 flex-1 bg-transparent text-ds-control text-ink outline-none placeholder:text-muted"
+          placeholder="Street, area or landmark"
+          aria-label="Search for an address"
+          autoComplete="off"
+          autoFocus
+          value={query}
+          onChange={e => { setQuery(e.target.value); setSearchError(""); }}
+          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); if (results[0]) pickResult(results[0]); } }}
+        />
+        {(searching || locating) && <Loader2 size={18} className="flex-none animate-spin text-muted" aria-hidden />}
+      </label>
 
-      {searchError && <p className="mt-2 text-ds-sm font-semibold text-danger">{searchError}</p>}
+      {query.trim().length > 0 && query.trim().length < 3 && <p className="mt-2 text-ds-xs text-muted">Keep typing to see suggestions.</p>}
+      {(failed || searchError) && <p role="alert" className="mt-2 text-ds-sm font-semibold text-danger">{searchError || "Couldn't search right now. Check your connection, or drop a pin on the map."}</p>}
+      {noMatches && <p className="mt-2 text-ds-sm text-ink">We couldn&apos;t find that address. Try a nearby street or landmark, or drop a pin on the map.</p>}
 
       {results.length > 0 && (
         <div className="mt-3 overflow-hidden rounded-[20px] border border-line bg-surface">
-          {results.map((r, i) => (
+          {results.map(r => (
             <button
-              key={i}
+              key={r.id}
               type="button"
               onClick={() => pickResult(r)}
+              disabled={locating}
               className={cx("flex w-full items-start gap-2.5 border-b border-line p-3.5 text-left text-ds-sm text-ink last:border-b-0 hover:bg-page", focusRing)}
             >
               <MapPin size={16} className="mt-0.5 flex-none text-muted" aria-hidden />
-              <span className="line-clamp-2">{r.display_name}</span>
+              <span className="min-w-0">
+                <b className="block truncate font-semibold">{r.label}</b>
+                {r.detail && <small className="block truncate text-ds-xs text-muted">{r.detail}</small>}
+              </span>
             </button>
           ))}
         </div>
       )}
+
+      <button type="button" onClick={() => setMode("pin")}
+        className={cx("mt-3 inline-flex items-center gap-1.5 rounded-sm text-ds-sm font-bold text-accent hover:underline", focusRing)}>
+        <Navigation size={15} aria-hidden /> Can&apos;t find it? Drop a pin on the map
+      </button>
     </section>
   );
 }

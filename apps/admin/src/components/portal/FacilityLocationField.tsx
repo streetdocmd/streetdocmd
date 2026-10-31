@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
-import { Loader2, MapPin, Search } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
 import { Button } from "@/components/ds";
+import { usePlaceSearch } from "@/lib/use-place-search";
+import type { Place } from "@/lib/places";
 import { ui } from "./ui";
 
 export interface FacilityLocation { address: string; lat: number | null; lng: number | null }
 
-interface SearchResult { display_name: string; lat: string; lon: string }
-
-// Same address search as the patient app's LocationPicker. Picking a result
+// Same address search as the patient app, with suggestions as you type. Picking one
 // (or using the device) sets the coordinates that distance matching runs on;
 // the facility only ever sees an address.
 export default function FacilityLocationField({ value, onChange, noun }: {
@@ -20,34 +20,20 @@ export default function FacilityLocationField({ value, onChange, noun }: {
   const placed = value.lat != null && value.lng != null;
   const [editing, setEditing] = useState(!placed);
   const [query, setQuery] = useState(placed ? "" : value.address);
-  const [searching, setSearching] = useState(false);
-  const [results, setResults] = useState<SearchResult[]>([]);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState("");
+  const { results, searching, failed, noMatches, locate } = usePlaceSearch("/api/facility/places", editing ? query : "");
 
-  async function search() {
-    if (!query.trim() || searching) return;
-    setSearching(true);
+  async function pick(place: Place) {
     setError("");
-    setResults([]);
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query.trim())}&format=json&limit=5&countrycodes=ng`,
-        { headers: { "Accept-Language": "en" } },
-      );
-      const data: SearchResult[] = await res.json();
-      if (!data?.length) setError("No match found. Try just the street or area and the city, or use this device's location.");
-      setResults(data ?? []);
-    } catch {
-      setError("Couldn't search right now. Check your connection and try again.");
-    }
-    setSearching(false);
+    const found = await locate(place);
+    if (found) choose({ address: found.address, lat: found.lat, lng: found.lng });
+    else setError("Couldn't get that address. Try another, or use this device's location.");
   }
 
   function choose(next: FacilityLocation) {
     onChange(next);
     setEditing(false);
-    setResults([]);
     setQuery("");
     setError("");
   }
@@ -100,38 +86,36 @@ export default function FacilityLocationField({ value, onChange, noun }: {
           {!placed && <p className="text-ds-xs font-semibold text-warn">Not confirmed yet</p>}
           <div>
             <label htmlFor="fd-address" className={ui.label}>Search for your address</label>
-            <div className="flex gap-2">
-              <input id="fd-address" className={ui.input} placeholder="e.g. 12 Allen Avenue, Ikeja, Lagos" value={query}
+            <div className="relative">
+              <input id="fd-address" className={ui.input} autoComplete="off" placeholder="Street, area or landmark" value={query}
                 onChange={e => { setQuery(e.target.value); setError(""); }}
-                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); search(); } }} />
-              <Button type="button" variant="secondary" size="sm" className="self-center" aria-label="Search"
-                disabled={searching || !query.trim()} onClick={search}>
-                {searching ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Search size={16} aria-hidden />}
-              </Button>
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); if (results[0]) pick(results[0]); } }} />
+              {searching && <Loader2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-muted" aria-hidden />}
             </div>
           </div>
 
           {results.length > 0 && (
             <ul className="overflow-hidden rounded-ds border border-line">
               {results.map(r => (
-                <li key={`${r.lat},${r.lon}`} className="border-b border-line last:border-b-0">
-                  <button type="button" onClick={() => choose({ address: r.display_name, lat: parseFloat(r.lat), lng: parseFloat(r.lon) })}
+                <li key={r.id} className="border-b border-line last:border-b-0">
+                  <button type="button" onClick={() => pick(r)}
                     className="flex w-full items-start gap-2 p-3 text-left text-ds-sm text-ink hover:bg-page">
                     <MapPin size={15} className="mt-0.5 flex-none text-muted" aria-hidden />
-                    <span className="min-w-0">{r.display_name}</span>
+                    <span className="min-w-0"><b className="block font-semibold">{r.label}</b>{r.detail && <small className="block text-ds-xs text-muted">{r.detail}</small>}</span>
                   </button>
                 </li>
               ))}
             </ul>
           )}
 
-          {error && <p role="alert" className="text-ds-xs font-semibold text-danger">{error}</p>}
+          {noMatches && <p className="text-ds-xs text-muted">No match found. Try just the street or area and the city, or use this device&apos;s location.</p>}
+          {(error || failed) && <p role="alert" className="text-ds-xs font-semibold text-danger">{error || "Couldn't search right now. Check your connection and try again."}</p>}
 
           <div className="flex flex-wrap items-center gap-2">
             <Button type="button" variant="secondary" size="sm" disabled={locating} onClick={useDevice}>
               {locating ? "Locating…" : "Use this device's location"}
             </Button>
-            {placed && <Button type="button" variant="ghost" size="sm" onClick={() => { setEditing(false); setResults([]); setError(""); }}>Keep current address</Button>}
+            {placed && <Button type="button" variant="ghost" size="sm" onClick={() => { setEditing(false); setError(""); }}>Keep current address</Button>}
           </div>
           <p className={ui.hint}>Use your device only while you&apos;re at the facility.</p>
         </>
