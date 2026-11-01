@@ -46,7 +46,7 @@ export default function Home() {
             </div>
 
             <h1 className="hero-title">
-              Healthcare at your <span>convenience.</span>
+              Healthcare, <span>Closer to you.</span>
             </h1>
 
             <p className="hero-text">

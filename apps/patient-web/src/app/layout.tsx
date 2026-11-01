@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import ThemeScript from "@/components/theme/ThemeScript";
+import LaunchSplash, { LaunchSplashScript } from "@/components/LaunchSplash";
 import { DialogProvider } from "@/components/ds";
 import WhatsAppConcierge from "@/components/WhatsAppConcierge";
 
@@ -24,8 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={nunito.variable} suppressHydrationWarning>
       <head>
         <ThemeScript />
+        <LaunchSplashScript />
       </head>
       <body>
+        <LaunchSplash />
         <DialogProvider>{children}</DialogProvider>
         <WhatsAppConcierge />
       </body>

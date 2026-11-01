@@ -97,14 +97,12 @@ const preset: Partial<Config> = {
         ]),
       ),
       fontFamily: { sans: fontStack },
-      // The one brand motion: the stethoscope cable on the splash screen
+      // The one brand motion: the logo fading in on the splash screen
       keyframes: {
-        swing: { "0%, 100%": { transform: "rotate(-7deg)" }, "50%": { transform: "rotate(7deg)" } },
-        load: { from: { transform: "translateX(-100%)" }, to: { transform: "translateX(260%)" } },
+        reveal: { from: { opacity: "0", transform: "translateY(8px)" }, to: { opacity: "1", transform: "none" } },
       },
       animation: {
-        swing: "swing 2.6s ease-in-out infinite",
-        load: "load 2.2s ease-in-out forwards",
+        reveal: "reveal 0.4s ease-out both",
       },
     },
   },

@@ -41,3 +41,13 @@
     @apply inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-pill text-ds-xs font-bold leading-none whitespace-nowrap;
   }
 }
+
+/* See components/LaunchSplash.tsx */
+#launch-splash {
+  transition: opacity 0.25s ease, visibility 0.25s;
+}
+.launched #launch-splash {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}

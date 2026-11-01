@@ -16,7 +16,7 @@ export default function Footer() {
         <div className="footer-top">
           <div className="footer-brand" data-reveal>
             <img src="/images/logo-white.png" alt="StreetdocMD" width={464} height={186} />
-            <p>Healthcare at your convenience</p>
+            <p>Healthcare, Closer to you</p>
           </div>
 
           <div className="footer-links" data-reveal style={delay(120)}>

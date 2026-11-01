@@ -1,8 +1,12 @@
 import { Slot, useRouter, useSegments } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { registerForPush } from "../lib/push";
+
+// The launch screen stays up until we know who's signed in, so the wrong screen never flashes
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);
@@ -15,8 +19,7 @@ export default function RootLayout() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       if (session) await checkVerification(session.user.id);
-      setLoading(false);
-    });
+    }).finally(() => setLoading(false));
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_e, s) => {
       setSession(s);
       if (s) await checkVerification(s.user.id);
@@ -24,6 +27,8 @@ export default function RootLayout() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => { if (!loading) SplashScreen.hideAsync().catch(() => {}); }, [loading]);
 
   // Register this device for push once signed in
   const userId = session?.user.id;

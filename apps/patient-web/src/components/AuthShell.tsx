@@ -5,7 +5,7 @@ import AuthHelp from "./AuthHelp";
 // Shared frame for sign in and the password screens, in the design's light
 // style (sign up and onboarding use their own top bars).
 export default function AuthShell({
-  subtitle = "Healthcare at your convenience",
+  subtitle = "Healthcare, Closer to you",
   maxWidth = "max-w-md",
   children,
 }: {

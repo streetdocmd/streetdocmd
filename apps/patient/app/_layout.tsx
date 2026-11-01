@@ -1,9 +1,13 @@
 import { Slot, useRouter, useSegments } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { ensurePatientProfile, onProfileChanged } from "../lib/profile";
 import { registerForPush } from "../lib/push";
+
+// The launch screen stays up until we know who's signed in, so the wrong screen never flashes
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 type ProfileState = "unknown" | "present" | "missing";
 
@@ -19,8 +23,7 @@ export default function RootLayout() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setLoading(false);
-    });
+    }).finally(() => setLoading(false));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
@@ -29,6 +32,8 @@ export default function RootLayout() {
     const off = onProfileChanged(() => setRecheck(n => n + 1));
     return () => { subscription.unsubscribe(); off(); };
   }, []);
+
+  useEffect(() => { if (!loading) SplashScreen.hideAsync().catch(() => {}); }, [loading]);
 
   const userId = session?.user.id;
 

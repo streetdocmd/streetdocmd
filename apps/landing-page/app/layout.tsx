@@ -15,11 +15,11 @@ const nunito = Nunito_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://streetdocmd.com"),
-  title: "StreetdocMD — Healthcare at your convenience",
+  title: "StreetdocMD — Healthcare, Closer to you",
   description:
     "Licensed doctors, nurses and physiotherapists who come to you, with labs, pharmacy delivery and hospital referrals coordinated in one visit.",
   openGraph: {
-    title: "StreetdocMD — Healthcare at your convenience",
+    title: "StreetdocMD — Healthcare, Closer to you",
     description: "Verified doctors, nurses, and physiotherapists who come to you.",
     url: "https://streetdocmd.com",
     siteName: "StreetdocMD",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   // og:image comes from app/opengraph-image.jpg; X falls back to it for the large card
   twitter: {
     card: "summary_large_image",
-    title: "StreetdocMD — Healthcare at your convenience",
+    title: "StreetdocMD — Healthcare, Closer to you",
     description: "Verified doctors, nurses, and physiotherapists who come to you.",
   },
 };
