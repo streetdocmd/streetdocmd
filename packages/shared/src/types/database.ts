@@ -1,6 +1,6 @@
 export type UserRole = "patient" | "provider" | "admin";
 
-export type VerificationStatus = "pending" | "under_review" | "verified" | "rejected";
+export type VerificationStatus = "pending" | "under_review" | "verified" | "rejected" | "test";
 
 // The provider's platform-level profession. Derived from `providers.specialty`
 // (see PROFESSIONS in constants) — specialty is the human-facing practitioner

@@ -89,6 +89,7 @@ export const VERIFICATION_STATUS_LABELS = {
   under_review: "Under Review",
   verified: "Verified",
   rejected: "Rejected",
+  test: "Test account",
 };
 
 export const SUBSCRIPTION_PLANS = {

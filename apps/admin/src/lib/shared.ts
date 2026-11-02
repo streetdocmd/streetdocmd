@@ -3,7 +3,7 @@
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type UserRole = "patient" | "provider" | "admin";
-export type VerificationStatus = "pending" | "under_review" | "verified" | "rejected";
+export type VerificationStatus = "pending" | "under_review" | "verified" | "rejected" | "test";
 export type BookingStatus = "pending" | "accepted" | "en_route" | "arrived" | "in_progress" | "completed" | "cancelled";
 export type PaymentMethod = "card" | "bank_transfer" | "ussd" | "subscription_credit";
 export type PaymentStatus = "pending" | "successful" | "failed" | "refunded";
@@ -78,6 +78,7 @@ export const VERIFICATION_STATUS_LABELS = {
   under_review: "Under Review",
   verified: "Verified",
   rejected: "Rejected",
+  test: "Test account",
 };
 
 export const SUBSCRIPTION_PLANS = {

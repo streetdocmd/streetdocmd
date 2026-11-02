@@ -15,6 +15,7 @@ const CRUMBS: [prefix: string, section: string, page: string][] = [
   ["/dashboard/providers",                 "Onboarding", "Provider verification"],
   ["/dashboard/facilities",                "Onboarding", "Facility applications"],
   ["/dashboard/patients",                  "People",     "Patients"],
+  ["/dashboard/waitlist",                  "People",     "Waitlist"],
   ["/dashboard/labs",                      "Partners",   "Lab investigations"],
   ["/dashboard/pharmacy",                  "Partners",   "Pharmacy orders"],
   ["/dashboard/hospitals",                 "Partners",   "Hospitals"],

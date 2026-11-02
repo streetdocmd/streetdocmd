@@ -39,7 +39,7 @@ export default function PendingScreen() {
 
     if (!provider) { setState({ kind: "no_profile" }); return; }
 
-    if (provider.verification_status === "verified") {
+    if (provider.verification_status === "verified" || provider.verification_status === "test") {
       // The root layout routes from its own cached status — a session
       // refresh makes it re-read the (now verified) row and open the app.
       setState({ kind: "in_review", underReview: true });

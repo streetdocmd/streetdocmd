@@ -15,6 +15,7 @@ const TABS = [
   { key: "under_review", label: "Under review" },
   { key: "verified",     label: "Verified" },
   { key: "rejected",     label: "Rejected" },
+  { key: "test",         label: "Test accounts" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -24,6 +25,7 @@ const EMPTY_COPY: Record<TabKey, { title: string; description: string }> = {
   under_review: { title: "Nothing under review", description: "Providers you mark as under review appear here." },
   verified:     { title: "No verified providers yet", description: "Approved providers appear here." },
   rejected:     { title: "No rejected providers", description: "Rejected providers who haven't re-applied appear here." },
+  test:         { title: "No test accounts", description: "Test accounts sign in as usual but stay hidden from patients." },
 };
 
 export default async function ProvidersPage({

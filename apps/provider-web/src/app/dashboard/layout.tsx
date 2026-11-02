@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
-import { onboardingRoute, partnerPortal } from "@/lib/onboarding";
+import { canUseDashboard, onboardingRoute, partnerPortal } from "@/lib/onboarding";
 import Navbar from "@/components/Navbar";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect(partnerPortal(profile?.role) ?? "/register/individual");
   }
 
-  if (provider.verification_status !== "verified") {
+  if (!canUseDashboard(provider.verification_status)) {
     const { data: docs } = await supabase
       .from("provider_documents")
       .select("document_type")

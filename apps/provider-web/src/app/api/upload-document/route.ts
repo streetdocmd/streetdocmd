@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   if (!requiredDocTypes(provider.specialty).includes(docType)) {
     return NextResponse.json({ error: "Unexpected document type" }, { status: 400 });
   }
-  if (provider.verification_status === "verified" || provider.verification_status === "under_review") {
+  if (["verified", "under_review", "test"].includes(provider.verification_status)) {
     return NextResponse.json({ error: "Your documents are already with our team. Contact contact@streetdocmd.com to change them." }, { status: 409 });
   }
 

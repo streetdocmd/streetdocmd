@@ -6,8 +6,9 @@ export const LINKS = {
   // App Store / Play Store / smart link for the mobile app
   bookApp: process.env.NEXT_PUBLIC_MOBILE_APP_URL ?? "#",
   // Provider onboarding
-  // Footer "Contact" link — change to your real inbox or a contact page
-  contact: process.env.NEXT_PUBLIC_CONTACT_URL ?? "mailto:contact@streetdocmd.com",
+  // Contact page and the waitlist form on it
+  contact: process.env.NEXT_PUBLIC_CONTACT_URL ?? "/contact",
+  waitlist: "/contact#waitlist",
   providerSignup: process.env.NEXT_PUBLIC_PROVIDER_URL ?? "https://provider.streetdocmd.com",
 
   // Legal documents default to the pages on this site (same as LEGAL_PATHS in lib/legal;

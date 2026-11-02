@@ -73,7 +73,7 @@ export default function AboutPage() {
               StreetdocMD was built because good care shouldn’t depend on how far you can travel, or how long you can
               wait in a queue.
             </p>
-            <Button href={LINKS.bookWeb}>Join the waitlist</Button>
+            <Button href={LINKS.waitlist}>Join the waitlist</Button>
           </div>
           <div className="about-hero-media" data-reveal="zoom">
             <img src="/images/about-doctor-visit.jpg" alt="A doctor arriving for a home visit with a medical bag" />
@@ -176,7 +176,7 @@ export default function AboutPage() {
               home-based care from request to recovery.
             </p>
             <div className="btn-row">
-              <Button href={LINKS.bookWeb}>Join the waitlist</Button>
+              <Button href={LINKS.waitlist}>Join the waitlist</Button>
               <Button href={LINKS.contact} variant="outline">
                 Contact the team
               </Button>

@@ -39,12 +39,17 @@ export function hasCurrentAgreement(agreementVersion: string | null | undefined)
  *  - pending, documents/agreement missing → documents
  *  - pending, everything submitted    → pending
  */
+/** Test accounts never reach patients, but sign in like verified providers. */
+export function canUseDashboard(verificationStatus: string) {
+  return verificationStatus === "verified" || verificationStatus === "test";
+}
+
 export function onboardingRoute(provider: {
   verification_status: string;
   specialty: string;
   agreement_version?: string | null;
 }, uploadedTypes: string[]): "/dashboard" | "/onboarding/documents" | "/onboarding/pending" {
-  if (provider.verification_status === "verified") return "/dashboard";
+  if (canUseDashboard(provider.verification_status)) return "/dashboard";
   if (provider.verification_status !== "pending") return "/onboarding/pending";
   const complete = missingDocTypes(provider.specialty, uploadedTypes).length === 0
     && hasCurrentAgreement(provider.agreement_version);

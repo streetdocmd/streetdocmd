@@ -15,6 +15,7 @@ const STATUS_TONE: Record<string, Tone> = {
   // verification / applications
   pending: "warning",
   under_review: "info",
+  test: "info",
   verified: "success",
   approved: "success",
   rejected: "danger",
@@ -39,6 +40,7 @@ const STATUS_TONE: Record<string, Tone> = {
 const LABELS: Record<string, string> = {
   pending: "Pending",
   under_review: "Under review",
+  test: "Test account",
   pending_payment: "Awaiting payment",
   provider_declined: "Provider declined",
   en_route: "En route",

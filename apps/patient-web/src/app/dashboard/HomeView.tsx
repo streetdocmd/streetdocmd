@@ -193,7 +193,7 @@ export default function HomeView({
       </div>
 
       <Link href="/dashboard/search"
-        className={cx("relative z-10 mb-4 flex h-[50px] items-center gap-2.5 sm:h-[56px] rounded-pill border border-line bg-surface px-5 text-muted shadow-ds", focusRing)}>
+        className={cx("relative z-10 mb-4 flex h-[50px] items-center gap-2.5 sm:h-[56px] rounded-[18px] border border-line bg-surface px-5 text-muted shadow-ds", focusRing)}>
         <Search size={20} className="flex-none text-navy" aria-hidden />
         <span className="truncate text-ds-control">Search doctors, medicines, tests</span>
       </Link>

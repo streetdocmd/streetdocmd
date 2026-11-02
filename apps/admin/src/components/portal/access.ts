@@ -77,7 +77,9 @@ export async function getPortalAccess(type: PortalType): Promise<PortalAccess> {
 
   // Hospitals have always been blocked while inactive. Labs and pharmacies keep
   // access (to finish in-flight orders) and see a "paused" notice instead.
-  if (type === "hospital" && partner.active === false) {
+  // Seeded test hospitals stay inactive so patients can't reach them, but still sign in.
+  const testAccount = !!user.email?.endsWith("@streetdocmd.test");
+  if (type === "hospital" && partner.active === false && !testAccount) {
     return { status: "inactive", user: portalUser, partner };
   }
 
