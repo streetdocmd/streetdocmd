@@ -27,7 +27,7 @@ export default function Footer() {
             </div>
             <div className="footer-col col-company">
               <h4>COMPANY</h4>
-              <a href="/#about">About</a>
+              <a href="/about">About</a>
               <a href={LINKS.contact}>Contact</a>
             </div>
             <div className="footer-col col-legal">

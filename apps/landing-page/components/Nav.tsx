@@ -8,7 +8,7 @@ import { LINKS } from "@/lib/links";
 const NAV_LINKS = [
   { label: "Features", href: "/features" },
   { label: "Who It’s For", href: "/who-its-for" },
-  { label: "About", href: "/#about" },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "#contact" },
 ];
 
