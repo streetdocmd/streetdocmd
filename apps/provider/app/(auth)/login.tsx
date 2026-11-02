@@ -1,10 +1,11 @@
 import { useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  Alert, KeyboardAvoidingView, Platform
+  Alert, KeyboardAvoidingView, Platform, Linking
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
+import { PROVIDER_PORTAL_URL } from "../../lib/config";
 
 export default function ProviderLoginScreen() {
   const router = useRouter();
@@ -71,7 +72,8 @@ export default function ProviderLoginScreen() {
           <Text style={styles.btnText}>{loading ? "Signing in..." : "Sign In"}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/(auth)/register")} style={styles.register}>
+        {/* Applying needs the credential documents, which the website collects */}
+        <TouchableOpacity onPress={() => Linking.openURL(`${PROVIDER_PORTAL_URL}/register/individual`).catch(() => {})} style={styles.register}>
           <Text style={styles.registerText}>
             New provider? <Text style={styles.registerLink}>Apply to join</Text>
           </Text>

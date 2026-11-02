@@ -65,7 +65,7 @@ export default async function PendingPage() {
   return (
     <div>
       <div className="mb-8">
-        <OnboardingSteps current={2} />
+        <OnboardingSteps current={1} />
       </div>
 
       <div className="text-center">

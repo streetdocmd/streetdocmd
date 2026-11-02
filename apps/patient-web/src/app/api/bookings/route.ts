@@ -1,6 +1,6 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase, getRequestSupabase } from "@/lib/supabase-server";
-import { SERVICE_PRICES, SERVICE_PROFESSION, SERVICE_DURATION_MINUTES } from "@/lib/shared";
+import { SERVICE_LABELS, SERVICE_PROFESSION, SERVICE_DURATION_MINUTES } from "@/lib/shared";
 import type { ServiceType, Profession } from "@/lib/shared";
 
 // A follow-up books the same way any other visit does — same profession,
@@ -25,13 +25,13 @@ const TARGETED_PROVIDER_SERVICE_TYPE: Record<Profession, ServiceType> = {
 };
 
 // Providers set their own price per bookable service (provider_services.service_type).
-// Anyone who hasn't priced a service is billed the platform's standard rate. The
-// patient's provider list (dashboard/book/[service]) shows exactly this number.
+// There is no fallback price: a provider who hasn't priced a service can't be booked
+// for it, and the patient's provider lists leave them out.
 async function providerPrice(
   admin: ReturnType<typeof createAdminSupabase>,
   providerId: string,
   serviceType: ServiceType,
-): Promise<number> {
+): Promise<number | null> {
   const { data } = await admin
     .from("provider_services")
     .select("price")
@@ -40,7 +40,7 @@ async function providerPrice(
     .eq("active", true)
     .maybeSingle();
   const price = Number(data?.price);
-  return price > 0 ? price : SERVICE_PRICES[serviceType];
+  return price > 0 ? price : null;
 }
 
 export async function POST(req: NextRequest) {
@@ -158,23 +158,35 @@ export async function POST(req: NextRequest) {
       // (provider list on a service page); otherwise derive it from the profession
       // (booking by provider code, where no service was chosen).
       const picked = service_type as ServiceType | undefined;
-      if (!picked || !SERVICE_PRICES[picked] || SERVICE_PROFESSION[picked] !== targetedProvider.profession) {
+      if (!picked || !SERVICE_LABELS[picked] || SERVICE_PROFESSION[picked] !== targetedProvider.profession) {
         service_type = TARGETED_PROVIDER_SERVICE_TYPE[targetedProvider.profession as Profession];
       }
     }
 
-    if (!service_type || !SERVICE_PRICES[service_type as ServiceType]) {
+    if (!service_type || !SERVICE_LABELS[service_type as ServiceType]) {
       return NextResponse.json({ error: "Invalid service type" }, { status: 400 });
     }
 
-    // A chosen provider (or the continuing provider on a follow-up) charges their own price
+    // A chosen provider (or the continuing provider on a follow-up) charges their own
+    // rate. Wellness Check is the one service booked without choosing anyone: its
+    // price comes from the package below.
     const pricingProviderId = resolvedTargetedProviderId ?? (isFollowUp ? preferredProviderId : null);
-    let standardFee = pricingProviderId
-      ? await providerPrice(admin, pricingProviderId, service_type as ServiceType)
-      : SERVICE_PRICES[service_type as ServiceType];
+    let standardFee: number | null = null;
+    if (service_type !== "wellness_check") {
+      if (!pricingProviderId) {
+        return NextResponse.json({ error: "Please choose a provider for this visit." }, { status: 400 });
+      }
+      standardFee = await providerPrice(admin, pricingProviderId, service_type as ServiceType);
+      if (standardFee === null) {
+        return NextResponse.json({
+          error: isFollowUp
+            ? "Your provider hasn't set a price for this visit yet. Please try again later, or book another provider."
+            : "This provider hasn't set a price for this service yet. Please choose another provider.",
+        }, { status: 400 });
+      }
+    }
 
-    // Wellness Check is priced by the tier the patient chose, not the flat
-    // SERVICE_PRICES lookup every other service uses — the fee is never
+    // Wellness Check is priced by the tier the patient chose. The fee is never
     // trusted from the client, only the package price looked up here.
     let resolvedWellnessPackageId: string | null = null;
     if (service_type === "wellness_check") {
@@ -192,7 +204,7 @@ export async function POST(req: NextRequest) {
       standardFee = pkg.price;
     }
 
-    let fee = standardFee;
+    let fee = standardFee as number;
     if (isFollowUp) {
       const { data: setting } = await admin
         .from("platform_settings")
@@ -200,7 +212,7 @@ export async function POST(req: NextRequest) {
         .eq("key", "follow_up_discount_rate")
         .maybeSingle();
       const discountRate = typeof setting?.value === "number" ? setting.value : 0.10;
-      fee = Math.round(standardFee * (1 - discountRate));
+      fee = Math.round(fee * (1 - discountRate));
     }
 
     // The patient pays the provider's fee as listed; StreetdocMD's 20 percent comes out of it

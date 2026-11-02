@@ -5,7 +5,7 @@ import { hasCurrentAgreement, onboardingRoute } from "@/lib/onboarding";
 import OnboardingSteps from "@/components/OnboardingSteps";
 import DocumentUploadForm from "./DocumentUploadForm";
 
-export default async function DocumentsPage() {
+export default async function DocumentsPage({ searchParams }: { searchParams: { upload?: string } }) {
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -41,7 +41,7 @@ export default async function DocumentsPage() {
   return (
     <div>
       <div className="mb-8">
-        <OnboardingSteps current={1} />
+        <OnboardingSteps current={0} />
       </div>
 
       <div className="text-center mb-8">
@@ -57,6 +57,13 @@ export default async function DocumentsPage() {
             : "We check every licence by hand with the issuing council before a provider can see patients. This usually takes 24–48 hours."}
         </p>
       </div>
+
+      {searchParams.upload === "failed" && (
+        <div role="alert" className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+          <p className="text-sm font-semibold text-amber-800 mb-0.5">Your account is created, but a document didn&apos;t upload</p>
+          <p className="text-sm text-amber-700">Attach whatever is still missing below and submit. Anything marked On file is already saved.</p>
+        </div>
+      )}
 
       {isRejected && provider.rejection_reason && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-5">

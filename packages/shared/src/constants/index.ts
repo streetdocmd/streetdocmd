@@ -11,17 +11,6 @@ export const SERVICE_LABELS: Record<ServiceType, string> = {
   physiotherapy_session: "Physiotherapy Session",
 };
 
-export const SERVICE_PRICES: Record<ServiceType, number> = {
-  general_consultation: 8000,
-  wellness_check: 5000,
-  wound_care: 6000,
-  elderly_review: 10000,
-  nursing_care: 12000,
-  custom_request: 8000,
-  physiotherapy_assessment: 15000,
-  physiotherapy_session: 20000,
-};
-
 // Used to size a booking's slot on the provider calendar and to check for
 // scheduling conflicts server-side — a rough estimate per service, not a
 // hard clinical duration.
@@ -65,6 +54,9 @@ export const SERVICE_PROFESSION: Record<ServiceType, Profession> = {
 // elderly_review visit (see create_elderly_follow_up_booking() RPC,
 // migration 033).
 export const ELDERLY_FOLLOW_UP_SERVICE: ServiceType = "nursing_care";
+// That follow-up goes to whichever nurse accepts it, so it has one fixed price
+// rather than a nurse's own rate.
+export const ELDERLY_FOLLOW_UP_FEE = 12000;
 
 export const PLATFORM_COMMISSION_RATE = 0.2; // 20%
 

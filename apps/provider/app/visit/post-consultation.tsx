@@ -6,7 +6,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 import { supabase } from "../../lib/supabase";
-import { SERVICE_PRICES, ELDERLY_FOLLOW_UP_SERVICE, calculateCommission, calculateNetPayout } from "@streetdocmd/shared";
+import { ELDERLY_FOLLOW_UP_FEE, calculateCommission, calculateNetPayout } from "@streetdocmd/shared";
 
 type Step = "investigations" | "prescription" | "drugs" | "pharmacy" | "follow_up" | "completing" | "done";
 
@@ -54,7 +54,7 @@ export default function PostConsultationScreen() {
 
   async function requestFollowUp() {
     setBusy(true);
-    const fee = SERVICE_PRICES[ELDERLY_FOLLOW_UP_SERVICE];
+    const fee = ELDERLY_FOLLOW_UP_FEE;
     const { error } = await supabase.rpc("create_elderly_follow_up_booking", {
       p_original_booking_id: bookingId,
       p_fee: fee,

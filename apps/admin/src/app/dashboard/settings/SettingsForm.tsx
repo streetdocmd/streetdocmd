@@ -63,7 +63,7 @@ function FollowUpDiscountCard({ setting }: { setting: Setting }) {
             value={percent}
             onChange={e => { setPercent(e.target.value); setSaved(false); }}
           />
-          <span className="text-sm text-gray-500">% below standard price</span>
+          <span className="text-sm text-gray-500">% off the provider's own rate</span>
         </div>
         <button type="submit" disabled={saving} className="btn-primary text-sm ml-auto">
           {saving ? "Saving…" : saved ? "Saved ✓" : "Save"}

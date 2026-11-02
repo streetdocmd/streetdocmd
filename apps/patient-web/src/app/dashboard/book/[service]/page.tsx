@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { SERVICE_LABELS, SERVICE_PRICES, SERVICE_PROFESSION } from "@/lib/shared";
+import { SERVICE_LABELS, SERVICE_PROFESSION } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { weeklyHoursOf } from "@/lib/working-hours";
@@ -7,9 +7,8 @@ import BookProviderClient, { type BookableProvider } from "./BookProviderClient"
 
 export const dynamic = "force-dynamic";
 
-// Providers set their own prices (provider_services.service_type → price). A provider
-// who hasn't priced this service is billed at the platform's standard rate, which the
-// booking API applies the same way — the price shown here is always what gets charged.
+// Providers set their own prices (provider_services.service_type → price). Only providers
+// who have priced this service are listed, and the booking API charges that same price.
 async function loadProviders(service: ServiceType): Promise<BookableProvider[]> {
   const admin = createAdminSupabase();
   const { data: providers } = await admin
@@ -29,6 +28,7 @@ async function loadProviders(service: ServiceType): Promise<BookableProvider[]> 
   const priceOf = new Map((prices ?? []).map(p => [p.provider_id as string, Number(p.price)]));
 
   return providers
+    .filter(p => (priceOf.get(p.id as string) ?? 0) > 0)
     .map(p => ({
       id: p.id as string,
       name: p.name as string,
@@ -40,7 +40,7 @@ async function loadProviders(service: ServiceType): Promise<BookableProvider[]> 
       total_visits: Number(p.total_visits) || 0,
       years_experience: Number(p.years_experience) || 0,
       available: !!p.available,
-      price: priceOf.get(p.id as string) ?? SERVICE_PRICES[service],
+      price: priceOf.get(p.id as string) as number,
       hours: weeklyHoursOf(p),
     }))
     // Online now first, then best rated, then most experienced

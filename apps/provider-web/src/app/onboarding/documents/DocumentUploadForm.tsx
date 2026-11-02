@@ -9,9 +9,7 @@ import {
   PROVIDER_AGREEMENT_VERSION,
 } from "@streetdocmd/shared";
 import ProviderAgreementModal from "@/components/ProviderAgreementModal";
-
-const MAX_SIZE = 10 * 1024 * 1024;
-const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
+import { DOC_ACCEPT, DOC_HINT, prepareDocument } from "@/lib/doc-files";
 
 interface FileSlot {
   type: string;
@@ -76,18 +74,15 @@ export default function DocumentUploadForm({
     setSlots(prev => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
   }
 
-  function pickFile(index: number, file: File | null) {
+  async function pickFile(index: number, file: File | null) {
     setGlobalError("");
     if (!file) return;
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      patchSlot(index, { file: null, error: "Please choose a PDF, JPG or PNG file." });
+    const result = await prepareDocument(file);
+    if ("error" in result) {
+      patchSlot(index, { file: null, error: result.error });
       return;
     }
-    if (file.size > MAX_SIZE) {
-      patchSlot(index, { file: null, error: "This file is larger than 10 MB. Please choose a smaller file or scan." });
-      return;
-    }
-    patchSlot(index, { file, error: "", done: false });
+    patchSlot(index, { file: result.file, error: "", done: false });
   }
 
   // Each slot is satisfied by a fresh file or one already on file (from an
@@ -192,7 +187,7 @@ export default function DocumentUploadForm({
                 ) : null}
               </div>
               <p className="text-xs text-muted mt-0.5">
-                {slot.description} · PDF, JPG or PNG, up to 10 MB
+                {slot.description} · {DOC_HINT}
                 {slot.onFile && !slot.done && (isReapplying ? " · upload a new copy if this one was flagged" : " · you can replace it")}
               </p>
 
@@ -201,7 +196,7 @@ export default function DocumentUploadForm({
                   <input
                     ref={el => { inputRefs.current[i] = el; }}
                     type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                    accept={DOC_ACCEPT}
                     className="hidden"
                     onChange={e => { pickFile(i, e.target.files?.[0] ?? null); e.target.value = ""; }}
                   />

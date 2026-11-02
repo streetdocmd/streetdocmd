@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Search, Zap, Clock, Lock } from "lucide-react";
+import { Star, Search, Clock, Lock } from "lucide-react";
 import { SERVICE_LABELS, SERVICE_PROFESSION, formatNaira } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
 import FamilyMemberPicker from "./FamilyMemberPicker";
@@ -29,8 +29,8 @@ export interface BookableProvider {
   hours?: WeeklyHours | null;
 }
 
-// "nearest" = let dispatch send the nearest available provider (no provider chosen)
-type Choice = BookableProvider | "nearest" | null;
+// "followUp" = a follow-up, which goes to the continuing provider without choosing
+type Choice = BookableProvider | "followUp" | null;
 
 export default function BookProviderClient({
   service,
@@ -55,7 +55,7 @@ export default function BookProviderClient({
 }) {
   const router = useRouter();
   // A follow-up goes to the continuing provider, so skip straight to the booking steps
-  const [choice, setChoice] = useState<Choice>(followUpId ? "nearest" : null);
+  const [choice, setChoice] = useState<Choice>(followUpId ? "followUp" : null);
   // Provider whose profile is open (before choosing them)
   const [viewing, setViewing] = useState<BookableProvider | null>(
     () => (openProviderId ? providers.find(p => p.id === openProviderId) ?? null : null),
@@ -72,7 +72,7 @@ export default function BookProviderClient({
   const [scheduledAt, setScheduledAt] = useState<string | null>(null);
   const [scheduleReady, setScheduleReady] = useState(true);
 
-  const chosen = choice && choice !== "nearest" ? choice : null;
+  const chosen = choice && choice !== "followUp" ? choice : null;
   const serviceLabel = (SERVICE_LABELS as Record<string, string>)[service];
   const busy = useBusySlots(chosen?.id ?? null);
 
@@ -169,7 +169,7 @@ export default function BookProviderClient({
           {providers.length === 0 ? (
             <Card className="text-center">
               <p className="font-bold text-navy">No providers are listed for {sentence(serviceLabel)} yet</p>
-              <p className="mt-1 text-ds-sm text-muted">We can still send you the nearest available verified provider.</p>
+              <p className="mt-1 text-ds-sm text-muted">Providers are still setting up. Please check back soon.</p>
             </Card>
           ) : shown.length === 0 ? (
             <p className="py-[18px] text-center text-ds-sm text-muted">
@@ -211,25 +211,6 @@ export default function BookProviderClient({
           )}
         </div>
 
-        {providers.length === 0 ? (
-          <Button block size="lg" className="mt-3" onClick={() => setChoice("nearest")}>
-            Send me the nearest available provider
-          </Button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setChoice("nearest")}
-            className={cx("flex w-full items-center gap-3 rounded-[20px] border border-line bg-surface p-3.5 text-left shadow-ds-sm hover:border-accent/40", focusRing)}
-          >
-            <span className="grid h-10 w-10 flex-none place-items-center rounded-[13px] bg-sky text-brand">
-              <Zap size={18} aria-hidden />
-            </span>
-            <span>
-              <span className="block text-ds-sm font-bold text-ink">No preference? Send the nearest available provider</span>
-              <span className="block text-ds-xs text-muted">The fastest option. You&apos;ll see the price before you pay.</span>
-            </span>
-          </button>
-        )}
       </div>
     );
   }
@@ -267,9 +248,7 @@ export default function BookProviderClient({
             <b className="block text-ds-control text-ink">{title}</b>
             {description && <small className="block text-ds-xs italic text-muted">&ldquo;{description}&rdquo;</small>}
             <small className="block text-ds-xs text-muted">
-              {followUpId
-                ? "Follow up pricing applies: discounted from your provider's rate. You'll see the total before you pay."
-                : "We'll send the nearest available verified provider. You'll see the price before you pay."}
+              Follow up pricing applies: discounted from your provider&apos;s rate. You&apos;ll see the total before you pay.
             </small>
           </div>
         )}
@@ -279,7 +258,7 @@ export default function BookProviderClient({
         {!followUpId && <FamilyMemberPicker onChange={setFamilyMemberId} />}
         {!followUpId && (
           <SchedulePicker
-            key={`${chosen?.id ?? "nearest"}-${presetAt ?? ""}`}
+            key={`${chosen?.id ?? "followUp"}-${presetAt ?? ""}`}
             busy={busy}
             hours={chosen?.hours ?? null}
             initialAt={chosen ? presetAt : null}
@@ -304,7 +283,7 @@ export default function BookProviderClient({
           </div>
           <Button className="flex-1" onClick={book} disabled={booking || !ready} aria-busy={booking}>
             {booking
-              ? (chosen ? "Sending request…" : scheduledAt ? "Confirming your slot…" : "Finding your provider…")
+              ? "Sending request…"
               : "Continue"}
           </Button>
         </div>
@@ -313,7 +292,7 @@ export default function BookProviderClient({
             ? "Add the visit address to continue."
             : chosen
               ? `${chosen.name} will be notified and can accept or decline. Payment is due before they set off.`
-              : "We'll match you with the nearest available provider. Payment due after confirmation."}
+              : "Your provider will be notified and can accept or decline. Payment is due before they set off."}
         </p>
       </div>
     </div>

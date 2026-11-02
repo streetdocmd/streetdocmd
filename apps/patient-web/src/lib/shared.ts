@@ -29,17 +29,6 @@ export const SERVICE_LABELS: Record<ServiceType, string> = {
   physiotherapy_session: "Physiotherapy Session",
 };
 
-export const SERVICE_PRICES: Record<ServiceType, number> = {
-  general_consultation: 8000,
-  wellness_check: 5000,
-  wound_care: 6000,
-  elderly_review: 10000,
-  nursing_care: 12000,
-  custom_request: 8000,
-  physiotherapy_assessment: 15000,
-  physiotherapy_session: 20000,
-};
-
 // Used to size a booking's slot on the provider calendar and to check for
 // scheduling conflicts server-side — a rough estimate per service, not a
 // hard clinical duration.

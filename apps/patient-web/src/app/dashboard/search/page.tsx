@@ -1,6 +1,5 @@
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { weeklyHoursOf } from "@/lib/working-hours";
-import { SERVICE_PRICES } from "@/lib/shared";
 import type { ServiceType } from "@/lib/shared";
 import SearchClient, { type FacilityResult, type ProviderResult } from "./SearchClient";
 
@@ -44,7 +43,9 @@ export default async function SearchPage({ searchParams }: { searchParams: { seg
   for (const t of (timeOff ?? []) as any[]) offDays.set(t.provider_id, [...(offDays.get(t.provider_id) ?? []), t.day]);
   const priceOf = new Map(((prices ?? []) as any[]).map(p => [`${p.provider_id}:${p.service_type}`, Number(p.price)]));
 
+  // A provider shows up once they've priced their main service; until then they can't be booked
   const providers: ProviderResult[] = providerRows
+    .filter(p => (priceOf.get(`${p.id}:${SERVICE_BY_PROFESSION[p.profession]}`) ?? 0) > 0)
     .map(p => {
       const service = SERVICE_BY_PROFESSION[p.profession];
       return {
@@ -57,7 +58,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { seg
         reviews: Number(p.review_count) || 0,
         visits: Number(p.total_visits) || 0,
         available: !!p.available,
-        price: priceOf.get(`${p.id}:${service}`) ?? SERVICE_PRICES[service],
+        price: priceOf.get(`${p.id}:${service}`) as number,
         href: `/dashboard/book/${service}?provider=${p.id}`,
         languages: (p.languages ?? []) as string[],
         hours: weeklyHoursOf(p),

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase-server";
-import { SERVICE_PRICES, ELDERLY_FOLLOW_UP_SERVICE, calculateCommission, calculateNetPayout } from "@streetdocmd/shared";
+import { ELDERLY_FOLLOW_UP_FEE, calculateCommission, calculateNetPayout } from "@streetdocmd/shared";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const { bookingId } = await req.json();
     if (!bookingId) return NextResponse.json({ error: "Missing bookingId" }, { status: 400 });
 
-    const fee = SERVICE_PRICES[ELDERLY_FOLLOW_UP_SERVICE];
+    const fee = ELDERLY_FOLLOW_UP_FEE;
     const commission = calculateCommission(fee);
     const net_payout = calculateNetPayout(fee);
 

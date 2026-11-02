@@ -3,19 +3,13 @@ import { useState } from "react";
 import { Check, Stethoscope } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import EmptyState from "@/components/EmptyState";
-import { formatNaira, SERVICE_LABELS, SERVICE_PRICES, SERVICE_PROFESSION, type Profession, type ProviderService, type ServiceType } from "@streetdocmd/shared";
+import { formatNaira, SERVICE_LABELS, type Profession, type ProviderService, type ServiceType } from "@streetdocmd/shared";
+import { rateTypesFor } from "@/lib/rates";
 
 type ServiceRow = Pick<ProviderService, "id" | "name" | "description" | "price" | "duration_minutes" | "active" | "service_type">;
 
 const SELECT = "id, name, description, price, duration_minutes, active, service_type, created_at";
 const MAX_RATE = 2_000_000;
-
-// The bookable services this profession is dispatched for. Wellness Check is
-// priced by the package the patient picks, so it has no provider rate.
-function rateTypesFor(profession: Profession): ServiceType[] {
-  return (Object.keys(SERVICE_PROFESSION) as ServiceType[])
-    .filter(st => SERVICE_PROFESSION[st] === profession && st !== "wellness_check");
-}
 
 export default function ServicesClient({
   providerId, profession, initialServices,
@@ -29,7 +23,7 @@ export default function ServicesClient({
   const rateTypes = rateTypesFor(profession);
 
   // A rate is the active service row tied to a booking type; the booking API
-  // charges it instead of the standard price (patient-web /api/bookings).
+  // charges it (patient-web /api/bookings). Without one, patients can't book it.
   const rateRow = (st: ServiceType) => services.find(s => s.active && s.service_type === st);
   const [rates, setRates] = useState<Record<string, string>>(() =>
     Object.fromEntries(rateTypes.map(st => {
@@ -57,7 +51,7 @@ export default function ServicesClient({
       if (!raw) { wanted[st] = null; continue; }
       const n = Number(raw);
       if (!Number.isFinite(n) || n <= 0 || !Number.isInteger(n)) {
-        setRatesError(`Enter your ${SERVICE_LABELS[st]} rate in whole naira, or leave it empty for the standard rate.`);
+        setRatesError(`Enter your ${SERVICE_LABELS[st]} rate in whole naira, or leave it empty if you don't offer it.`);
         return;
       }
       if (n > MAX_RATE) {
@@ -75,7 +69,7 @@ export default function ServicesClient({
         const row = rateRow(st);
         const value = wanted[st];
         if (row && value === null) {
-          // Back to the standard rate
+          // Cleared: patients can't book this service with them any more
           const { error } = await supabase.from("provider_services")
             .update({ active: false, updated_at: now }).eq("id", row.id);
           if (error) throw error;
@@ -169,7 +163,7 @@ export default function ServicesClient({
         <section>
           <h2 className="text-[17px] font-bold text-navy">Your rates</h2>
           <p className="mb-3 mt-0.5 text-ds-sm text-muted">
-            What you charge per visit. Leave a rate empty to use the standard rate.
+            What you charge per visit. Patients can only book you for a service once it has a rate, so set one for everything you offer.
           </p>
           <form onSubmit={saveRates} className="card divide-y divide-line">
             {rateTypes.map(st => {
@@ -178,8 +172,8 @@ export default function ServicesClient({
                 <div key={st} className="flex items-center justify-between gap-3 p-4">
                   <div className="min-w-0 flex-1">
                     <label htmlFor={`rate-${st}`} className="block font-semibold text-ink">{SERVICE_LABELS[st]}</label>
-                    <small className="block text-ds-xs text-muted">
-                      Standard rate {formatNaira(SERVICE_PRICES[st])}{custom ? " · yours is set" : ""}
+                    <small className={`block text-ds-xs ${custom ? "text-muted" : "font-semibold text-warn"}`}>
+                      {custom ? "Patients can book this" : "Not bookable until you set a rate"}
                     </small>
                   </div>
                   <div className="relative w-32 shrink-0 sm:w-40">
@@ -191,7 +185,7 @@ export default function ServicesClient({
                       min="1"
                       step="1"
                       className="input pl-8"
-                      placeholder="Standard"
+                      placeholder="Your rate"
                       value={rates[st] ?? ""}
                       onChange={e => { setRates(r => ({ ...r, [st]: e.target.value })); setRatesSaved(false); setRatesError(""); }}
                     />

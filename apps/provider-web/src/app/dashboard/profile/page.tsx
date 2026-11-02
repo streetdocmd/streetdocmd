@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Bell, ChevronRight, Clock, FileText, GraduationCap, Mail, Settings, ShieldCheck, Star } from "lucide-react";
 import { createServerSupabase } from "@/lib/supabase-server";
-import { VERIFICATION_STATUS_LABELS, PROVIDER_AGREEMENT_TITLE, SERVICE_PRICES, formatNaira, type ServiceType } from "@streetdocmd/shared";
+import { VERIFICATION_STATUS_LABELS, PROVIDER_AGREEMENT_TITLE, formatNaira, type ServiceType } from "@streetdocmd/shared";
 import { DOC_LABELS, hasCurrentAgreement } from "@/lib/onboarding";
 import { weeklyHoursOf } from "@/lib/hours";
 import { ComingSoonItem } from "@/components/ComingSoonBadge";
@@ -49,7 +49,7 @@ export default async function ProfilePage() {
   ]);
 
   const verified = provider.verification_status === "verified";
-  const fee = feeRow?.price != null ? Number(feeRow.price) : mainService ? SERVICE_PRICES[mainService] : null;
+  const fee = feeRow?.price != null ? Number(feeRow.price) : null;
 
   return (
     <div className="mx-auto max-w-2xl">

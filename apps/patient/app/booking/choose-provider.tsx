@@ -4,7 +4,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
-import { ServiceType, SERVICE_LABELS, SERVICE_PRICES, SERVICE_PROFESSION, formatNaira } from "@streetdocmd/shared";
+import { ServiceType, SERVICE_LABELS, SERVICE_PROFESSION, formatNaira } from "@streetdocmd/shared";
 
 export interface ProviderOption {
   id: string;
@@ -18,9 +18,8 @@ export interface ProviderOption {
   price: number;
 }
 
-// Providers set their own prices (provider_services.service_type → price); anyone who
-// hasn't priced this service is charged the standard rate. The booking server applies
-// the same rule, so the price shown here is what the patient pays.
+// Providers set their own prices (provider_services.service_type → price). Only providers
+// who have priced this service are listed, and the booking server charges that price.
 async function loadProviders(service: ServiceType): Promise<ProviderOption[]> {
   const { data: providers, error } = await supabase
     .from("providers")
@@ -40,6 +39,7 @@ async function loadProviders(service: ServiceType): Promise<ProviderOption[]> {
   const priceOf = new Map((prices ?? []).map(p => [p.provider_id as string, Number(p.price)]));
 
   return providers
+    .filter(p => (priceOf.get(p.id) ?? 0) > 0)
     .map(p => ({
       id: p.id,
       name: p.name,
@@ -49,7 +49,7 @@ async function loadProviders(service: ServiceType): Promise<ProviderOption[]> {
       total_visits: Number(p.total_visits) || 0,
       years_experience: Number(p.years_experience) || 0,
       available: !!p.available,
-      price: priceOf.get(p.id) ?? SERVICE_PRICES[service],
+      price: priceOf.get(p.id) as number,
     }))
     // Online now first, then best rated, then most experienced
     .sort((a, b) => Number(b.available) - Number(a.available) || b.rating - a.rating || b.total_visits - a.total_visits);
@@ -121,7 +121,7 @@ export default function ChooseProviderScreen() {
               {!error && providers.length === 0 && (
                 <View style={s.empty}>
                   <Text style={s.emptyTitle}>No providers are listed for {label} yet</Text>
-                  <Text style={s.emptyText}>We can still send you the nearest available verified provider.</Text>
+                  <Text style={s.emptyText}>Providers are still setting up. Please check back soon.</Text>
                 </View>
               )}
               {providers.length > 0 && shown.length === 0 && (
@@ -154,22 +154,6 @@ export default function ChooseProviderScreen() {
               </View>
             </TouchableOpacity>
           )}
-          ListFooterComponent={
-            <TouchableOpacity
-              style={providers.length === 0 ? s.primaryBtn : s.nearestCard}
-              onPress={() => choose(null)}
-              activeOpacity={0.8}
-            >
-              {providers.length === 0 ? (
-                <Text style={s.primaryBtnText}>Send me the nearest available provider</Text>
-              ) : (
-                <>
-                  <Text style={s.nearestTitle}>No preference? Send the nearest available provider</Text>
-                  <Text style={s.nearestText}>The fastest option. You&apos;ll see the price before you pay.</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          }
         />
       )}
     </View>
@@ -207,12 +191,4 @@ const s = StyleSheet.create({
   meta: { flexDirection: "row", flexWrap: "wrap", columnGap: 10, rowGap: 2, marginTop: 6 },
   metaText: { fontSize: 12, color: "#6B7280" },
   available: { fontSize: 12, fontWeight: "600", color: "#15803D" },
-  nearestCard: {
-    backgroundColor: "#fff", borderRadius: 12, borderWidth: 1, borderColor: "#BFDBFE",
-    borderStyle: "dashed", padding: 16, marginTop: 4,
-  },
-  nearestTitle: { fontSize: 14, fontWeight: "600", color: "#111827" },
-  nearestText: { fontSize: 12, color: "#6B7280", marginTop: 2 },
-  primaryBtn: { backgroundColor: "#1E6FD9", borderRadius: 12, paddingVertical: 16, alignItems: "center", marginTop: 4 },
-  primaryBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
 });

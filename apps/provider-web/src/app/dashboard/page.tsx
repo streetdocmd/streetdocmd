@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ArrowRight, CalendarDays, CheckCircle2, Circle, Clock, Check, Inbox, Stethoscope, UserPlus, Users, Wallet,
+  ArrowRight, CalendarDays, Clock, Check, Inbox, Stethoscope, UserPlus, Users, Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { createServerSupabase, createAdminSupabase } from "@/lib/supabase-server";
@@ -13,6 +13,8 @@ import { Card, Notice, Pill, cx, focusRing } from "@/components/ds";
 import DispatchCard from "./DispatchCard";
 import AvailabilityToggle from "./AvailabilityToggle";
 import ReferralCodeCard from "./ReferralCodeCard";
+import SetupGuide, { type SetupStep } from "./SetupGuide";
+import { rateTypesFor } from "@/lib/rates";
 import RealtimeDispatch from "./RealtimeDispatch";
 import LocationBroadcaster from "@/components/LocationBroadcaster";
 import LiveRefresh from "@/components/LiveRefresh";
@@ -55,7 +57,7 @@ export default async function DashboardPage({
 
   const [
     { data: activeBooking },
-    { count: activeServices },
+    { data: activeServices },
     { data: recentCompleted },
     { data: upcoming },
     { count: reviewCount },
@@ -73,10 +75,10 @@ export default async function DashboardPage({
     needsServices
       ? supabase
           .from("provider_services")
-          .select("id", { count: "exact", head: true })
+          .select("service_type, price")
           .eq("provider_id", provider.id)
           .eq("active", true)
-      : Promise.resolve({ count: null }),
+      : Promise.resolve({ data: [] }),
     // Earnings: completed visits in the last two weeks (this week vs last week, and the chart)
     supabase
       .from("bookings")
@@ -158,39 +160,64 @@ export default async function DashboardPage({
   });
   const chartMax = Math.max(1, ...chart.map(c => c.value));
 
-  // First-arrival checklist — every item is something the provider can do
-  // right now, and each one links straight to where it's done.
-  const checklist = [
-    {
-      done: !!(provider.bank_name && provider.bank_account_number && provider.bank_account_name),
-      label: "Add your bank details for payouts",
-      href: "/dashboard/profile#payouts",
-    },
-    {
-      done: !!(provider.bio && provider.bio.trim().length > 0),
-      label: "Write a short bio patients will see",
-      href: "/dashboard/profile#about",
-    },
-    {
-      done: !!(provider.working_hours_start && provider.working_hours_end),
-      label: "Set your working hours and service radius",
-      href: "/dashboard/profile#availability",
-    },
+  // The setup guide: everything a new provider needs to fill in, rates first because
+  // patients can't book a service until the provider has priced it.
+  const priced = new Set(((activeServices ?? []) as any[]).filter(r => Number(r.price) > 0).map(r => r.service_type as string));
+  const unpriced = needsServices ? rateTypesFor(provider.profession).filter(st => !priced.has(st)) : [];
+  const setupSteps: SetupStep[] = [
     ...(needsServices
       ? [{
-          done: (activeServices ?? 0) > 0,
-          label: "List the services you offer and your prices",
+          key: "rates" as const,
+          title: "Set your rates",
+          why: "Patients can only book you for a service once you've set your price for it. Patients pay your rate with nothing added, and you receive 80 percent of it.",
+          detail: unpriced.length ? `Still to price: ${unpriced.map(st => (SERVICE_LABELS as Record<string, string>)[st]).join(", ")}` : undefined,
+          cta: "Set my rates",
           href: "/dashboard/services",
+          done: unpriced.length === 0,
+          required: true,
         }]
       : []),
     {
-      done: provider.lat != null && provider.lng != null,
-      label: "Go online once so we can match you to nearby patients",
+      key: "photo",
+      title: "Add a profile photo",
+      why: "Patients choose who comes into their home. A clear, friendly photo of your face makes them far more likely to pick you.",
+      cta: "Add a photo",
+      href: "/dashboard/profile",
+      done: !!provider.photo_url,
+    },
+    {
+      key: "bio",
+      title: "Write a short bio",
+      why: "A few lines about your experience and what you treat. Patients read it when they compare providers.",
+      cta: "Write my bio",
+      href: "/dashboard/profile#about",
+      done: !!(provider.bio && provider.bio.trim().length > 0),
+    },
+    {
+      key: "hours",
+      title: "Set your working hours and service radius",
+      why: "Patients can only schedule visits inside your hours, and you're only matched with patients within the distance you choose.",
+      cta: "Set my hours",
+      href: "/dashboard/profile#availability",
+      done: !!(provider.weekly_hours || (provider.working_hours_start && provider.working_hours_end)),
+    },
+    {
+      key: "bank",
+      title: "Add your bank details",
+      why: "Your earnings are paid into this account when you withdraw. Use an account in your own name.",
+      cta: "Add bank details",
+      href: "/dashboard/profile#payouts",
+      done: !!(provider.bank_name && provider.bank_account_number && provider.bank_account_name),
+    },
+    {
+      key: "online",
+      title: "Go online",
+      why: "Switch Available on whenever you can take visits. Patients see providers who are available now first, and going online lets us match you to patients nearby.",
+      cta: "Go to the switch",
       href: "#availability",
+      done: provider.lat != null && provider.lng != null,
     },
   ];
-  const completedSteps = checklist.filter(c => c.done).length;
-  const allDone = completedSteps === checklist.length;
   const firstName = (provider.name as string).replace(/^(dr|mr|mrs|ms|nurse)\.?\s+/i, "").split(" ")[0];
 
   const quick: { icon: LucideIcon; label: string; href: string }[] = [
@@ -219,6 +246,8 @@ export default async function DashboardPage({
       {!hasCurrentAgreement(provider.agreement_version) && (
         <div className="mb-4"><AgreementAcceptCard updated={!!provider.agreement_version} /></div>
       )}
+
+      <SetupGuide providerId={provider.id} steps={setupSteps} />
 
       {activeBooking && (
         <Link
@@ -326,31 +355,6 @@ export default async function DashboardPage({
           ))}
         </div>
       </section>
-
-      {!allDone && (
-        <Card className="mt-[26px]">
-          <div className="mb-1 flex items-center justify-between">
-            <b className="text-ink">Get ready for your first visit</b>
-            <span className="text-ds-xs font-bold text-accent">{completedSteps}/{checklist.length}</span>
-          </div>
-          <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-pending-bg">
-            <div className="h-full rounded-full bg-accent" style={{ width: `${(completedSteps / checklist.length) * 100}%` }} />
-          </div>
-          <ul className="space-y-1">
-            {checklist.map(item => (
-              <li key={item.label}>
-                <Link href={item.href}
-                  className={cx("-mx-2 flex items-start gap-2.5 rounded-lg px-2 py-2 text-ds-sm", item.done ? "text-muted" : "text-ink hover:bg-page", focusRing)}>
-                  {item.done
-                    ? <CheckCircle2 size={17} className="mt-px flex-none text-success" aria-hidden />
-                    : <Circle size={17} className="mt-px flex-none text-line" aria-hidden />}
-                  <span className={item.done ? "line-through" : ""}>{item.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
 
       {toReview.length > 0 && (
         <section className="mt-[26px]">

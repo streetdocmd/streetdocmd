@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 
-const STEPS = ["Account", "Documents", "Review", "Go live"];
+const STEPS = ["Apply", "Review", "Go live"];
 
 /** Compact progress indicator shared by the registration and onboarding screens. */
 export default function OnboardingSteps({ current, tone = "light" }: { current: number; tone?: "light" | "dark" }) {

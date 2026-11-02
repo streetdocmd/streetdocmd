@@ -17,7 +17,7 @@ export interface NewBooking {
 /**
  * Creates a booking through the patient web API, the same route the website uses,
  * so the price is always set on the server (provider price, package price or the
- * standard rate) and never trusted from the phone. Returns the new booking id.
+ * package price) and never trusted from the phone. Returns the new booking id.
  */
 export async function createBooking(booking: NewBooking): Promise<string> {
   const { data: { session } } = await supabase.auth.getSession();
