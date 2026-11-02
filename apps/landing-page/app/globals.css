@@ -1989,3 +1989,293 @@ a {
 #journey {
   scroll-margin-top: 96px;
 }
+
+
+/* ───────── Who it's for ───────── */
+.nav-links a[aria-current="page"],
+.nav-menu a[aria-current="page"] {
+  color: var(--primary);
+}
+
+.who-eyebrow {
+  font-size: 16px;
+  font-weight: var(--w-medium);
+  color: var(--primary);
+}
+
+.who-hero {
+  position: relative;
+  min-height: 846px;
+  overflow: hidden;
+  background: var(--soft-blue);
+}
+
+.who-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% center;
+}
+
+.who-hero-glow {
+  position: absolute;
+  left: -90px;
+  top: -49px;
+  width: 849px;
+  height: 994px;
+  background: var(--accent);
+  filter: blur(225px);
+  pointer-events: none;
+}
+
+.who-hero-inner {
+  position: relative;
+  max-width: 1440px;
+  min-height: 846px;
+  margin: 0 auto;
+  padding: 217px 60px 64px;
+  display: flex;
+  align-items: center;
+}
+
+.who-hero-content {
+  max-width: 722px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.who-hero-title {
+  font-size: 80px;
+  font-weight: var(--w-heavy);
+  line-height: 1.2;
+  color: var(--secondary);
+}
+
+.who-hero-text {
+  max-width: 528px;
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.who-roles {
+  padding: 60px 0;
+  background: #fff;
+}
+
+.who-roles-head {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 60px;
+  display: flex;
+  align-items: flex-end;
+  gap: 65px;
+}
+
+.who-roles-title {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.who-roles-title h2 {
+  max-width: 566px;
+  font-size: 64px;
+  font-weight: var(--w-heavy);
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.who-roles-text {
+  max-width: 669px;
+  padding: 10px;
+  font-size: 24px;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.who-roles-scroll {
+  margin-top: 60px;
+  padding-bottom: 16px;
+  overflow-x: auto;
+}
+
+.who-roles-scroll:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.who-roles-list {
+  display: flex;
+  width: max-content;
+  gap: 36px;
+  padding: 0 60px;
+  list-style: none;
+}
+
+.who-role {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  width: 342px;
+  min-height: 413px;
+  padding: 56px 28px;
+  border: 1.5px solid var(--navy);
+  border-radius: 12px;
+}
+
+.who-role-icon {
+  display: flex;
+  align-self: flex-start;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.who-role h3 {
+  margin-top: 32px;
+  font-size: 22px;
+  font-weight: var(--w-medium);
+  color: var(--navy);
+}
+
+.who-role p {
+  margin-top: 24px;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.who-audiences {
+  padding: 80px 88px;
+  background: #f3f9ff;
+}
+
+.who-audiences-inner {
+  max-width: 1264px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+}
+
+.who-audience {
+  display: flex;
+  align-items: center;
+  gap: 120px;
+}
+
+.who-audience.is-reversed {
+  flex-direction: row-reverse;
+}
+
+.who-audience-media {
+  flex: none;
+  width: 600px;
+  height: 400px;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.who-audience-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.who-audience-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.who-audience-copy h3 {
+  font-size: 40px;
+  font-weight: var(--w-heavy);
+  line-height: 1;
+  color: var(--secondary);
+}
+
+.who-audience-text {
+  font-size: 16px;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.who-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  list-style: none;
+}
+
+.who-chips li {
+  padding: 8px 12px;
+  border-radius: 16px;
+  background: #fff;
+  font-size: 18px;
+  font-weight: var(--w-medium);
+  color: var(--secondary);
+}
+
+.who-cta .cta-card {
+  min-height: 374px;
+  padding: 80px 60px;
+}
+
+.who-cta .cta-heart {
+  right: 40px;
+  top: 67px;
+}
+
+@media (max-width: 1280px) {
+  .who-hero-title { font-size: 64px; }
+  .who-hero-content { max-width: 560px; }
+  .who-audience { gap: 60px; }
+  .who-audience-media { width: 50%; }
+  .who-audiences { padding-left: 60px; padding-right: 60px; }
+}
+
+@media (max-width: 1024px) {
+  /* No room beside the copy here, so the photo goes behind a wash that keeps it readable */
+  .who-hero-glow {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(238, 246, 255, 0.86);
+    filter: none;
+  }
+  .who-hero-title { font-size: 60px; }
+  .who-roles-head { flex-direction: column; align-items: flex-start; gap: 24px; }
+  .who-roles-title h2 { font-size: 48px; }
+  .who-roles-text { padding: 0; font-size: 20px; }
+  .who-audience,
+  .who-audience.is-reversed { flex-direction: column; gap: 40px; }
+  .who-audience-media { width: 100%; }
+  .who-audience-copy { width: 100%; }
+  .who-cta .cta-heart { display: none; }
+}
+
+@media (max-width: 640px) {
+  .who-hero,
+  .who-hero-inner { min-height: 760px; }
+  .who-hero-inner { padding: 160px 20px 64px; }
+  .who-hero-title { font-size: 48px; }
+  .who-roles-head { padding: 0 20px; }
+  .who-roles-title h2 { font-size: 36px; }
+  .who-roles-scroll { margin-top: 40px; }
+  .who-roles-list { gap: 16px; padding: 0 20px; }
+  .who-role { width: 300px; padding: 40px 24px; }
+  .who-audiences { padding: 60px 20px; }
+  .who-audience-media { height: 300px; }
+  .who-audience-copy h3 { font-size: 30px; }
+  .who-cta { padding: 60px 20px; }
+  .who-cta .cta-card { padding: 48px 28px; }
+}

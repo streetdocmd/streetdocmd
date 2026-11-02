@@ -23,7 +23,7 @@ export default function Footer() {
             <div className="footer-col col-product">
               <h4>PRODUCT</h4>
               <a href="/features">Platform</a>
-              <a href="/#who-its-for">Who it’s for</a>
+              <a href="/who-its-for">Who it’s for</a>
             </div>
             <div className="footer-col col-company">
               <h4>COMPANY</h4>

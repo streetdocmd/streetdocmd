@@ -147,7 +147,7 @@ export default function Home() {
       </section>
 
       {/* ───────── CTA ───────── */}
-      <section className="cta" id="who-its-for">
+      <section className="cta">
         <div className="cta-card" data-reveal="zoom">
           <img className="cta-heart" src="/images/icon-heart.svg" alt="" width={360} height={360} />
           <div className="cta-content">

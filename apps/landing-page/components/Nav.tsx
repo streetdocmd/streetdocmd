@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Button from "@/components/Button";
 import { LINKS } from "@/lib/links";
 
 const NAV_LINKS = [
   { label: "Features", href: "/features" },
-  { label: "Who It’s For", href: "/#who-its-for" },
+  { label: "Who It’s For", href: "/who-its-for" },
   { label: "About", href: "/#about" },
   { label: "Contact", href: "#contact" },
 ];
@@ -14,6 +15,7 @@ const NAV_LINKS = [
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -43,7 +45,7 @@ export default function Nav() {
       </a>
       <nav className="nav-links">
         {NAV_LINKS.map((l) => (
-          <a key={l.label} href={l.href}>
+          <a key={l.label} href={l.href} aria-current={l.href === pathname ? "page" : undefined}>
             {l.label}
           </a>
         ))}
@@ -67,7 +69,7 @@ export default function Nav() {
       </div>
       <div id="nav-menu" className="nav-menu" hidden={!open}>
         {NAV_LINKS.map((l) => (
-          <a key={l.label} href={l.href} onClick={() => setOpen(false)}>
+          <a key={l.label} href={l.href} aria-current={l.href === pathname ? "page" : undefined} onClick={() => setOpen(false)}>
             {l.label}
           </a>
         ))}
