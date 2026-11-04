@@ -51,6 +51,24 @@ interface Row {
 
 const esc = (s: string) => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 
+// Admin alerts carry who they're about as [label, value] pairs (migration 079)
+function detailsOf(n: Row): [string, string][] {
+  const list = (n.data as { details?: unknown })?.details;
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((d): d is [unknown, unknown] => Array.isArray(d) && d.length === 2)
+    .map(([k, v]) => [String(k ?? ""), v == null ? "" : String(v).trim()] as [string, string])
+    .filter(([k, v]) => k && v);
+}
+
+function detailsHtml(details: [string, string][]) {
+  if (!details.length) return "";
+  const rows = details.map(([k, v]) =>
+    `<tr><td style="padding:7px 12px 7px 0;font-size:13px;color:#5B6878;white-space:nowrap;vertical-align:top">${esc(k)}</td>` +
+    `<td style="padding:7px 0;font-size:14px;color:#121D2D;word-break:break-word">${esc(v)}</td></tr>`).join("");
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:16px;width:100%;border-top:1px solid #DCE4EF">${rows}</table>`;
+}
+
 function emailHtml(n: Row, url: string, name: string | null) {
   const base = APP_URLS[n.app];
   const settings = `${base}${n.app === "patient" || n.app === "provider" || n.app === "admin" ? "/dashboard" : `/${n.app}-portal`}/notifications`;
@@ -62,6 +80,7 @@ function emailHtml(n: Row, url: string, name: string | null) {
 ${name ? `<p style="margin:0 0 10px;font-size:14px;color:#5B6878">Hi ${esc(name.split(" ")[0])},</p>` : ""}
 <h1 style="margin:0 0 8px;font-size:21px;line-height:1.3;color:#0D2B5E">${esc(n.title)}</h1>
 <p style="margin:0;font-size:15px;line-height:1.55;color:#121D2D">${esc(n.body)}</p>
+${detailsHtml(detailsOf(n))}
 </td></tr>
 <tr><td style="padding:22px 28px 26px"><a href="${url}" style="display:inline-block;background:#0D2B5E;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:13px 24px;border-radius:999px">Open StreetdocMD</a></td></tr>
 </table>
@@ -82,7 +101,7 @@ async function sendEmail(to: string, n: Row, url: string, name: string | null): 
       to,
       subject: n.title,
       html: emailHtml(n, url, name),
-      text: `${n.title}\n\n${n.body}\n\n${url}`,
+      text: [n.title, n.body, detailsOf(n).map(([k, v]) => `${k}: ${v}`).join("\n"), url].filter(Boolean).join("\n\n"),
     }),
   });
   return res.ok ? "sent" : `failed_${res.status}`;

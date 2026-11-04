@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle2, FileText, Loader2, Upload } from "lucide-react";
 import {
   SPECIALTIES,
+  SERVICE_LABELS,
+  getProfession,
   getPractitionerType,
   PROVIDER_AGREEMENT_ACCEPTANCE_LABEL,
   PROVIDER_AGREEMENT_TITLE,
@@ -16,6 +18,7 @@ import AuthBrand from "@/components/AuthBrand";
 import OnboardingSteps from "@/components/OnboardingSteps";
 import ProviderAgreementModal from "@/components/ProviderAgreementModal";
 import { DOC_ACCEPT, DOC_HINT, prepareDocument } from "@/lib/doc-files";
+import { rateTypesFor } from "@/lib/rates";
 
 function Req() {
   return <span className="text-red-500 ml-0.5" aria-hidden>*</span>;
@@ -45,6 +48,7 @@ export default function RegisterIndividualPage() {
   const [checking, setChecking] = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const [agreed, setAgreed] = useState(false);
+  const [rates, setRates] = useState<Record<string, string>>({});
   const [showAgreement, setShowAgreement] = useState(false);
 
   // ?specialty= from the provider type chooser preselects the specialty
@@ -54,6 +58,7 @@ export default function RegisterIndividualPage() {
   }, []);
 
   const practitionerType = getPractitionerType(form.specialty);
+  const rateTypes = form.specialty ? rateTypesFor(getProfession(form.specialty)) : [];
   const docSlots = form.specialty
     ? [
         { type: "certificate", label: "University / Degree Certificate", description: "Your medical or health sciences degree certificate" },
@@ -100,6 +105,13 @@ export default function RegisterIndividualPage() {
       setError("Please enter a valid phone number, e.g. 08012345678.");
       return;
     }
+    for (const st of rateTypes) {
+      const n = Number((rates[st] ?? "").replace(/[₦,\s]/g, ""));
+      if (!Number.isInteger(n) || n <= 0) {
+        setError(`Please set your ${SERVICE_LABELS[st]} rate in whole naira.`);
+        return;
+      }
+    }
     const missingDoc = docSlots.find(s => !files[s.type]);
     if (missingDoc) {
       setError(`Please attach your ${missingDoc.label}. We can't create your account without it.`);
@@ -120,7 +132,13 @@ export default function RegisterIndividualPage() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, ndpr_consent: true, agreement_accepted: true, agreement_version: PROVIDER_AGREEMENT_VERSION }),
+        body: JSON.stringify({
+          ...form,
+          rates: Object.fromEntries(rateTypes.map(st => [st, Number((rates[st] ?? "").replace(/[₦,\s]/g, ""))])),
+          ndpr_consent: true,
+          agreement_accepted: true,
+          agreement_version: PROVIDER_AGREEMENT_VERSION,
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -247,6 +265,35 @@ export default function RegisterIndividualPage() {
               </div>
             </div>
           </fieldset>
+
+          {rateTypes.length > 0 && (
+            <fieldset className="space-y-3">
+              <legend className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Your rates</legend>
+              <p className="text-xs text-muted">
+                What you charge per home visit. Patients pay this with nothing added, and you receive 80 percent. You can change it later.
+              </p>
+              {rateTypes.map(st => (
+                <div key={st} className="flex items-center justify-between gap-3">
+                  <label htmlFor={`rate-${st}`} className="min-w-0 flex-1 text-sm font-semibold text-ink">{SERVICE_LABELS[st]}<Req /></label>
+                  <div className="relative w-36 shrink-0">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted">₦</span>
+                    <input
+                      id={`rate-${st}`}
+                      type="number"
+                      inputMode="numeric"
+                      min="1"
+                      step="1"
+                      required
+                      className="input pl-8"
+                      placeholder="Your rate"
+                      value={rates[st] ?? ""}
+                      onChange={e => { setRates(r => ({ ...r, [st]: e.target.value })); if (error) setError(""); }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </fieldset>
+          )}
 
           <fieldset className="space-y-3">
             <legend className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Your documents</legend>

@@ -13,8 +13,8 @@ import { Card, Notice, Pill, cx, focusRing } from "@/components/ds";
 import DispatchCard from "./DispatchCard";
 import AvailabilityToggle from "./AvailabilityToggle";
 import ReferralCodeCard from "./ReferralCodeCard";
-import SetupGuide, { type SetupStep } from "./SetupGuide";
-import { rateTypesFor } from "@/lib/rates";
+import SetupCard from "./SetupCard";
+import { setupState } from "@/lib/setup";
 import RealtimeDispatch from "./RealtimeDispatch";
 import LocationBroadcaster from "@/components/LocationBroadcaster";
 import LiveRefresh from "@/components/LiveRefresh";
@@ -75,7 +75,7 @@ export default async function DashboardPage({
     needsServices
       ? supabase
           .from("provider_services")
-          .select("service_type, price")
+          .select("id, service_type, price")
           .eq("provider_id", provider.id)
           .eq("active", true)
       : Promise.resolve({ data: [] }),
@@ -160,64 +160,8 @@ export default async function DashboardPage({
   });
   const chartMax = Math.max(1, ...chart.map(c => c.value));
 
-  // The setup guide: everything a new provider needs to fill in, rates first because
-  // patients can't book a service until the provider has priced it.
-  const priced = new Set(((activeServices ?? []) as any[]).filter(r => Number(r.price) > 0).map(r => r.service_type as string));
-  const unpriced = needsServices ? rateTypesFor(provider.profession).filter(st => !priced.has(st)) : [];
-  const setupSteps: SetupStep[] = [
-    ...(needsServices
-      ? [{
-          key: "rates" as const,
-          title: "Set your rates",
-          why: "Patients can only book you for a service once you've set your price for it. Patients pay your rate with nothing added, and you receive 80 percent of it.",
-          detail: unpriced.length ? `Still to price: ${unpriced.map(st => (SERVICE_LABELS as Record<string, string>)[st]).join(", ")}` : undefined,
-          cta: "Set my rates",
-          href: "/dashboard/services",
-          done: unpriced.length === 0,
-          required: true,
-        }]
-      : []),
-    {
-      key: "photo",
-      title: "Add a profile photo",
-      why: "Patients choose who comes into their home. A clear, friendly photo of your face makes them far more likely to pick you.",
-      cta: "Add a photo",
-      href: "/dashboard/profile",
-      done: !!provider.photo_url,
-    },
-    {
-      key: "bio",
-      title: "Write a short bio",
-      why: "A few lines about your experience and what you treat. Patients read it when they compare providers.",
-      cta: "Write my bio",
-      href: "/dashboard/profile#about",
-      done: !!(provider.bio && provider.bio.trim().length > 0),
-    },
-    {
-      key: "hours",
-      title: "Set your working hours and service radius",
-      why: "Patients can only schedule visits inside your hours, and you're only matched with patients within the distance you choose.",
-      cta: "Set my hours",
-      href: "/dashboard/profile#availability",
-      done: !!(provider.weekly_hours || (provider.working_hours_start && provider.working_hours_end)),
-    },
-    {
-      key: "bank",
-      title: "Add your bank details",
-      why: "Your earnings are paid into this account when you withdraw. Use an account in your own name.",
-      cta: "Add bank details",
-      href: "/dashboard/profile#payouts",
-      done: !!(provider.bank_name && provider.bank_account_number && provider.bank_account_name),
-    },
-    {
-      key: "online",
-      title: "Go online",
-      why: "Switch Available on whenever you can take visits. Patients see providers who are available now first, and going online lets us match you to patients nearby.",
-      cta: "Go to the switch",
-      href: "#availability",
-      done: provider.lat != null && provider.lng != null,
-    },
-  ];
+  // What's left to set up; the guide itself lives in the dashboard layout
+  const setup = setupState(provider, (activeServices ?? []) as any[]);
   const firstName = (provider.name as string).replace(/^(dr|mr|mrs|ms|nurse)\.?\s+/i, "").split(" ")[0];
 
   const quick: { icon: LucideIcon; label: string; href: string }[] = [
@@ -247,7 +191,7 @@ export default async function DashboardPage({
         <div className="mb-4"><AgreementAcceptCard updated={!!provider.agreement_version} /></div>
       )}
 
-      <SetupGuide providerId={provider.id} steps={setupSteps} />
+      <SetupCard setup={setup} />
 
       {activeBooking && (
         <Link

@@ -7,8 +7,12 @@ import {
   getProfession,
   PLATFORM_COMMISSION_RATE,
   PROVIDER_AGREEMENT_VERSION,
+  SERVICE_LABELS,
   SPECIALTIES,
 } from "@streetdocmd/shared";
+import { rateTypesFor } from "@/lib/rates";
+
+const MAX_RATE = 2_000_000;
 
 const clean = (s: string) => s.replace(/[^\x00-\xFF]/g, "").trim();
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
@@ -78,6 +82,18 @@ export async function POST(req: NextRequest) {
   if (expectedRate !== null && (!Number.isFinite(expectedRate) || expectedRate < 0)) {
     return NextResponse.json({ error: "Please enter a valid amount per booking, or leave it blank." }, { status: 400 });
   }
+  // A rate for every service this profession is booked for: patients can't book a provider without one
+  const rateTypes = rateTypesFor(getProfession(specialty));
+  const rateInput = body.rates && typeof body.rates === "object" ? body.rates as Record<string, unknown> : {};
+  const rates: { type: (typeof rateTypes)[number]; price: number }[] = [];
+  for (const type of rateTypes) {
+    const price = Number(rateInput[type]);
+    if (!Number.isInteger(price) || price <= 0 || price > MAX_RATE) {
+      return NextResponse.json({ error: `Please set your ${SERVICE_LABELS[type]} rate in whole naira.` }, { status: 400 });
+    }
+    rates.push({ type, price });
+  }
+
   if (body.ndpr_consent !== true) {
     return NextResponse.json({ error: "Please accept the data protection notice to continue." }, { status: 400 });
   }
@@ -210,6 +226,28 @@ export async function POST(req: NextRequest) {
     }
   } else if (agreementAccepted) {
     await admin.from("providers").update(agreementFields).eq("id", providerId);
+  }
+
+  // Rates, skipping any already set (a retry after a half-finished attempt)
+  const { data: existingRates } = await admin.from("provider_services")
+    .select("service_type").eq("provider_id", providerId).eq("active", true);
+  const haveRate = new Set((existingRates ?? []).map(r => r.service_type as string));
+  const newRates = rates.filter(r => !haveRate.has(r.type));
+  if (newRates.length) {
+    const { error: ratesErr } = await admin.from("provider_services").insert(newRates.map(r => ({
+      provider_id: providerId,
+      profession: getProfession(specialty),
+      name: SERVICE_LABELS[r.type],
+      price: r.price,
+      service_type: r.type,
+    })));
+    if (ratesErr) {
+      console.error("[register] could not save rates:", ratesErr.message);
+      if (createdAuthUser) {
+        await rollback();
+        return NextResponse.json({ error: "We couldn't save your rates. Please try again." }, { status: 500 });
+      }
+    }
   }
 
   // Sign in if we haven't already (new user path) — sets the session cookie

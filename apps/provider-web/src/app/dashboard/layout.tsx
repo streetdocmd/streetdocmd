@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { canUseDashboard, onboardingRoute, partnerPortal } from "@/lib/onboarding";
 import Navbar from "@/components/Navbar";
+import { setupState } from "@/lib/setup";
+import SetupGuide from "./SetupGuide";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabase();
@@ -31,12 +33,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const displayName = (provider.name as string).split(" ").slice(0, 2).join(" ");
 
+  // Rates are mandatory: without them the guide opens on every page and can't be closed
+  const { data: rateRows } = await supabase
+    .from("provider_services")
+    .select("id, service_type, price")
+    .eq("provider_id", provider.id)
+    .eq("active", true);
+  const setup = setupState(provider, (rateRows ?? []) as any[]);
+
   return (
     <div className="min-h-screen flex flex-col bg-page">
       <Navbar providerName={displayName} specialty={provider.specialty} profession={provider.profession} userId={user.id} photoUrl={provider.photo_url ?? null} />
       <main className="flex-1 max-w-6xl mx-auto w-full px-5 pt-5 pb-28 md:pt-8 md:pb-10">
         {children}
       </main>
+      <SetupGuide setup={setup} />
     </div>
   );
 }
