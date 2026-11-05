@@ -24,7 +24,7 @@ const CARE_NETWORK: CareItem[] = [
   {
     title: "Provider Matching & Dispatch",
     description:
-      "Your booking goes to the nearest available verified Provider suited to your need.",
+      "Automated, proximity-based dispatch offers your booking to the nearest available, verified Provider — doctor, nurse, or physiotherapist — matched to your need and their scope of practice.",
     points: ["Verified licensure", "Same-day visits", "Scheduled recurring care"],
     icon: "/images/icon-dispatch.svg",
     check: "/images/check-dispatch.svg",
@@ -101,9 +101,17 @@ const CARE_NETWORK: CareItem[] = [
   },
 ];
 
-// The Figma "Compliance Anchors" section currently repeats the care-network cards.
-// Replace these with your compliance items once they're final.
-const COMPLIANCE: CareItem[] = CARE_NETWORK;
+// The regulators behind the people and places on StreetdocMD (Figma "Compliance Anchors").
+// Width and height are each logo's size in the design.
+const REGULATORS = [
+  { src: "/images/compliance-mdcn.png", alt: "Medical and Dental Council of Nigeria", w: 93, h: 86 },
+  { src: "/images/compliance-nmcn.png", alt: "Nursing and Midwifery Council of Nigeria", w: 259, h: 71 },
+  { src: "/images/compliance-mlscn.png", alt: "Medical Laboratory Science Council of Nigeria", w: 75, h: 75 },
+  { src: "/images/compliance-nafdac.png", alt: "National Agency for Food and Drug Administration and Control (NAFDAC)", w: 70, h: 71 },
+  { src: "/images/compliance-mrtb.png", alt: "Medical Rehabilitation Therapists Board of Nigeria", w: 65, h: 100 },
+  { src: "/images/compliance-pcn.png", alt: "Pharmacy Council of Nigeria", w: 260, h: 71 },
+  { src: "/images/compliance-ndpc.png", alt: "Nigeria Data Protection Commission", w: 218, h: 71 },
+];
 
 export default function FeaturesPage() {
   return (
@@ -122,8 +130,8 @@ export default function FeaturesPage() {
               <h1 className="f-hero-title">One Platform Connecting Every Part Of Your Care.</h1>
             </div>
             <p className="f-hero-text">
-              From first symptom to finished treatment, we coordinate your Provider, lab, pharmacy and, if needed, a
-              hospital.
+              From first symptom to finished treatment, StreetdocMD coordinates your Provider, your lab, your pharmacy,
+              and — where needed — a hospital, so nothing falls through the cracks.
             </p>
             <div className="btn-row">
               <Button href={LINKS.bookWeb}>Book via website</Button>
@@ -147,7 +155,8 @@ export default function FeaturesPage() {
               <h2 className="f-title-64">Care That Keeps Moving Forward.</h2>
             </div>
             <p className="f-split-text">
-              Care doesn’t stop at the consultation. Every next step stays connected and easy to act on.
+              Your care should not stop at the consultation. StreetdocMD keeps every next step connected, visible, and
+              easier to act on.
             </p>
           </div>
 
@@ -186,7 +195,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* ───────── COMPLIANCE ANCHORS ───────── */}
-      <section className="f-network f-compliance">
+      <section className="f-compliance">
         <div className="container">
           <div className="f-split-head" data-reveal>
             <div className="f-split-title">
@@ -194,10 +203,38 @@ export default function FeaturesPage() {
               <h2 className="f-title-48">Care Built On Recognised Standards.</h2>
             </div>
             <p className="f-split-text">
-              Built around the regulations our Providers and Facility Partners follow.
+              Built around the regulatory frameworks our Providers and Facility Partners answer to.
             </p>
           </div>
-          <CareAccordion items={COMPLIANCE} />
+          <ul className="f-regulators" data-reveal style={delay(120)}>
+            {REGULATORS.map(r => (
+              <li key={r.src}>
+                <img src={r.src} alt={r.alt} title={r.alt} width={r.w} height={r.h} style={{ width: r.w, aspectRatio: `${r.w} / ${r.h}` }} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ───────── CTA ───────── */}
+      <section className="cta f-cta">
+        <div className="cta-card" data-reveal="zoom">
+          <img className="cta-heart" src="/images/features-pulse.svg" alt="" width={423} height={423} />
+          <div className="cta-content">
+            <h2 className="cta-title">Start with one request. Stay connected through every next step.</h2>
+            <p className="cta-text">
+              Book a walkthrough and see how StreetDocMD coordinates a full visit — Provider, lab, pharmacy, and hospital
+              referral if needed.
+            </p>
+            <div className="btn-row">
+              <Button href={LINKS.bookWeb} arrow>
+                Book a visit
+              </Button>
+              <Button href={LINKS.providerSignup} variant="outline">
+                Join as a provider
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 

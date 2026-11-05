@@ -1042,7 +1042,65 @@ a {
 }
 
 .f-compliance {
-  padding-bottom: 150px;
+  padding: 60px 0;
+  background: #f9fdfe;
+}
+
+/* One row on wide screens: the logos shrink in proportion when space runs short */
+.f-regulators {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin-top: 100px;
+  list-style: none;
+}
+
+.f-regulators li {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* Each logo keeps its design proportions; the MRTB seal is cropped to its centre as in the design */
+.f-regulators img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.f-cta .cta-card {
+  min-height: 459px;
+  padding: 48px 60px;
+}
+
+.f-cta .cta-title {
+  font-size: 60px;
+  color: var(--foreground);
+}
+
+.f-cta .cta-text {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.f-cta .cta-heart {
+  right: -89px;
+  top: 123px;
+  width: 423px;
+  height: 423px;
+}
+
+@media (max-width: 1024px) {
+  .f-regulators { flex-wrap: wrap; justify-content: center; gap: 40px 56px; margin-top: 56px; }
+  .f-regulators li { flex: none; }
+  .f-cta .cta-heart { display: none; }
+}
+
+@media (max-width: 640px) {
+  .f-regulators { gap: 28px 36px; }
+  .f-regulators img { transform: scale(0.85); }
+  .f-cta .cta-title { font-size: 38px; }
 }
 
 /* ───────── Roll-out accordion ───────── */

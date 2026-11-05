@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Old Way vs StreetdocMD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,800;6..12,900&family=Mulish:wght@700;800&display=block" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0066cd;
+    --navy: #0c3254;
+    --ink: #121d2d;
+    --muted: #566577;
+    --hero-bg: #eaf3fd;
+    --accent: #d6ebff;
+    --old-bg: #f2f4f7;
+    --old-ink: #4a5565;
+    --old-mark: #c0392b;
+    --img: "../../../apps/landing-page/public/images/";
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #fff; }
+  body { font-family: "Nunito Sans", system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+  .slide { width: 1080px; height: 1350px; position: relative; overflow: hidden; background: #fff; display: none; }
+  body.all .slide { display: block; margin-bottom: 40px; }
+  .slide.on { display: block; }
+
+  /* logo cropped from the padded PNG (content box is 1735x395 at --x,--y on a 2000x800 scale) */
+  .logo { --x: 125; --y: 255; display: block; overflow: hidden; width: var(--w); height: calc(var(--w) * 395 / 1735); }
+  .logo.white { --x: 160; --y: 215; }
+  .logo img { display: block; width: calc(var(--w) * 2000 / 1735); margin-left: calc(var(--w) * var(--x) / -1735); margin-top: calc(var(--w) * var(--y) / -1735); }
+
+  .kicker { font-family: Mulish, sans-serif; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 26px; color: var(--primary); }
+
+  /* ---------- comparison slides ---------- */
+  .cmp { padding: 72px 80px 0; background: linear-gradient(180deg, var(--hero-bg) 0, #fff 520px); }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .count { font-family: Mulish, sans-serif; font-weight: 800; font-size: 24px; color: var(--muted); letter-spacing: .08em; }
+  .mid { position: absolute; left: 80px; right: 80px; top: 150px; bottom: 130px; display: flex; flex-direction: column; justify-content: center; }
+  .topic { display: flex; align-items: center; gap: 18px; }
+  .topic .ic { width: 64px; height: 64px; border-radius: 18px; background: #fff; box-shadow: 0 4px 14px rgba(12,50,84,.08); display: grid; place-items: center; color: var(--primary); }
+  .topic .ic svg { width: 36px; height: 36px; }
+  h2 { font-weight: 900; font-size: 92px; line-height: 1.02; letter-spacing: -.025em; color: var(--navy); margin-top: 26px; max-width: 920px; }
+
+  .card { border-radius: 36px; padding: 52px 52px 56px; margin-top: 48px; }
+  .card + .card { margin-top: 24px; }
+  .tag { display: inline-flex; align-items: center; gap: 12px; font-family: Mulish, sans-serif; font-weight: 800; font-size: 22px; letter-spacing: .12em; text-transform: uppercase; padding: 10px 20px 10px 10px; border-radius: 999px; }
+  .tag i { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+  .tag i svg { width: 22px; height: 22px; }
+  .card p { font-size: 44px; line-height: 1.26; margin-top: 28px; }
+
+  .old { background: var(--old-bg); }
+  .old .tag { background: #fff; color: var(--old-ink); }
+  .old .tag i { background: #fbe4e1; color: var(--old-mark); }
+  .old p { color: var(--old-ink); font-weight: 600; }
+
+  .new { background: var(--primary); box-shadow: 0 24px 48px -16px rgba(0,102,205,.45); }
+  .new .tag { background: rgba(255,255,255,.16); color: #fff; }
+  .new .tag i { background: #fff; color: var(--primary); }
+  .new p { color: #fff; font-weight: 800; }
+
+  .foot { position: absolute; left: 80px; right: 80px; bottom: 64px; display: flex; justify-content: space-between; align-items: center; }
+  .dots { display: flex; gap: 10px; }
+  .dots b { width: 12px; height: 12px; border-radius: 6px; background: #c9d6e4; }
+  .dots b.on { width: 40px; background: var(--primary); }
+  .swipe { font-family: Mulish, sans-serif; font-weight: 800; font-size: 24px; color: var(--primary); display: flex; align-items: center; gap: 10px; letter-spacing: .04em; }
+  .swipe svg { width: 28px; height: 28px; }
+
+  /* ---------- cover ---------- */
+  .cover .photo { position: absolute; inset: 0 0 auto 0; height: 760px; background: center 30% / cover no-repeat url("../../../apps/landing-page/public/images/home-care.jpg"); }
+  .cover .photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,50,84,0) 55%, rgba(255,255,255,1) 100%); }
+  .cover .badge { position: absolute; top: 64px; left: 64px; background: #fff; border-radius: 22px; padding: 22px 26px; box-shadow: 0 10px 30px rgba(12,50,84,.18); }
+  .cover .body { position: absolute; left: 80px; right: 80px; top: 700px; }
+  .cover h1 .brand { white-space: nowrap; }
+  .cover h1 { font-weight: 900; font-size: 88px; line-height: .98; letter-spacing: -.03em; color: var(--navy); margin-top: 22px; }
+  .cover h1 .vs { display: block; font-size: 52px; font-weight: 800; color: var(--muted); letter-spacing: -.01em; margin: 14px 0 10px; }
+  .cover h1 .brand { color: var(--primary); }
+  .cover .lede { font-size: 36px; line-height: 1.3; font-weight: 600; color: var(--muted); margin-top: 30px; }
+
+  /* ---------- CTA ---------- */
+  .cta { background: var(--navy); color: #fff; padding: 72px 80px; }
+  .cta .photo { height: 430px; border-radius: 36px; margin-top: 56px; background: center 4% / cover no-repeat url("../../../apps/landing-page/public/images/about-doctor-visit.jpg"); }
+  .cta .kicker { color: #8cc4ff; margin-top: 56px; }
+  .cta h2 { color: #fff; font-size: 88px; margin-top: 18px; }
+  .cta .sub { font-size: 38px; line-height: 1.3; color: #c8d7e8; margin-top: 22px; font-weight: 600; }
+  .cta .btn { display: inline-flex; align-items: center; gap: 14px; background: #fff; color: var(--primary); font-weight: 900; font-size: 36px; padding: 24px 40px; border-radius: 999px; margin-top: 40px; }
+  .cta .btn svg { width: 32px; height: 32px; }
+  .cta .legal { position: absolute; left: 80px; right: 80px; bottom: 60px; display: flex; justify-content: space-between; font-family: Mulish, sans-serif; font-weight: 700; font-size: 23px; color: #9fb3c8; }
+  .cta .legal b { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- 1. COVER -->
+<section class="slide cover">
+  <div class="photo"></div>
+  <div class="badge"><span class="logo" style="--w:300px"><img src="../../../apps/landing-page/public/images/logo.png" alt="StreetdocMD"></span></div>
+  <div class="body">
+    <div class="kicker">Same fever. Two very different days.</div>
+    <h1>The old way<span class="vs">vs</span><span class="brand">the StreetdocMD way</span></h1>
+    <p class="lede">Six everyday moments of getting care, side by side.</p>
+  </div>
+  <div class="foot"><div class="dots" data-n="1"></div><div class="swipe">Swipe to compare <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div></div>
+</section>
+
+<!-- comparison slides are generated from this data so wording stays in one place -->
+<template id="cmp">
+  <section class="slide cmp">
+    <div class="top"><span class="logo" style="--w:250px"><img src="../../../apps/landing-page/public/images/logo.png" alt="StreetdocMD"></span><span class="count"></span></div>
+    <div class="mid">
+    <div class="topic"><span class="ic"></span><span class="kicker"></span></div>
+    <h2></h2>
+    <div class="card old"><span class="tag"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></i>The old way</span><p class="o"></p></div>
+    <div class="card new"><span class="tag"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></i>The StreetdocMD way</span><p class="n"></p></div>
+    </div>
+    <div class="foot"><div class="dots"></div><div class="swipe">Swipe <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div></div>
+  </section>
+</template>
+
+<!-- 8. CTA -->
+<section class="slide cta" id="cta">
+  <span class="logo white" style="--w:300px"><img src="../../../apps/landing-page/public/images/logo-white.png" alt="StreetdocMD"></span>
+  <div class="photo"></div>
+  <div class="kicker">Skip the old way</div>
+  <h2>Healthcare,<br>Closer to you.</h2>
+  <p class="sub">Book a verified doctor, nurse or physiotherapist to your home in minutes.</p>
+  <div class="btn">Link in bio · streetdocmd.com <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+  <div class="legal"><span><b>@streetdoc_md</b></span><span>Not for emergencies. Call 112.</span></div>
+</section>
+
+<script>
+  const I = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const ICONS = {
+    car: I('<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>'),
+    clock: I('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'),
+    flask: I('<path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/>'),
+    pill: I('<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/>'),
+    file: I('<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>'),
+    card: I('<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>'),
+  };
+
+  const SLIDES = [
+    { icon: 'car',   topic: 'Getting to care', h: 'Sick, and still stuck in traffic?',
+      o: 'Hours on the road to the hospital, feeling worse in every go-slow.',
+      n: 'A verified doctor, nurse or physiotherapist comes to your home.' },
+    { icon: 'clock', topic: 'The wait', h: 'A whole day in the queue?',
+      o: 'Queue for a card. Queue for vitals. Queue again for five minutes with the doctor.',
+      n: 'Book in minutes, then track your provider live, from confirmed to at your door.' },
+    { icon: 'flask', topic: 'Lab tests', h: 'Two trips for one test?',
+      o: 'Go to the lab for the sample, then go back days later for the result.',
+      n: 'Accredited partner labs, home sample collection where offered, and results in your app.' },
+    { icon: 'pill',  topic: 'Medicine', h: 'Is this drug even original?',
+      o: 'Pharmacy hopping with a paper prescription, hoping what you buy is genuine.',
+      n: 'Your e-prescription goes to a partner pharmacy with NAFDAC-compliant medicine, delivered to you.' },
+    { icon: 'file',  topic: 'Your history', h: 'Telling your story again?',
+      o: 'New doctor, new card, and your whole medical history from memory.',
+      n: 'Every visit, result and prescription in one record, shared only with people you approve.' },
+    { icon: 'card',  topic: 'The bill', h: 'How much will this cost?',
+      o: 'You find out the total at the end, one counter at a time.',
+      n: 'See the price before you book. No service fee on provider visits. Pay securely with Paystack.' },
+  ];
+  const TOTAL = SLIDES.length + 2;
+
+  const tpl = document.getElementById('cmp');
+  const cta = document.getElementById('cta');
+  SLIDES.forEach((s, i) => {
+    const el = tpl.content.firstElementChild.cloneNode(true);
+    el.querySelector('.count').textContent = String(i + 2).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+    el.querySelector('.ic').innerHTML = ICONS[s.icon];
+    el.querySelector('.kicker').textContent = s.topic;
+    el.querySelector('h2').textContent = s.h;
+    el.querySelector('.o').textContent = s.o;
+    el.querySelector('.n').textContent = s.n;
+    el.querySelector('.dots').dataset.n = i + 2;
+    cta.before(el);
+  });
+
+  document.querySelectorAll('.dots').forEach((d) => {
+    const n = +d.dataset.n;
+    for (let k = 1; k <= TOTAL; k++) d.insertAdjacentHTML('beforeend', `<b class="${k === n ? 'on' : ''}"></b>`);
+  });
+
+  // ?s=N shows one slide (for rendering); no param shows them all stacked
+  const s = +new URLSearchParams(location.search).get('s');
+  const all = document.querySelectorAll('.slide');
+  if (s) all[s - 1].classList.add('on'); else document.body.classList.add('all');
+</script>
+</body>
+</html>
