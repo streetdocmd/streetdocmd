@@ -8,6 +8,7 @@ const SOCIAL_ICONS: Record<SocialLink["id"], { src: string; size: number }> = {
   facebook: { src: "/images/icon-facebook.svg", size: 24 },
 };
 import { delay } from "@/lib/reveal";
+import { CookieSettingsLink } from "@/components/CookieConsent";
 
 export default function Footer() {
   return (
@@ -36,6 +37,7 @@ export default function Footer() {
               <a href={LINKS.providerTerms}>Provider service agreement</a>
               <a href={LINKS.privacy}>Privacy policy</a>
               <a href={LINKS.facilityAgreement}>Facility partner agreement</a>
+              <CookieSettingsLink />
             </div>
           </div>
         </div>

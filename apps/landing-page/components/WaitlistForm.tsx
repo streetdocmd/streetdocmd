@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { LINKS } from "@/lib/links";
 import { WAITLIST_ROLES } from "@/lib/waitlist";
+import { track } from "@/lib/analytics";
 
 type Status = "idle" | "sending" | "done" | "error";
 
@@ -12,11 +13,14 @@ export default function WaitlistForm() {
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("sending");
+    const data = Object.fromEntries(new FormData(e.currentTarget));
     const res = await fetch("/api/waitlist", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(new FormData(e.currentTarget))),
+      body: JSON.stringify(data),
     }).catch(() => null);
+    // The role only: nothing that identifies the person
+    if (res?.ok) track("join_waitlist", { role: String(data.role ?? "") });
     setStatus(res?.ok ? "done" : "error");
   }
 

@@ -5,6 +5,7 @@ import ThemeScript from "@/components/theme/ThemeScript";
 import LaunchSplash, { LaunchSplashScript } from "@/components/LaunchSplash";
 import { DialogProvider } from "@/components/ds";
 import WhatsAppConcierge from "@/components/WhatsAppConcierge";
+import CookieConsent from "@/components/CookieConsent";
 
 // Avenir is the brand font (see packages/design/tokens.ts). Nunito Sans, the closest
 // free match, is the fallback for devices without it: --font-fallback feeds the stack.
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <LaunchSplash />
         <DialogProvider>{children}</DialogProvider>
         <WhatsAppConcierge />
+        <CookieConsent />
       </body>
     </html>
   );

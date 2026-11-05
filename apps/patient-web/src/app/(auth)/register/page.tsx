@@ -8,6 +8,7 @@ import PasswordInput from "@/components/PasswordInput";
 import { Button, Input, Notice, TopBar, fieldLabelClass, inputClass } from "@/components/ds";
 import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
 import { TERMS_VERSION, PRIVACY_VERSION } from "@/lib/legal-acceptance";
+import { track } from "@/lib/analytics";
 import AuthHelp from "@/components/AuthHelp";
 
 type Field = "name" | "email" | "phone" | "password";
@@ -72,6 +73,7 @@ function RegisterForm() {
         setLoading(false);
         return;
       }
+      if (!json.existing) track("sign_up", { method: "email" });
       if (json.signedIn === false) {
         router.push("/login?registered=1");
         return;

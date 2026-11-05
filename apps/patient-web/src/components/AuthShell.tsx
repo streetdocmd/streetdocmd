@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import AuthHelp from "./AuthHelp";
+import { CookieSettingsLink } from "./CookieConsent";
 
 // Shared frame for sign in and the password screens, in the design's light
 // style (sign up and onboarding use their own top bars).
@@ -25,6 +26,7 @@ export default function AuthShell({
         </div>
         {children}
         <AuthHelp />
+        <div className="mt-6 text-center"><CookieSettingsLink /></div>
       </div>
     </main>
   );

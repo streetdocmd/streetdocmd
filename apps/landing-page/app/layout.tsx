@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Mulish, Nunito_Sans } from "next/font/google";
 import ScrollReveal from "@/components/ScrollReveal";
+import CookieConsent from "@/components/CookieConsent";
 import "./globals.css";
 
 // Mulish is used in the design for the hero badge.
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <ScrollReveal />
+        <CookieConsent />
       </body>
     </html>
   );
