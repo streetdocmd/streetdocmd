@@ -1,0 +1,175 @@
+1
+00:00:00,350 --> 00:00:01,629
+This is StreetdocMD.
+
+2
+00:00:01,679 --> 00:00:05,750
+Verified doctors, nurses and physiotherapists who come to you.
+
+3
+00:00:06,250 --> 00:00:10,664
+One platform connects patients with clinicians, labs, pharmacies and hospitals.
+
+4
+00:00:10,714 --> 00:00:13,150
+Let's follow one visit from start to finish.
+
+5
+00:00:13,650 --> 00:00:17,265
+Meet Tolu. She lives in Bodija, Ibadan, and has had headaches all week.
+
+6
+00:00:17,315 --> 00:00:21,550
+Her blood pressure readings at home are high, so she wants a doctor to come to her.
+
+7
+00:00:22,050 --> 00:00:25,654
+Tolu creates her account on the patient app.
+
+8
+00:00:25,704 --> 00:00:32,213
+Then she adds her medical profile: allergies, conditions and current medicines.
+
+9
+00:00:32,263 --> 00:00:35,950
+Every clinician sees this before they arrive.
+
+10
+00:00:36,450 --> 00:00:40,208
+Dr Tobenna Eze is a verified cardiologist on StreetdocMD.
+
+11
+00:00:40,258 --> 00:00:44,350
+He sets his rates, then switches on to receive visit requests.
+
+12
+00:00:44,850 --> 00:00:48,365
+Tolu books Dr Tobenna directly with his provider code.
+
+13
+00:00:48,415 --> 00:00:52,789
+She chooses a visit now, confirms her address and checks the price.
+
+14
+00:00:52,839 --> 00:00:56,750
+She can pay by card, bank transfer or USSD through Paystack.
+
+15
+00:00:57,250 --> 00:01:01,507
+Once Paystack confirms the payment, the request goes straight to Dr Tobenna.
+
+16
+00:01:01,557 --> 00:01:03,150
+He has two minutes to accept.
+
+17
+00:01:03,650 --> 00:01:09,423
+The request shows the reason for the visit, allergies, distance and his payout.
+
+18
+00:01:09,473 --> 00:01:13,550
+He accepts, heads out, and updates each step as he goes.
+
+19
+00:01:14,050 --> 00:01:17,571
+Tolu follows him on a live map, with an arrival time.
+
+20
+00:01:17,621 --> 00:01:21,950
+She can see each step, and call him from the app if she needs to.
+
+21
+00:01:22,450 --> 00:01:26,608
+At Tolu's home, Dr Tobenna records the visit in a guided clinical note.
+
+22
+00:01:26,658 --> 00:01:30,164
+Her profile, conditions and allergies are already filled in.
+
+23
+00:01:30,214 --> 00:01:35,142
+Her blood pressure is 162 over 104, and values outside the normal range are flagged.
+
+24
+00:01:35,192 --> 00:01:38,283
+He records a coded diagnosis: essential hypertension.
+
+25
+00:01:38,333 --> 00:01:43,616
+He increases her Amlodipine and orders a lipid profile and electrolytes from a nearby lab.
+
+26
+00:01:43,666 --> 00:01:47,350
+Submitting the note completes the visit and credits his payout.
+
+27
+00:01:47,850 --> 00:01:50,502
+Tolu's app shows her what to do next.
+
+28
+00:01:50,552 --> 00:01:54,738
+She sends her prescription to a partner pharmacy near her.
+
+29
+00:01:54,788 --> 00:02:01,750
+She checks the lab tests, the lab, the price and a home collection time, then approves and pays.
+
+30
+00:02:02,250 --> 00:02:06,861
+Mokola Family Pharmacy receives the prescription and prices it.
+
+31
+00:02:06,911 --> 00:02:13,150
+Once Tolu has paid, they dispense it, send it out with a rider and mark it delivered.
+
+32
+00:02:13,650 --> 00:02:17,917
+Clearpath Diagnostics accepts the order and books a home collection.
+
+33
+00:02:17,967 --> 00:02:21,852
+Their collector confirms Tolu's identity and takes the sample.
+
+34
+00:02:21,902 --> 00:02:26,550
+Results go in with reference ranges and flags, and are sent to the doctor.
+
+35
+00:02:27,050 --> 00:02:32,377
+Dr Tobenna reviews the results before Tolu sees them, and explains what they mean.
+
+36
+00:02:32,427 --> 00:02:37,950
+In the care journey chat, the doctor, lab and pharmacy see every update in one place.
+
+37
+00:02:38,450 --> 00:02:43,200
+Tolu gets her results with Dr Tobenna's notes and the next step.
+
+38
+00:02:43,250 --> 00:02:46,350
+Her whole care journey stays in one place.
+
+39
+00:02:46,850 --> 00:02:50,730
+Behind the scenes, the StreetdocMD team checks every provider and facility before they go live,
+
+40
+00:02:50,780 --> 00:02:53,750
+and oversees payments, payouts, safeguarding and medical report requests.
+
+41
+00:02:54,250 --> 00:02:58,100
+Book, visit, prescribe, deliver, test and follow up.
+
+42
+00:02:58,150 --> 00:03:02,150
+One connected journey, from the first tap to recovery.
+
+43
+00:03:02,650 --> 00:03:05,915
+StreetdocMD. Healthcare, closer to you.
+
+44
+00:03:05,965 --> 00:03:08,550
+Book a visit at streetdocmd.com

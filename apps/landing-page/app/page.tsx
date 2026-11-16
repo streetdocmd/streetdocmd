@@ -89,6 +89,27 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ───────── DEMO VIDEO ───────── */}
+      <section className="demo" id="demo">
+        <div className="container">
+          <div className="demo-head" data-reveal>
+            <p className="eyebrow">SEE IT IN ACTION</p>
+            <h2 className="section-title">Follow one visit from booking to results.</h2>
+          </div>
+          <div className="demo-frame" data-reveal style={delay(120)}>
+            <video
+              controls
+              playsInline
+              preload="none"
+              poster="/images/demo-poster.jpg"
+              aria-label="StreetdocMD demo video: booking a home visit, the clinical note, pharmacy delivery, lab tests and results"
+            >
+              <source src="/videos/streetdocmd-demo.mp4" type="video/mp4" />
+            </video>
+          </div>
+        </div>
+      </section>
+
       {/* ───────── HOW IT WORKS ───────── */}
       <section className="how" id="how-it-works">
         <div className="container">

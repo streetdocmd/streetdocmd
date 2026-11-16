@@ -449,6 +449,34 @@ a {
 }
 
 /* ───────── How it works ───────── */
+/* Demo video */
+.demo {
+  padding: 72px 0 24px;
+}
+.demo-head {
+  max-width: 720px;
+  margin: 0 auto 32px;
+  text-align: center;
+}
+.demo-frame {
+  max-width: 1040px;
+  margin: 0 auto;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0d2b5e;
+  box-shadow: 0 30px 70px rgba(13, 43, 94, 0.18);
+}
+.demo-frame video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+@media (max-width: 640px) {
+  .demo { padding: 48px 0 8px; }
+  .demo-frame { border-radius: 14px; }
+}
+
 .how {
   background: var(--slate-50);
   padding: 100px 0;
