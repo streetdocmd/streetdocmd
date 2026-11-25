@@ -4,9 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CircleCheck, FileText, Upload, RefreshCw, Trash2, CircleAlert, ShieldCheck } from "lucide-react";
 import {
-  FACILITY_DOC_ACCEPT, FACILITY_DOC_MAX_SIZE, FACILITY_DOC_MIME_TYPES,
+  FACILITY_DOCS_BUCKET, FACILITY_DOC_ACCEPT, FACILITY_DOC_MAX_SIZE, FACILITY_DOC_MIME_TYPES,
   facilityDocSpecs, missingFacilityDocs, type FacilityDocSpec, type FacilityDocument,
 } from "@/lib/facility-docs";
+import { createClient } from "@/lib/supabase";
+
+/** Some phones give picked files no type; fall back to the extension. */
+function mimeFromName(name: string) {
+  const ext = name.split(".").pop()?.toLowerCase();
+  return ext === "pdf" ? "application/pdf" : ext === "png" ? "image/png" : "image/jpeg";
+}
 import { SUPPORT_EMAIL } from "./config";
 import { Spinner, StatusBadge, ui } from "./ui";
 
@@ -72,10 +79,26 @@ export default function FacilityDocumentsUpload({
     if (invalid) return;
     setBusy(spec.type);
     try {
-      const body = new FormData();
-      body.append("file", file);
-      body.append("doc_type", spec.type);
-      const res = await fetch("/api/facility/documents", { method: "POST", body });
+      // The file goes straight to storage through a one-time signed URL:
+      // sending it through our API would hit Vercel's ~4.5 MB request limit.
+      const mime = file.type || mimeFromName(file.name);
+      const post = (body: object) => fetch("/api/facility/documents", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      });
+      const prep = await post({ action: "prepare", doc_type: spec.type, file_name: file.name, size: file.size, mime });
+      if (!prep.ok) {
+        setError(spec.type, await readError(prep));
+        return;
+      }
+      const { path, token } = (await prep.json()) as { path: string; token: string };
+      const { error: upErr } = await createClient().storage
+        .from(FACILITY_DOCS_BUCKET)
+        .uploadToSignedUrl(path, token, file, { contentType: mime });
+      if (upErr) {
+        setError(spec.type, "We couldn't upload your file. Check your connection and try again.");
+        return;
+      }
+      const res = await post({ action: "complete", doc_type: spec.type, path, file_name: file.name });
       if (!res.ok) {
         setError(spec.type, await readError(res));
         return;

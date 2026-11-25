@@ -18,6 +18,7 @@ import AuthBrand from "@/components/AuthBrand";
 import OnboardingSteps from "@/components/OnboardingSteps";
 import ProviderAgreementModal from "@/components/ProviderAgreementModal";
 import { DOC_ACCEPT, DOC_HINT, prepareDocument } from "@/lib/doc-files";
+import { uploadProviderDocument } from "@/lib/upload-document";
 import { rateTypesFor } from "@/lib/rates";
 
 function Req() {
@@ -157,11 +158,8 @@ export default function RegisterIndividualPage() {
       // what's still missing, keeping anything that did upload.
       for (const slot of docSlots) {
         setStage(`Uploading your ${slot.label}…`);
-        const body = new FormData();
-        body.append("file", files[slot.type] as File);
-        body.append("doc_type", slot.type);
-        const up = await fetch("/api/upload-document", { method: "POST", body }).catch(() => null);
-        if (!up?.ok) {
+        const up = await uploadProviderDocument(files[slot.type] as File, slot.type);
+        if (!up.ok) {
           router.push("/onboarding/documents?upload=failed");
           router.refresh();
           return;

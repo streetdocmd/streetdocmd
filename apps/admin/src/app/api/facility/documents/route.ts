@@ -78,24 +78,72 @@ async function notifyOpsIfComplete(admin: Admin, app: OwnedApplication, before: 
   }).catch(() => {});
 }
 
-// POST (multipart: file, doc_type) — upload or replace one document
+// POST (JSON) — upload or replace one document, in two steps so the file
+// never passes through this server (Vercel rejects request bodies over
+// about 4.5 MB, which most phone photos of documents exceed):
+//   { action: "prepare", doc_type, file_name, size, mime }
+//     -> checks the request and returns a one-time signed upload URL for
+//        a path inside this application's folder
+//   { action: "complete", doc_type, path, file_name }
+//     -> checks the stored file really is a PDF, PNG or JPEG under the
+//        size limit, then records it and replaces any earlier upload
 export async function POST(req: NextRequest) {
   const admin = createAdminSupabase();
   const owned = await getEditableApplication(admin);
   if (!owned.ok) return owned.response;
   const app = owned.app;
 
-  const form = await req.formData().catch(() => null);
-  const file = form?.get("file");
-  const docType = form?.get("doc_type");
-  if (!(file instanceof File) || typeof docType !== "string") return json("Choose a file to upload.", 400);
-  if (!isAllowedFacilityDocType(app.facility_type, docType)) return json("This document type isn't needed for your facility.", 400);
-  if (file.size === 0) return json("This file is empty. Please choose another.", 400);
-  if (file.size > FACILITY_DOC_MAX_SIZE) return json("This file is larger than 10 MB. Please upload a smaller copy.", 400);
-  if (!FACILITY_DOC_MIME_TYPES.includes(file.type)) return json("Only PDF, JPG or PNG files can be uploaded.", 400);
+  const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+  const docType = body?.doc_type;
+  if (typeof docType !== "string" || !isAllowedFacilityDocType(app.facility_type, docType)) {
+    return json("This document type isn't needed for your facility.", 400);
+  }
 
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  if (!matchesSignature(bytes, file.type)) return json("This file doesn't look like a valid PDF, JPG or PNG. Please choose another.", 400);
+  if (body?.action === "prepare") {
+    const size = Number(body.size);
+    const mime = String(body.mime ?? "");
+    if (!size) return json("This file is empty. Please choose another.", 400);
+    if (size > FACILITY_DOC_MAX_SIZE) return json("This file is larger than 10 MB. Please upload a smaller copy.", 400);
+    if (!FACILITY_DOC_MIME_TYPES.includes(mime)) return json("Only PDF, JPG or PNG files can be uploaded.", 400);
+
+    // Private bucket: files are only ever read through short-lived signed URLs.
+    // Ignore the error — it already exists after the first upload.
+    await admin.storage.createBucket(FACILITY_DOCS_BUCKET, {
+      public: false,
+      fileSizeLimit: FACILITY_DOC_MAX_SIZE,
+      allowedMimeTypes: FACILITY_DOC_MIME_TYPES,
+    });
+
+    const ext = mime === "application/pdf" ? "pdf" : mime === "image/png" ? "png" : "jpg";
+    const path = `${app.id}/${docType}_${Date.now()}.${ext}`;
+    const { data, error } = await admin.storage.from(FACILITY_DOCS_BUCKET).createSignedUploadUrl(path);
+    if (error || !data) {
+      console.error("facility documents: signed upload URL failed:", error);
+      return json("We couldn't start your upload. Please try again.", 500);
+    }
+    return NextResponse.json({ path: data.path, token: data.token });
+  }
+
+  if (body?.action !== "complete") return json("Choose a file to upload.", 400);
+
+  const path = String(body.path ?? "");
+  // Only a file this application's own prepare step could have created
+  if (!new RegExp(`^${app.id}/${docType}_\\d+\\.(pdf|png|jpg)$`).test(path)) return json("Upload not recognised. Please try again.", 400);
+
+  const { data: blob, error: dlErr } = await admin.storage.from(FACILITY_DOCS_BUCKET).download(path);
+  if (dlErr || !blob) {
+    console.error("facility documents: uploaded file not found:", dlErr);
+    return json("We couldn't find your upload. Please try again.", 400);
+  }
+  const ext = path.split(".").pop();
+  const mime = ext === "pdf" ? "application/pdf" : ext === "png" ? "image/png" : "image/jpeg";
+  const bytes = new Uint8Array(await blob.slice(0, 8).arrayBuffer());
+  if (blob.size === 0 || blob.size > FACILITY_DOC_MAX_SIZE || !matchesSignature(bytes, mime)) {
+    await admin.storage.from(FACILITY_DOCS_BUCKET).remove([path]);
+    return json(blob.size > FACILITY_DOC_MAX_SIZE
+      ? "This file is larger than 10 MB. Please upload a smaller copy."
+      : "This file doesn't look like a valid PDF, JPG or PNG. Please choose another.", 400);
+  }
 
   const { data: existing, error: listErr } = await admin
     .from("facility_documents")
@@ -103,30 +151,13 @@ export async function POST(req: NextRequest) {
     .eq("application_id", app.id);
   if (listErr) {
     console.error("facility documents: list failed:", listErr);
+    await admin.storage.from(FACILITY_DOCS_BUCKET).remove([path]);
     return json(isMissingTableError(listErr) ? NOT_READY : "We couldn't save your document. Please try again.", isMissingTableError(listErr) ? 503 : 500);
-  }
-
-  // Private bucket: files are only ever read through short-lived signed URLs.
-  // Ignore the error — it already exists after the first upload.
-  await admin.storage.createBucket(FACILITY_DOCS_BUCKET, {
-    public: false,
-    fileSizeLimit: FACILITY_DOC_MAX_SIZE,
-    allowedMimeTypes: FACILITY_DOC_MIME_TYPES,
-  });
-
-  const ext = file.type === "application/pdf" ? "pdf" : file.type === "image/png" ? "png" : "jpg";
-  const path = `${app.id}/${docType}_${Date.now()}.${ext}`;
-  const { error: uploadErr } = await admin.storage
-    .from(FACILITY_DOCS_BUCKET)
-    .upload(path, bytes, { contentType: file.type, upsert: false });
-  if (uploadErr) {
-    console.error("facility documents: upload failed:", uploadErr);
-    return json("We couldn't upload your file. Please try again.", 500);
   }
 
   const { data: doc, error: dbErr } = await admin
     .from("facility_documents")
-    .insert({ application_id: app.id, document_type: docType, file_url: path, file_name: cleanFileName(file.name) })
+    .insert({ application_id: app.id, document_type: docType, file_url: path, file_name: cleanFileName(String(body.file_name ?? "")) })
     .select("id, document_type, file_name, uploaded_at")
     .single();
   if (dbErr || !doc) {

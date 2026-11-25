@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { uploadDirect } from "@/lib/direct-upload-client";
 import { Check, ChevronRight, FileText, Phone, Upload, AlertCircle, ShieldAlert, Stethoscope, User, Bike, Clock } from "lucide-react";
 import { PHARMACY_FLOW, PHARMACY_STATUS } from "@/components/portal/statuses";
 import { Card, CardHeader, Notice, PageHeader, Spinner, StatusBadge, formatDateTime, formatNaira, ui } from "@/components/portal/ui";
@@ -93,10 +94,14 @@ export default function PharmacyOrderActions({ order, catalogue }: { order: any;
     if (!proofFile) return;
     setError("");
     setSubmitting(true);
-    const fd = new FormData();
-    fd.append("proof", proofFile);
-    const res = await fetch(`/api/pharmacy-portal/orders/${order.id}/delivery`, { method: "POST", body: fd });
+    // The photo goes straight to storage first (no 4.5 MB request limit)
+    const url = `/api/pharmacy-portal/orders/${order.id}/delivery`;
+    const json = (body: object) => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const up = await uploadDirect("pharmacy-deliveries", proofFile, info => fetch(`${url}?step=prepare`, json(info)).catch(() => null));
+    if ("error" in up) { setSubmitting(false); setError(up.error); return; }
+    const res = await fetch(url, json({ path: up.path })).catch(() => null);
     setSubmitting(false);
+    if (!res) { setError("Couldn't reach the server. Check your connection and try again."); return; }
     if (res.ok) router.refresh();
     else { const d = await res.json().catch(() => ({})); setError(d.error ?? "Upload failed. Please try again."); }
   }

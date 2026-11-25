@@ -1,22 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { getPortalApiAccess, ownsRecord } from "@/components/portal/access";
+import { signUpload, verifyUpload } from "@/lib/direct-upload";
 
 export const dynamic = "force-dynamic";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // matches the pharmacy-deliveries bucket limit
 const FILE_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "application/pdf": "pdf" };
+const BUCKET = "pharmacy-deliveries";
+
+// The photo goes straight to storage (lib/direct-upload.ts), so a large
+// phone photo isn't rejected by Vercel's ~4.5 MB request limit:
+//   POST ?step=prepare  { mime, size } -> { path, token }
+//   POST                { path }       -> records it and marks the order delivered
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await getPortalApiAccess("pharmacy");
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const form = await req.formData();
-  const file = form.get("proof") as File | null;
-  if (!file || file.size === 0) return NextResponse.json({ error: "Choose a photo or PDF to upload." }, { status: 400 });
-  const ext = FILE_TYPES[file.type];
-  if (!ext) return NextResponse.json({ error: "Proof of delivery must be a JPG, PNG, WebP or PDF file." }, { status: 400 });
-  if (file.size > MAX_FILE_BYTES) return NextResponse.json({ error: "The file must be smaller than 10 MB." }, { status: 400 });
+  const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+  const prepare = req.nextUrl.searchParams.get("step") === "prepare";
+  const ext = FILE_TYPES[String(body?.mime ?? "")];
+  if (prepare) {
+    if (!Number(body?.size)) return NextResponse.json({ error: "Choose a photo or PDF to upload." }, { status: 400 });
+    if (!ext) return NextResponse.json({ error: "Proof of delivery must be a JPG, PNG, WebP or PDF file." }, { status: 400 });
+    if (Number(body?.size) > MAX_FILE_BYTES) return NextResponse.json({ error: "The file must be smaller than 10 MB." }, { status: 400 });
+  }
 
   const admin = createAdminSupabase();
 
@@ -32,16 +41,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: "Proof of delivery can only be added once the order is out for delivery." }, { status: 409 });
   }
 
-  const path  = `proof/${params.id}/${Date.now()}.${ext}`;
-  const bytes = Buffer.from(await file.arrayBuffer());
+  if (prepare) {
+    const signed = await signUpload(admin, BUCKET, `proof/${params.id}/${Date.now()}.${ext}`);
+    if (!signed) return NextResponse.json({ error: "Couldn't start the upload. Please try again." }, { status: 500 });
+    return NextResponse.json(signed);
+  }
 
-  const { error: uploadError } = await admin.storage
-    .from("pharmacy-deliveries")
-    .upload(path, bytes, { contentType: file.type, upsert: true });
+  const path = String(body?.path ?? "");
+  if (!path) return NextResponse.json({ error: "Choose a photo or PDF to upload." }, { status: 400 });
+  const pattern = new RegExp(`^proof/${params.id}/[0-9]+[.](jpg|png|webp|pdf)$`);
+  const bad = await verifyUpload(admin, BUCKET, path, pattern, MAX_FILE_BYTES);
+  if (bad) return NextResponse.json({ error: bad }, { status: 400 });
 
-  if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 });
-
-  const { data: urlData } = admin.storage.from("pharmacy-deliveries").getPublicUrl(path);
+  const { data: urlData } = admin.storage.from(BUCKET).getPublicUrl(path);
   const proofUrl = urlData.publicUrl;
 
   // Update delivery_tracking row

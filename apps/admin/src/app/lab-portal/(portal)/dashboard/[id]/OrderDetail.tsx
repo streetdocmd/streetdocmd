@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { uploadDirect } from "@/lib/direct-upload-client";
 import { AlertCircle, CalendarClock, FileText, MapPin, Phone, Stethoscope, Upload, User } from "lucide-react";
 import { LAB_NEXT, LAB_STATUS } from "@/components/portal/statuses";
 import { Card, CardHeader, PageHeader, Spinner, StatusBadge, formatDateTime, formatNaira, ui } from "@/components/portal/ui";
@@ -77,16 +78,27 @@ export default function OrderDetail({ order, events, canAct }: { order: any; eve
     });
   }
 
-  function submitResults() {
+  async function submitResults() {
     const missing = resultRows.filter(r => !r.result_value.trim()).map(r => r.test_name);
     if (missing.length > 0 && !pdfFile) {
       setError(`Enter a result for ${missing.join(", ")}, or attach the result report.`);
       return;
     }
-    const formData = new FormData();
-    formData.append("results", JSON.stringify(resultRows));
-    if (pdfFile) formData.append("pdf", pdfFile);
-    send(`/api/lab-portal/orders/${order.id}/results`, { method: "POST", body: formData });
+    const url = `/api/lab-portal/orders/${order.id}/results`;
+    let report_path: string | null = null;
+    if (pdfFile) {
+      // The report goes straight to storage first (no 4.5 MB request limit)
+      setBusy(true);
+      setError("");
+      const up = await uploadDirect("lab-results", pdfFile, info => fetch(`${url}?step=prepare`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(info),
+      }).catch(() => null));
+      if ("error" in up) { setBusy(false); setError(up.error); return; }
+      report_path = up.path;
+    }
+    send(url, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ results: resultRows, report_path }),
+    });
   }
 
   const updateRow = (i: number, field: keyof ResultRow, value: string) =>

@@ -10,6 +10,7 @@ import {
 } from "@streetdocmd/shared";
 import ProviderAgreementModal from "@/components/ProviderAgreementModal";
 import { DOC_ACCEPT, DOC_HINT, prepareDocument } from "@/lib/doc-files";
+import { uploadProviderDocument } from "@/lib/upload-document";
 
 interface FileSlot {
   type: string;
@@ -132,15 +133,10 @@ export default function DocumentUploadForm({
         if (!slot.file) continue;
 
         patchSlot(i, { uploading: true, error: "" });
-        const body = new FormData();
-        body.append("file", slot.file);
-        body.append("doc_type", slot.type);
+        const up = await uploadProviderDocument(slot.file, slot.type);
 
-        const res = await fetch("/api/upload-document", { method: "POST", body });
-        const json = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          patchSlot(i, { uploading: false, error: json.error ?? "Upload failed. Please try again." });
+        if (!up.ok) {
+          patchSlot(i, { uploading: false, error: up.error });
           setGlobalError(`We couldn't upload your ${slot.label}. Fix the issue above and submit again — anything already uploaded is saved.`);
           return;
         }

@@ -1,14 +1,24 @@
-// Credential documents go through our upload API, and the host rejects request
-// bodies over about 4.5 MB. Phone photos are often bigger than that, so images
-// are shrunk in the browser first; a PDF can't be, so it has to fit as it is.
-const ALLOWED = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
-const MAX_PDF = 4 * 1024 * 1024;
-const MAX_UPLOAD = 4 * 1024 * 1024;
+// Credential documents go straight to storage (see lib/upload-document.ts),
+// up to 10 MB. Large phone photos are still shrunk in the browser first, so
+// they upload quickly on mobile data; a PDF can't be, so it goes as it is.
+export const PROVIDER_DOCS_BUCKET = "provider-docs";
+export const PROVIDER_DOC_MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+export const PROVIDER_DOC_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
+const ALLOWED = PROVIDER_DOC_TYPES;
+const MAX_PDF = PROVIDER_DOC_MAX_SIZE;
+const MAX_UPLOAD = PROVIDER_DOC_MAX_SIZE;
 const SHRINK_OVER = 1.5 * 1024 * 1024;
 const MAX_EDGE = 2400;
 
+/** Checks a file's first bytes really are a PDF, PNG or JPEG. */
+export function matchesSignature(b: Uint8Array, mime: string) {
+  if (mime === "application/pdf") return b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46; // %PDF
+  if (mime === "image/png") return b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
+  return b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff; // JPEG
+}
+
 export const DOC_ACCEPT = ".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png";
-export const DOC_HINT = "PDF up to 4 MB, or a clear photo (JPG or PNG)";
+export const DOC_HINT = "PDF up to 10 MB, or a clear photo (JPG or PNG)";
 
 function shrink(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
@@ -43,7 +53,7 @@ export async function prepareDocument(file: File): Promise<{ file: File } | { er
   if (file.size === 0) return { error: "This file is empty. Please choose another." };
   if (file.type === "application/pdf") {
     return file.size > MAX_PDF
-      ? { error: "This PDF is larger than 4 MB. Please choose a smaller scan, or upload a photo of the document instead." }
+      ? { error: "This PDF is larger than 10 MB. Please choose a smaller scan, or upload a photo of the document instead." }
       : { file };
   }
   if (file.size <= SHRINK_OVER) return { file };

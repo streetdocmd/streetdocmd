@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase-server";
 import { getPortalApiAccess, ownsRecord } from "@/components/portal/access";
+import { signUpload, verifyUpload } from "@/lib/direct-upload";
 
 export const dynamic = "force-dynamic";
 
 const FLAGS = ["normal", "high", "low", "critical"];
 const FILE_TYPES: Record<string, string> = { "application/pdf": "pdf", "image/jpeg": "jpg", "image/png": "png" };
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // matches the lab-results bucket limit
+const BUCKET = "lab-results";
+
+// The report goes straight to storage (lib/direct-upload.ts), so a large
+// scan isn't rejected by Vercel's ~4.5 MB request limit:
+//   POST ?step=prepare  { mime, size }            -> { path, token }
+//   POST                { results, report_path? } -> saves the results
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await getPortalApiAccess("lab");
@@ -32,19 +39,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }, { status: 409 });
   }
 
-  const formData = await req.formData();
-  const resultsJson = formData.get("results");
-  const pdfFile = formData.get("pdf") as File | null;
+  const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
 
-  let results: { test_name: string; result_value: string; unit: string; reference_range: string; flag: string }[];
-  try {
-    results = JSON.parse(typeof resultsJson === "string" ? resultsJson : "[]");
-    if (!Array.isArray(results)) throw new Error();
-  } catch {
-    return NextResponse.json({ error: "Invalid results payload" }, { status: 400 });
+  if (req.nextUrl.searchParams.get("step") === "prepare") {
+    const ext = FILE_TYPES[String(body?.mime ?? "")];
+    if (!ext) return NextResponse.json({ error: "The report must be a PDF, JPG or PNG file." }, { status: 400 });
+    if (!Number(body?.size)) return NextResponse.json({ error: "This file is empty. Please choose another." }, { status: 400 });
+    if (Number(body?.size) > MAX_FILE_BYTES) return NextResponse.json({ error: "The report must be smaller than 10 MB." }, { status: 400 });
+    // Private bucket: the path is stored and links are signed on demand
+    const signed = await signUpload(admin, BUCKET, `${params.id}/report-${Date.now()}.${ext}`);
+    if (!signed) return NextResponse.json({ error: "Couldn't start the upload. Please try again." }, { status: 500 });
+    return NextResponse.json(signed);
   }
 
-  const hasFile = !!pdfFile && pdfFile.size > 0;
+  const results = body?.results as { test_name: string; result_value: string; unit: string; reference_range: string; flag: string }[];
+  if (!Array.isArray(results)) return NextResponse.json({ error: "Invalid results payload" }, { status: 400 });
+  const reportPath = typeof body?.report_path === "string" && body.report_path ? body.report_path : null;
+
+  const hasFile = !!reportPath;
   if (results.length === 0 && !hasFile) {
     return NextResponse.json({ error: "Add at least one result or attach the result report." }, { status: 400 });
   }
@@ -52,23 +64,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: "Enter a result for every test, or attach the result report." }, { status: 400 });
   }
 
-  // Upload the report first, so a failed upload never leaves the order "resulted" without it
+  // The report was uploaded before this call, so a failed upload never
+  // leaves the order "resulted" without it. Check it's really ours and valid.
   let pdfUrl: string | null = null;
-  if (hasFile) {
-    const ext = FILE_TYPES[pdfFile!.type];
-    if (!ext) return NextResponse.json({ error: "The report must be a PDF, JPG or PNG file." }, { status: 400 });
-    if (pdfFile!.size > MAX_FILE_BYTES) return NextResponse.json({ error: "The report must be smaller than 10 MB." }, { status: 400 });
-    // Private bucket: the path is stored and links are signed on demand
-    const fileName = `${params.id}/report-${Date.now()}.${ext}`;
-    const buffer = Buffer.from(await pdfFile!.arrayBuffer());
-    const { error: uploadErr } = await admin.storage
-      .from("lab-results")
-      .upload(fileName, buffer, { contentType: pdfFile!.type, upsert: true });
-    if (uploadErr) {
-      console.error("lab result upload failed:", uploadErr);
-      return NextResponse.json({ error: `Couldn't upload the report: ${uploadErr.message}` }, { status: 500 });
-    }
-    pdfUrl = fileName;
+  if (reportPath) {
+    const pattern = new RegExp(`^${params.id}/report-\\d+\\.(pdf|jpg|png)$`);
+    const bad = await verifyUpload(admin, BUCKET, reportPath, pattern, MAX_FILE_BYTES);
+    if (bad) return NextResponse.json({ error: bad }, { status: 400 });
+    pdfUrl = reportPath;
   }
 
   const rows = results.map(r => ({
